@@ -54,6 +54,9 @@ const Header = () => {
           <Link href="/facilities" className={linkClassName}>
             Facilities
           </Link>
+          <Link href="/Buy" className={linkClassName}>
+          Buy
+          </Link>
         </div>
 
         {/* Logo in the Center */}

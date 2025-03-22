@@ -3,8 +3,11 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useState } from "react";
 
 const BuyPage = () => {
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [selectedHashRate, setSelectedHashRate] = useState<string | null>(null);
   const fadeInVariants = {
     hidden: { opacity: 0, y: -20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
@@ -96,7 +99,10 @@ const BuyPage = () => {
         <ul className="space-y-4">
           {["3 month", "4 Month", "5 Month", "6 Month"].map((plan, index) => (
             <li key={index} className="relative">
-              <button className="group w-full bg-white p-4 rounded-md shadow-sm hover:scale-105 overflow-hidden relative transition-all">
+              <button 
+                onClick={() => setSelectedPlan(plan)}
+                className="group w-full bg-white p-4 rounded-md shadow-sm hover:scale-105 overflow-hidden relative transition-all"
+              >
                 <span className="relative z-10 transition-colors duration-300 group-hover:text-white">
                   {plan}
                 </span>
@@ -130,7 +136,10 @@ const BuyPage = () => {
         <ul className="space-y-4">
           {["200 TH", "300 TH", "400 TH", "500 TH"].map((feature, index) => (
             <li key={index} className="relative">
-              <button className="group w-full bg-white p-4 rounded-md shadow-sm overflow-hidden relative transition-all hover:scale-105">
+              <button
+                onClick={() => setSelectedHashRate(feature)}
+                className="group w-full bg-white p-4 rounded-md shadow-sm overflow-hidden relative transition-all hover:scale-105"
+              >
                 <span className="relative z-10 transition-colors duration-300 group-hover:text-white">
                   {feature}
                 </span>
@@ -151,6 +160,19 @@ const BuyPage = () => {
             <li className="bg-white p-4 rounded-md shadow-sm">Feature 6</li>
           </ul>
         </div>
+        
+         {/* Add checkout button after the grid sections: */}
+      
+      <div className="mt-12 text-center">
+        <Button
+          variant="default"
+          size="lg"
+          className="px-12 py-4 bg-zinc-800/80 border border-zinc-700 text-white rounded-full hover:bg-zinc-700/80 transition-all duration-300 text-xl"
+          disabled={!selectedPlan || !selectedHashRate}
+        >
+          CheckOut
+        </Button>
+      </div>
       </div>
     </motion.section>
     </section>
@@ -159,3 +181,6 @@ const BuyPage = () => {
 };
 
 export default BuyPage;
+
+
+

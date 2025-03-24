@@ -67,12 +67,12 @@ const MiningSolutions: React.FC = () => {
             variants={cardVariants}
             initial="hidden"
             animate="visible"
-            className="bg-zinc-900 rounded-lg p-4 md:p-5 shadow-md border border-zinc-800 max-w-5xl w-full"
+            className="bg-zinc-900/20 border-zinc-700/50 rounded-lg p-4 md:p-5 shadow-lg border max-w-5xl w-full backdrop-blur-sm"
           >
             <h3 className="text-lg md:text-xl font-semibold text-white mb-2">
               Bitcoin Mining Excellence
             </h3>
-            <p className="text-sm md:text-base text-zinc-300 leading-relaxed">
+            <p className="text-sm md:text-base text-zinc-200 leading-relaxed">
               potentia ensures top-tier performance by deploying the latest
               ASIC miners, optimizing cooling systems, and securing
               cost-effective, sustainable energy sources. potentia prioritize
@@ -90,12 +90,12 @@ const MiningSolutions: React.FC = () => {
             variants={cardVariants}
             initial="hidden"
             animate="visible"
-            className="bg-zinc-900 rounded-lg p-4 md:p-5 shadow-md border border-zinc-800 max-w-5xl w-full"
+            className="bg-zinc-900/20 border-zinc-700/50 rounded-lg p-4 md:p-5 shadow-lg border max-w-5xl w-full backdrop-blur-sm"
           >
             <h3 className="text-lg md:text-xl font-semibold text-white mb-2">
               Bitcoin Mining, Hosting and Innovation
             </h3>
-            <p className="text-sm md:text-base text-zinc-300 leading-relaxed">
+            <p className="text-sm md:text-base text-zinc-200 leading-relaxed">
               Our Bitcoin mining hosting service provides a seamless, secure,
               and cost-efficient solution for individuals and institutions
               looking to gain Bitcoin exposure without the complexities of

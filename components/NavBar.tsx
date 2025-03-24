@@ -47,6 +47,7 @@ const Header = () => {
     <motion.header className={headerClassName}>
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center relative">
         {/* Left Navigation Links */}
+        {/* // In the left navigation links section: */}
         <div className="hidden md:flex space-x-8 items-center">
           <Link href="/" className={`${linkClassName} font-bold`}>
             Home
@@ -54,9 +55,44 @@ const Header = () => {
           <Link href="/facilities" className={linkClassName}>
             Facilities
           </Link>
-          <Link href="/Buy" className={linkClassName}>
-          Buy
-          </Link>
+          <div className="relative">
+            <Link href="/Buy" className={`${linkClassName} relative group`}>
+              Buy
+              {/* <motion.div
+                className="absolute -right-4 -top-2"
+                initial={{ y: -10, opacity: 0, rotate: 0 }}
+                animate={{
+                  y: 0,
+                  opacity: 1,
+                  rotate: [0, 15, -15, 0],
+                  transition: {
+                    y: { 
+                      type: "spring",
+                      bounce: 0.4,
+                      duration: 1.5
+                    },
+                    rotate: {
+                      type: "tween",
+                      duration: 1.2,
+                      ease: "easeInOut",
+                      times: [0, 0.25, 0.75, 1],
+                      repeat: Infinity,
+                      repeatDelay: 2
+                    },
+                    opacity: { duration: 0.8 }
+                  }
+                }}
+              >
+                <Image
+                  src={scrolled ? "/btc-dark.png" : "/btc-light.png"}
+                  alt="Bitcoin"
+                  width={24}
+                  height={24}
+                  className="w-6 h-6 md:w-8 md:h-8 transition-all"
+                /> 
+              </motion.div>*/}
+            </Link>
+          </div>
         </div>
 
         {/* Logo in the Center */}

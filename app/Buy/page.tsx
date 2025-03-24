@@ -13,6 +13,45 @@ const BuyPage = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
   };
 
+  const renderGPUs = () => {
+    const totalGPUs = 20; // Updated total number of GPUs to display
+    let unlockedGPUs = 0;
+
+    switch (selectedHashRate) {
+      case "200 TH":
+        unlockedGPUs = 3;
+        break;
+      case "300 TH":
+        unlockedGPUs = 5;
+        break;
+      case "400 TH":
+        unlockedGPUs = 8;
+        break;
+      case "500 TH":
+        unlockedGPUs = 12;
+        break;
+      default:
+        unlockedGPUs = 0;
+    }
+
+    return Array.from({ length: totalGPUs }, (_, index) => (
+      <li key={index} className="relative">
+        <img
+          src={index < unlockedGPUs ? "/gpuunlocked.png" : "/gpulocked.png"}
+          alt={index < unlockedGPUs ? "GPU Unlocked" : "GPU Locked"}
+          className="w-full h-full object-cover"
+        />
+        <span
+          className={`absolute bottom-2 right-2 text-xs ${
+            index < unlockedGPUs ? "text-black" : "text-gray-400"
+          }`}
+        >
+          {index < unlockedGPUs ? "Unlocked" : "Locked"}
+        </span>
+      </li>
+    ));
+  };
+
   return (
     <section>
       <motion.section className="relative h-screen bg-zinc-900/20 backdrop-blur-xl pt-40 pb-24 text-white overflow-hidden"
@@ -21,8 +60,19 @@ const BuyPage = () => {
       transition={{ duration: 1 }}
     >
       {/* Add pointer-events-none to both background layers */}
-      <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/60 via-zinc-900/40 to-zinc-800/80 pointer-events-none" />
-      <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ background: "url('/noise.png') repeat" }} />
+      <div className="absolute top-0 left-0 bg-gradient-to-br 
+              from-white/50 
+              via-white/35 
+              via-10%
+              to-transparent 
+              to-70%
+              blur-[6rem] 
+              w-96
+              h-96
+              pointer-events-none" />
+      <div className="absolute top-0 right-1/6  bg-gradient-to-tl from-black/70 via-white/15 to-black/50 blur-[8rem] w-[70rem] h-[30rem] rounded-full origin-top-left -rotate-12 -translate-x-[15rem] pointer-events-none" />
+
+      <div className="absolute  inset-0 opacity-10 pointer-events-none" style={{ background: "url('/noise.png') repeat" }} />
 
       {/* New Bitcoin logo animation */}
       <motion.img
@@ -77,7 +127,7 @@ const BuyPage = () => {
               size="lg"
               className="mt-8 px-8 py-3 bg-zinc-800/50 border border-zinc-700 text-white rounded-full hover:bg-zinc-700/50 transition-all duration-300"
             >
-              <a className="cursor-pointer">Contact Us</a>
+              <a className="cursor-pointer">Get in Touch</a>
             </Button>
           </Link>
         </motion.div>
@@ -97,7 +147,7 @@ const BuyPage = () => {
         <div className="bg-gray-200 p-6 rounded-lg shadow-md relative z-10">
         <h3 className="text-xl font-bold mb-4">Time Plans</h3>
         <ul className="space-y-4">
-          {["3 month", "4 Month", "5 Month", "6 Month"].map((plan, index) => (
+          {["3 Month's", "4 Month's", "5 Month's", "6 Month's"].map((plan, index) => (
             <li key={index} className="relative">
               <button 
                 onClick={() => setSelectedPlan(plan)}
@@ -151,13 +201,8 @@ const BuyPage = () => {
       </div>
 
         <div className="bg-gray-200 p-6 rounded-lg shadow-md relative z-10">
-          <ul className="grid grid-cols-2 gap-4">
-            <li className="bg-white p-4 rounded-md shadow-sm">Feature 1</li>
-            <li className="bg-white p-4 rounded-md shadow-sm">Feature 2</li>
-            <li className="bg-white p-4 rounded-md shadow-sm">Feature 3</li>
-            <li className="bg-white p-4 rounded-md shadow-sm">Feature 4</li>
-            <li className="bg-white p-4 rounded-md shadow-sm">Feature 5</li>
-            <li className="bg-white p-4 rounded-md shadow-sm">Feature 6</li>
+          <ul className="grid grid-cols-5 gap-4">
+            {renderGPUs()}
           </ul>
         </div>
         
@@ -169,6 +214,12 @@ const BuyPage = () => {
           size="lg"
           className="px-12 py-4 bg-zinc-800/80 border border-zinc-700 text-white rounded-full hover:bg-zinc-700/80 transition-all duration-300 text-xl"
           disabled={!selectedPlan || !selectedHashRate}
+          // could be changed from console to maybe clerk
+          onClick={() => {
+            if (selectedPlan && selectedHashRate) {
+              console.log(`Selected Plan: ${selectedPlan}, Selected Hash Rate: ${selectedHashRate}`);
+            }
+          }}  
         >
           CheckOut
         </Button>
@@ -181,6 +232,3 @@ const BuyPage = () => {
 };
 
 export default BuyPage;
-
-
-

@@ -109,7 +109,7 @@ const Header = () => {
           </Link>
         </div>
 
-        {/* Right Navigation Links (excluding profile icon) */}
+        {/* Right Navigation Links (excluding profile icon)  */}
         <div className="hidden md:flex space-x-8 items-center">
           <Link href="/about" className={linkClassName}>
             About

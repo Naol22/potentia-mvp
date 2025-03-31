@@ -75,10 +75,23 @@ const BuyPage = () => {
       <div className="absolute  inset-0 opacity-10 pointer-events-none" style={{ background: "url('/noise.png') repeat" }} />
 
       {/* New Bitcoin logo animation */}
-      <motion.img
+
+
+      {/* Existing content wrapper */}
+      <div className="relative z-10">
+        <motion.div
+          className="max-w-4xl mx-auto text-center px-6 lg:px-12 py-12"
+          variants={fadeInVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {/* Force text color inheritance */}
+          <motion.h1 className="text-4xl md:text-5xl font-bold tracking-tight font-sans bg-gradient-to-r from-white to-zinc-300 bg-clip-text text-transparent py-12">
+            Buy Now
+            <motion.img
         src="pngimg.com - bitcoin_PNG27.png"
         alt="Bitcoin"
-        className="absolute left-20 top-1/4 w-24 h-24 z-30 pointer-events-none"
+        className="absolute right-60 top-1/4 w-24 h-24 z-10 pointer-events-none"
         initial={{ y: -100, opacity: 0, rotate: 0 }}
         animate={{
           y: 0,
@@ -102,18 +115,6 @@ const BuyPage = () => {
           }
         }}
       />
-
-      {/* Existing content wrapper */}
-      <div className="relative z-10">
-        <motion.div
-          className="max-w-4xl mx-auto text-center px-6 lg:px-12 py-12"
-          variants={fadeInVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* Force text color inheritance */}
-          <motion.h1 className="text-4xl md:text-5xl font-bold tracking-tight font-sans bg-gradient-to-r from-white to-zinc-300 bg-clip-text text-transparent py-12">
-            Buy Now
           </motion.h1>
           <p className="mt-2 text-lg md:text-xl text-zinc-300 leading-relaxed">
             Discover our exclusive offerings and take the next step in your Bitcoin mining journey.

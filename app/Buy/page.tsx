@@ -5,6 +5,11 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useState } from "react";
 
+import { useUser } from '@clerk/nextjs';
+// import { loadStripe } from '@stripe/stripe-js';
+
+// const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+
 const BuyPage = () => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [selectedHashRate, setSelectedHashRate] = useState<string | null>(null);

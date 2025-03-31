@@ -5,6 +5,7 @@ import Image from "next/image"; // Add this import
 import { Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavbar } from "@/context/NavBarContext";
+import { useUser, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -14,6 +15,7 @@ const Header = () => {
   const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [profileDropdownTimeout, setProfileDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
+  const { isSignedIn, user } = useUser();
 
   useEffect(() => {
     const handleScroll = () => {

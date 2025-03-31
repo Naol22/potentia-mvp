@@ -7,13 +7,14 @@ import "@fontsource/inter/600.css";
 import "@fontsource/inter/700.css";
 import FooterSection from "@/components/Footer";
 import { NavbarProvider } from "@/context/NavBarContext";
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from "@vercel/analytics/react";
+import { ClerkProvider } from "@clerk/nextjs";
 
 export const metadata: Metadata = {
   title: "Potentia",
   description: "Bitcoin Mining",
   icons: {
-    icon: "/O.png", 
+    icon: "/O.png",
   },
 };
 
@@ -21,18 +22,20 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="icon" href="/O.png" />
-      </head>
-      <body className="bg-black text-white">
-        <NavbarProvider>
-          <Navbar />
-          <main>{children}</main>
-          <FooterSection />
-          <Analytics/>
-        </NavbarProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <head>
+          <link rel="icon" href="/O.png" />
+        </head>
+        <body className="bg-black text-white">
+          <NavbarProvider>
+            <Navbar />
+            <main>{children}</main>
+            <FooterSection />
+            <Analytics />
+          </NavbarProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

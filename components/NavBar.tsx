@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image"; // Add this import
 import { Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavbar } from "@/context/NavBarContext";
@@ -71,8 +72,8 @@ const Header = () => {
           <Link href="/" className={`${linkClassName} font-bold`}>
             Home
           </Link>
-          <Link href="/Buy" className={linkClassName}>
-            Buy now
+          <Link href="/buy" className={linkClassName}>
+            Products
           </Link>
         </div>
 
@@ -175,10 +176,13 @@ const Header = () => {
           onMouseLeave={handleProfileDropdownLeave}
         >
           <button className="py-1 transition-colors duration-300 mr-5 ">
-            <img
+            <Image
               src={scrolled ? "/profileb.png" : "/profile.png"}
               alt="Profile"
-              className="w-8 h-8"
+              width={32}
+              height={32}
+              className="transition-opacity duration-300"
+              priority
             />
           </button>
           {profileDropdownOpen && (

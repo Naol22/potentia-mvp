@@ -74,7 +74,7 @@ const Header = () => {
           <Link href="/" className={`${linkClassName} font-bold`}>
             Home
           </Link>
-          <Link href="/buy" className={linkClassName}>
+          <Link href="/Buy" className={linkClassName}>
             Products
           </Link>
         </div>

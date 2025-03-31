@@ -1,11 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image"; // Add this import
 import { Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavbar } from "@/context/NavBarContext";
 import { useUser, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
+import Image from "next/image";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);

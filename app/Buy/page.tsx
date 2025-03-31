@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useState } from "react";
+import Image from "next/image";
 
 import { useUser } from '@clerk/nextjs';
 // import { loadStripe } from '@stripe/stripe-js';
@@ -41,10 +42,13 @@ const BuyPage = () => {
 
     return Array.from({ length: totalGPUs }, (_, index) => (
       <li key={index} className="relative">
-        <img
+        <Image
           src={index < unlockedGPUs ? "/gpuunlocked.png" : "/gpulocked.png"}
           alt={index < unlockedGPUs ? "GPU Unlocked" : "GPU Locked"}
+          width={100}
+          height={100}
           className="w-full h-full object-cover"
+          priority={index < 5} // Prioritize loading the first few images
         />
         <span
           className={`absolute bottom-2 right-2 text-xs ${

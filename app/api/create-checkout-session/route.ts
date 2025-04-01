@@ -14,11 +14,29 @@ export async function POST(req: Request) {
     
     // Add selected payment method if not card
     if (paymentMethod !== 'card') {
-      if (paymentMethod === 'paypal') {
-        paymentMethodTypes.push('paypal');
-      } else if (paymentMethod !== 'apple_pay' && paymentMethod !== 'google_pay') {
-        // For methods other than Apple/Google Pay (which use card)
-        paymentMethodTypes.push(paymentMethod);
+      switch (paymentMethod) {
+        case 'paypal':
+          paymentMethodTypes.push('paypal');
+          break;
+        case 'apple_pay':
+        case 'google_pay':
+          // Apple Pay and Google Pay are handled through the card payment method
+          // No need to add them to paymentMethodTypes
+          break;
+        case 'klarna':
+          paymentMethodTypes.push('klarna');
+          break;
+        case 'affirm':
+          paymentMethodTypes.push('affirm');
+          break;
+        case 'alipay':
+          paymentMethodTypes.push('alipay');
+          break;
+        case 'wechat_pay':
+          paymentMethodTypes.push('wechat_pay');
+          break;
+        default:
+          paymentMethodTypes.push(paymentMethod);
       }
     }
 

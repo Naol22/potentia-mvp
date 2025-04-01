@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useState } from "react";
 import { loadStripe } from '@stripe/stripe-js';
-
+import { STRIPE_PRODUCTS } from '@/config/stripe-products';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -159,23 +159,25 @@ const BuyPage = () => {
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 relative z-5">
         {/* First Pair of Grids */}
         <div className="bg-gray-200 p-6 rounded-lg shadow-md relative z-10">
-        <h3 className="text-xl font-bold mb-4">Time Plans</h3>
-        <ul className="space-y-4">
-          {["3 Month's", "4 Month's", "5 Month's", "6 Month's"].map((plan, index) => (
-            <li key={index} className="relative">
-              <button 
-                onClick={() => setSelectedPlan(plan)}
-                className="group w-full bg-white p-4 rounded-md shadow-sm hover:scale-105 overflow-hidden relative transition-all"
-              >
-                <span className="relative z-10 transition-colors duration-300 group-hover:text-white">
-                  {plan}
-                </span>
-                <div className="absolute inset-0 bg-zinc-900/90 transition-all duration-500 transform -translate-x-full group-hover:translate-x-0 ease-out"></div>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
+  <h3 className="text-xl font-bold mb-4">Time Plans</h3>
+  <ul className="space-y-4">
+    {Object.keys(STRIPE_PRODUCTS.plans).map((plan, index) => (
+      <li key={index} className="relative">
+        <button 
+          onClick={() => setSelectedPlan(plan)}
+          className={`group w-full bg-white p-4 rounded-md shadow-sm hover:scale-105 overflow-hidden relative transition-all ${
+            selectedPlan === plan ? 'ring-2 ring-zinc-800' : ''
+          }`}
+        >
+          <span className="relative z-10 transition-colors duration-300 group-hover:text-white">
+            {plan}
+          </span>
+          <div className="absolute inset-0 bg-zinc-900/90 transition-all duration-500 transform -translate-x-full group-hover:translate-x-0 ease-out"></div>
+        </button>
+      </li>
+    ))}
+  </ul>
+</div>
         <div className="bg-gray-200 p-6 rounded-lg shadow-md relative z-10">
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="bg-white p-4 rounded-md shadow-sm text-center">
@@ -196,23 +198,25 @@ const BuyPage = () => {
       {/* Second Pair of Grids */}
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 mt-12">
       <div className="bg-gray-200 p-6 rounded-lg shadow-md relative z-10">
-      <h3 className="text-xl font-bold mb-4">Hash Rate</h3>
-        <ul className="space-y-4">
-          {["200 TH", "300 TH", "400 TH", "500 TH"].map((feature, index) => (
-            <li key={index} className="relative">
-              <button
-                onClick={() => setSelectedHashRate(feature)}
-                className="group w-full bg-white p-4 rounded-md shadow-sm overflow-hidden relative transition-all hover:scale-105"
-              >
-                <span className="relative z-10 transition-colors duration-300 group-hover:text-white">
-                  {feature}
-                </span>
-                <div className="absolute inset-0 bg-black/90 transition-all duration-500 transform -translate-x-full group-hover:translate-x-0 ease-out"></div>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
+  <h3 className="text-xl font-bold mb-4">Hash Rate</h3>
+  <ul className="space-y-4">
+    {Object.keys(STRIPE_PRODUCTS.hashRates).map((feature, index) => (
+      <li key={index} className="relative">
+        <button
+          onClick={() => setSelectedHashRate(feature)}
+          className={`group w-full bg-white p-4 rounded-md shadow-sm overflow-hidden relative transition-all hover:scale-105 ${
+            selectedHashRate === feature ? 'ring-2 ring-zinc-800' : ''
+          }`}
+        >
+          <span className="relative z-10 transition-colors duration-300 group-hover:text-white">
+            {feature}
+          </span>
+          <div className="absolute inset-0 bg-black/90 transition-all duration-500 transform -translate-x-full group-hover:translate-x-0 ease-out"></div>
+        </button>
+      </li>
+    ))}
+  </ul>
+</div>
 
         <div className="bg-gray-200 p-6 rounded-lg shadow-md relative z-10">
           <ul className="grid grid-cols-5 gap-4">
@@ -240,17 +244,37 @@ const BuyPage = () => {
           </div>
         </div>
         <Button
-          variant="default"
-          size="lg"
-          className="px-12 py-4 bg-zinc-800/80 border border-zinc-700 text-white rounded-full hover:bg-zinc-700/80 transition-all duration-300 text-xl"
-          disabled={!selectedPlan || !selectedHashRate}
-          // could be changed from console to maybe clerk
-          onClick={() => {
-            if (selectedPlan && selectedHashRate) {
-              console.log(`Selected Plan: ${selectedPlan}, Selected Hash Rate: ${selectedHashRate}`);
-            }
-          }}  
-        >
+  variant="default"
+  size="lg"
+  className="px-12 py-4 bg-zinc-800/80 border border-zinc-700 text-white rounded-full hover:bg-zinc-700/80 transition-all duration-300 text-xl"
+  disabled={!selectedPlan || !selectedHashRate}
+  onClick={async () => {
+    if (selectedPlan && selectedHashRate) {
+      try {
+        const response = await fetch('/api/create-checkout-session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            planId: STRIPE_PRODUCTS.plans[selectedPlan as keyof typeof STRIPE_PRODUCTS.plans],
+            hashRateId: STRIPE_PRODUCTS.hashRates[selectedHashRate as keyof typeof STRIPE_PRODUCTS.hashRates],
+            paymentMethod: paymentMethod
+          }),
+        });
+        
+        const { sessionId } = await response.json();
+        const stripe = await stripePromise;
+        
+        if (stripe) {
+          await stripe.redirectToCheckout({ sessionId });
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
+  }}
+>
           CheckOut
         </Button>
       </div>

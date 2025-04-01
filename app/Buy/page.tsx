@@ -11,7 +11,7 @@ import Image from "next/image";
 
 // const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
-const BuyPage = () => {
+const Buy = () => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [selectedHashRate, setSelectedHashRate] = useState<string | null>(null);
   const fadeInVariants = {
@@ -95,35 +95,8 @@ const BuyPage = () => {
           animate="visible"
         >
           {/* Force text color inheritance */}
-          <motion.h1 className="text-4xl md:text-5xl font-bold tracking-tight font-sans bg-gradient-to-r from-white to-zinc-300 bg-clip-text text-transparent py-12">
-            Buy Now
-            <motion.img
-        src="pngimg.com - bitcoin_PNG27.png"
-        alt="Bitcoin"
-        className="absolute right-60 top-1/4 w-24 h-24 z-10 pointer-events-none"
-        initial={{ y: -100, opacity: 0, rotate: 0 }}
-        animate={{
-          y: 0,
-          opacity: 1,
-          rotate: [0, 15, -15, 0],
-          transition: {
-            y: { 
-              type: "spring",
-              bounce: 0.4,
-              duration: 1.5
-            },
-            rotate: {
-              type: "tween",
-              duration: 1.2,
-              ease: "easeInOut",
-              times: [0, 0.25, 0.75, 1],
-              repeat: Infinity,
-              repeatDelay: 2
-            },
-            opacity: { duration: 0.8 }
-          }
-        }}
-      />
+          <motion.h1 className="text-4xl md:text-5xl font-bold tracking-tight font-sans bg-gradient-to-r from-white to-zinc-300 bg-clip-text text-transparent my-6 p-5">
+          Start mining with potentia
           </motion.h1>
           <p className="mt-2 text-lg md:text-xl text-zinc-300 leading-relaxed">
             Discover our exclusive offerings and take the next step in your Bitcoin mining journey.
@@ -241,4 +214,4 @@ const BuyPage = () => {
   );
 };
 
-export default BuyPage;
+export default Buy;

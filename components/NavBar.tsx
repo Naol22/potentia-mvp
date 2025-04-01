@@ -68,9 +68,9 @@ const Header = () => {
   return (
     <motion.header className={headerClassName}>
       {/* Main container */}
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center relative min-h-[64px]">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between min-h-[64px]">
         {/* Left Navigation Links */}
-        <div className="hidden md:flex space-x-8 items-center">
+        <div className="hidden md:flex space-x-8 items-center order-1">
           <Link href="/" className={`${linkClassName} font-bold`}>
             Home
           </Link>
@@ -80,7 +80,7 @@ const Header = () => {
         </div>
 
         {/* Logo in the Center */}
-        <div className="absolute left-1/2 top-7px transform -translate-x-1/2 md:-translate-y-0 -translate-y-1/2">
+        <div className="flex items-center order-2 md:order-2 mx-auto md:mx-0">
           <Link href="/" className={linkClassName}>
             <motion.img
               src={scrolled ? "/Artboardb.png" : "/Artboardw.png"}
@@ -112,10 +112,10 @@ const Header = () => {
           </Link>
         </div>
 
-        {/* Right Section: Navigation Links + Profile */}
-        <div className="hidden md:flex items-center space-x-8">
-          {/* Navigation Links */}
-          <div className="flex space-x-8">
+        {/* Right Section: Navigation Links + Profile + Mobile Menu Button */}
+        <div className="flex items-center space-x-8 order-3">
+          {/* Desktop Navigation Links */}
+          <div className="hidden md:flex space-x-8">
             <Link href="/about" className={linkClassName}>
               About
             </Link>
@@ -177,61 +177,61 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Profile Section */}
-          {isSignedIn ? (
-            <UserButton />
-          ) : (
-            <div
-              className="relative"
-              onMouseEnter={handleProfileDropdownEnter}
-              onMouseLeave={handleProfileDropdownLeave}
-            >
-              <button className="py-1 transition-colors duration-300">
-                <Image
-                  src={scrolled ? "/profileb.png" : "/profile.png"}
-                  alt="Profile"
-                  width={32}
-                  height={32}
-                  className="transition-opacity duration-300"
-                  priority
-                />
-              </button>
-              {profileDropdownOpen && (
-                <motion.div
-                  className={`absolute right-0 top-full ${
-                    scrolled ? "bg-white" : "bg-transparent"
-                  } text-black shadow-lg w-40 py-2 rounded-md z-40`}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <SignInButton mode="modal">
-                    <button className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}>
-                      Log In
-                    </button>
-                  </SignInButton>
-                  <SignUpButton mode="modal">
-                    <button className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}>
-                      Sign Up
-                    </button>
-                  </SignUpButton>
-                </motion.div>
-              )}
-            </div>
-          )}
+          {/* Profile Section (Desktop Only) */}
+          <div className="hidden md:block">
+            {isSignedIn ? (
+              <UserButton />
+            ) : (
+              <div
+                className="relative"
+                onMouseEnter={handleProfileDropdownEnter}
+                onMouseLeave={handleProfileDropdownLeave}
+              >
+                <button className="py-1 transition-colors duration-300">
+                  <Image
+                    src={scrolled ? "/profileb.png" : "/profile.png"}
+                    alt="Profile"
+                    width={32}
+                    height={32}
+                    className="transition-opacity duration-300"
+                    priority
+                  />
+                </button>
+                {profileDropdownOpen && (
+                  <motion.div
+                    className={`absolute right-0 top-full ${
+                      scrolled ? "bg-white" : "bg-transparent"
+                    } text-black shadow-lg w-40 py-2 rounded-md z-40`}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <SignInButton mode="modal">
+                      <button className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}>
+                        Log In
+                      </button>
+                    </SignInButton>
+                    <SignUpButton mode="modal">
+                      <button className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}>
+                        Sign Up
+                      </button>
+                    </SignUpButton>
+                  </motion.div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className={`md:hidden z-50 ${scrolled ? "text-black" : "text-white"}`}
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            {menuOpen ? <X size={28} /> : <Menu size={28} />}
+          </button>
         </div>
       </div>
-
-      {/* Mobile Menu Button */}
-      <button
-        className={`md:hidden absolute right-6 top-1/2 transform -translate-y-1/2 z-50 ${
-          scrolled ? "text-black" : "text-white"
-        }`}
-        onClick={() => setMenuOpen(!menuOpen)}
-      >
-        {menuOpen ? <X size={28} /> : <Menu size={28} />}
-      </button>
 
       {/* Mobile Navigation Links */}
       <motion.nav

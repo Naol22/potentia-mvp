@@ -6,16 +6,16 @@ import { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
-import dynamic from 'next/dynamic';
-const FlatMap3D = dynamic(() => import("@/components/FlatMap3D"), {
-  ssr: false, 
-});
+// import dynamic from 'next/dynamic';
+// const FlatMap3D = dynamic(() => import("@/components/FlatMap3D"), {
+//   ssr: false, 
+// });
 
-import { useUser } from '@clerk/nextjs';
+// import { useUser } from '@clerk/nextjs';
 // import { loadStripe } from '@stripe/stripe-js';
 // const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
-const buy = () => {
+const ProductPage = () => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [selectedHashRate, setSelectedHashRate] = useState<string | null>(null);
   const [showMiningHosts, setShowMiningHosts] = useState(false);
@@ -265,7 +265,7 @@ const buy = () => {
             <div className="max-w-6xl mx-auto relative z-10">
               <motion.div className="bg-gray-200/4 p-6 rounded-lg shadow-xl border border-white/10">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-3xl font-bold">Our Mining Host's</h3>
+                  <h3 className="text-3xl font-bold">Our Mining Host&apos;s</h3>
                   <Button 
                     onClick={() => setShowMiningHosts(false)}
                     className="bg-zinc-800/80 border border-zinc-700 text-white rounded-full hover:bg-zinc-700/80 transition-all duration-300"
@@ -303,4 +303,4 @@ const buy = () => {
   );
 };
 
-export default buy;
+export default ProductPage;

@@ -80,13 +80,13 @@ const Header = () => {
         </div>
 
         {/* Logo in the Center */}
-        <div className="absolute left-1/2 top-6 transform -translate-x-1/2 md:-translate-y-0 -translate-y-1/2">
+        <div className="absolute left-1/2 top-7px transform -translate-x-1/2 md:-translate-y-0 -translate-y-1/2">
           <Link href="/" className={linkClassName}>
             <motion.img
               src={scrolled ? "/Artboardb.png" : "/Artboardw.png"}
               alt="Logo"
-              width={80}
-              height={30}
+              width={90}
+              height={40}
               className="transition-opacity duration-300"
               animate={{
                 opacity: 1,
@@ -112,114 +112,115 @@ const Header = () => {
           </Link>
         </div>
 
-        {/* Right Navigation Links (excluding profile icon) */}
-        <div className="hidden md:flex space-x-8 items-center">
-          <Link href="/about" className={linkClassName}>
-            About
-          </Link>
-          <div
-            className="relative"
-            onMouseEnter={handleDropdownEnter}
-            onMouseLeave={handleDropdownLeave}
-          >
-            <button
-              className={`${linkClassName} flex items-center space-x-1`}
-              onClick={() => setDropdownOpen(!dropdownOpen)}
+        {/* Right Section: Navigation Links + Profile */}
+        <div className="hidden md:flex items-center space-x-8">
+          {/* Navigation Links */}
+          <div className="flex space-x-8">
+            <Link href="/about" className={linkClassName}>
+              About
+            </Link>
+            <div
+              className="relative"
+              onMouseEnter={handleDropdownEnter}
+              onMouseLeave={handleDropdownLeave}
             >
-              <span>Resources</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 inline-block"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+              <button
+                className={`${linkClassName} flex items-center space-x-1`}
+                onClick={() => setDropdownOpen(!dropdownOpen)}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </button>
-            {dropdownOpen && (
-              <motion.div
-                className={`absolute left-0 top-full mt-2 ${
-                  scrolled ? "bg-white" : "bg-transparent"
-                } text-black shadow-lg w-56 py-2 rounded-md z-40`}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Link
-                  href="/facilities"
-                  className={`${linkClassName} hover:bg-gray-100 block`}
+                <span>Resources</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 inline-block"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  Facilities
-                </Link>
-                <Link
-                  href="/learn"
-                  className={`${linkClassName} hover:bg-gray-100 block`}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+              {dropdownOpen && (
+                <motion.div
+                  className={`absolute left-0 top-full mt-2 ${
+                    scrolled ? "bg-white" : "bg-transparent"
+                  } text-black shadow-lg w-56 py-2 rounded-md z-40`}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  Learn
-                </Link>
-                <Link
-                  href="/faq"
-                  className={`${linkClassName} hover:bg-gray-100 block`}
-                >
-                  Downloadables
-                </Link>
-              </motion.div>
-            )}
+                  <Link
+                    href="/facilities"
+                    className={`${linkClassName} hover:bg-gray-100 block`}
+                  >
+                    Facilities
+                  </Link>
+                  <Link
+                    href="/learn"
+                    className={`${linkClassName} hover:bg-gray-100 block`}
+                  >
+                    Learn
+                  </Link>
+                  <Link
+                    href="/faq"
+                    className={`${linkClassName} hover:bg-gray-100 block`}
+                  >
+                    Downloadables
+                  </Link>
+                </motion.div>
+              )}
+            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Absolutely Positioned Profile Section */}
-      <div className="hidden md:block absolute right-6 top-4">
-        {isSignedIn ? (
-          <UserButton />
-        ) : (
-          <div
-            className="relative"
-            onMouseEnter={handleProfileDropdownEnter}
-            onMouseLeave={handleProfileDropdownLeave}
-          >
-            <button className="py-1 transition-colors duration-300 mr-5">
-              <Image
-                src={scrolled ? "/profileb.png" : "/profile.png"}
-                alt="Profile"
-                width={32}
-                height={32}
-                className="transition-opacity duration-300"
-                priority
-              />
-            </button>
-            {profileDropdownOpen && (
-              <motion.div
-                className={`absolute right-0 top-full ${
-                  scrolled ? "bg-white" : "bg-transparent"
-                } text-black shadow-lg w-40 py-2 rounded-md z-40`}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                <SignInButton mode="modal">
-                  <button className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}>
-                    Log In
-                  </button>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                  <button className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}>
-                    Sign Up
-                  </button>
-                </SignUpButton>
-              </motion.div>
-            )}
-          </div>
-        )}
+          {/* Profile Section */}
+          {isSignedIn ? (
+            <UserButton />
+          ) : (
+            <div
+              className="relative"
+              onMouseEnter={handleProfileDropdownEnter}
+              onMouseLeave={handleProfileDropdownLeave}
+            >
+              <button className="py-1 transition-colors duration-300">
+                <Image
+                  src={scrolled ? "/profileb.png" : "/profile.png"}
+                  alt="Profile"
+                  width={32}
+                  height={32}
+                  className="transition-opacity duration-300"
+                  priority
+                />
+              </button>
+              {profileDropdownOpen && (
+                <motion.div
+                  className={`absolute right-0 top-full ${
+                    scrolled ? "bg-white" : "bg-transparent"
+                  } text-black shadow-lg w-40 py-2 rounded-md z-40`}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <SignInButton mode="modal">
+                    <button className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}>
+                      Log In
+                    </button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <button className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}>
+                      Sign Up
+                    </button>
+                  </SignUpButton>
+                </motion.div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Mobile Menu Button */}

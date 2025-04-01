@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavbar } from "@/context/NavBarContext";
-import { useUser, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
+import { useUser, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import Image from "next/image";
 
 const Header = () => {
@@ -15,7 +15,7 @@ const Header = () => {
   const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [profileDropdownTimeout, setProfileDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
-  const { isSignedIn, user } = useUser();
+  const { isSignedIn } = useUser();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -68,7 +68,7 @@ const Header = () => {
   return (
     <motion.header className={headerClassName}>
       {/* Main container */}
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center relative">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center relative min-h-[64px]">
         {/* Left Navigation Links */}
         <div className="hidden md:flex space-x-8 items-center">
           <Link href="/" className={`${linkClassName} font-bold`}>
@@ -80,7 +80,7 @@ const Header = () => {
         </div>
 
         {/* Logo in the Center */}
-        <div className="absolute left-1/2 transform -translate-x-1/2">
+        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 md:-translate-y-0 -translate-y-1/2">
           <Link href="/" className={linkClassName}>
             <motion.img
               src={scrolled ? "/Artboardb.png" : "/Artboardw.png"}
@@ -112,7 +112,7 @@ const Header = () => {
           </Link>
         </div>
 
-        {/* Right Navigation Links (excluding profile icon)  */}
+        {/* Right Navigation Links (excluding profile icon) */}
         <div className="hidden md:flex space-x-8 items-center">
           <Link href="/about" className={linkClassName}>
             About
@@ -146,12 +146,18 @@ const Header = () => {
               <motion.div
                 className={`absolute left-0 top-full mt-2 ${
                   scrolled ? "bg-white" : "bg-transparent"
-                } text-black shadow-lg w-56 py-2 rounded-md z-40`}
+                } text-black shadow-lg w-56 py-2 rounded-mdPOT z-40`}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
               >
+                <Link
+                  href="/facilities"
+                  className={`${linkClassName} hover:bg-gray-100 block`}
+                >
+                  Facilities
+                </Link>
                 <Link
                   href="/learn"
                   className={`${linkClassName} hover:bg-gray-100 block`}
@@ -170,48 +176,50 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Absolutely Positioned Profile Icon */}
+      {/* Absolutely Positioned Profile Section */}
       <div className="hidden md:block absolute right-6 top-4">
-        <div
-          className="relative"
-          onMouseEnter={handleProfileDropdownEnter}
-          onMouseLeave={handleProfileDropdownLeave}
-        >
-          <button className="py-1 transition-colors duration-300 mr-5 ">
-            <Image
-              src={scrolled ? "/profileb.png" : "/profile.png"}
-              alt="Profile"
-              width={32}
-              height={32}
-              className="transition-opacity duration-300"
-              priority
-            />
-          </button>
-          {profileDropdownOpen && (
-            <motion.div
-              className={`absolute right-0 top-full ${
-                scrolled ? "bg-white" : "bg-transparent"
-              } text-black shadow-lg w-40 py-2 rounded-md z-40`}
-              initial={{ opacity: 0, y: -10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Link
-                href="/login"
-                className={`${linkClassName} hover:bg-gray-100 block`}
+        {isSignedIn ? (
+          <UserButton />
+        ) : (
+          <div
+            className="relative"
+            onMouseEnter={handleProfileDropdownEnter}
+            onMouseLeave={handleProfileDropdownLeave}
+          >
+            <button className="py-1 transition-colors duration-300 mr-5">
+              <Image
+                src={scrolled ? "/profileb.png" : "/profile.png"}
+                alt="Profile"
+                width={32}
+                height={32}
+                className="transition-opacity duration-300"
+                priority
+              />
+            </button>
+            {profileDropdownOpen && (
+              <motion.div
+                className={`absolute right-0 top-full ${
+                  scrolled ? "bg-white" : "bg-transparent"
+                } text-black shadow-lg w-40 py-2 rounded-md z-40`}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
               >
-                Log In
-              </Link>
-              <Link
-                href="/signup"
-                className={`${linkClassName} hover:bg-gray-100 block`}
-              >
-                Sign Up
-              </Link>
-            </motion.div>
-          )}
-        </div>
+                <SignInButton mode="modal">
+                  <button className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}>
+                    Log In
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}>
+                    Sign Up
+                  </button>
+                </SignUpButton>
+              </motion.div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Mobile Menu Button */}
@@ -265,6 +273,25 @@ const Header = () => {
           >
             Downloadables
           </Link>
+          {/* Authentication Options in Mobile Menu */}
+          {isSignedIn ? (
+            <div className="mt-6">
+              <UserButton />
+            </div>
+          ) : (
+            <div className="mt-6 space-y-4">
+              <SignInButton mode="modal">
+                <button className="block w-full text-left px-6 py-2 text-white hover:text-gray-300">
+                  Log In
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="block w-full text-left px-6 py-2 text-white hover:text-gray-300">
+                  Sign Up
+                </button>
+              </SignUpButton>
+            </div>
+          )}
         </div>
       </motion.nav>
 

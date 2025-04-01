@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 import "../styles/globals.css";
-import Navbar from "@/components/NavBar";
 import "@fontsource/inter/400.css";
 import "@fontsource/inter/500.css";
 import "@fontsource/inter/600.css";
 import "@fontsource/inter/700.css";
-import FooterSection from "@/components/Footer";
 import { NavbarProvider } from "@/context/NavBarContext";
 import { Analytics } from "@vercel/analytics/react";
 import { ClerkProvider } from "@clerk/nextjs";
+import ClientLayout from "./ClientLayout"; // New client component
 
 export const metadata: Metadata = {
   title: "Potentia",
@@ -29,9 +28,7 @@ export default function RootLayout({
         </head>
         <body className="bg-black text-white">
           <NavbarProvider>
-            <Navbar />
-            <main>{children}</main>
-            <FooterSection />
+            <ClientLayout>{children}</ClientLayout>
             <Analytics />
           </NavbarProvider>
         </body>

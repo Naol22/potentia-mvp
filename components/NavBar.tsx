@@ -12,9 +12,12 @@ const Header = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { sticky } = useNavbar();
-  const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(
+    null
+  );
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [profileDropdownTimeout, setProfileDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [profileDropdownTimeout, setProfileDropdownTimeout] =
+    useState<NodeJS.Timeout | null>(null);
   const { isSignedIn } = useUser();
 
   useEffect(() => {
@@ -207,13 +210,17 @@ const Header = () => {
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <SignInButton mode="modal">
-                      <button className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}>
-                        Log In
+                    <SignInButton>
+                      <button
+                        className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}
+                      >
+                        Sign In
                       </button>
                     </SignInButton>
-                    <SignUpButton mode="modal">
-                      <button className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}>
+                    <SignUpButton>
+                      <button
+                        className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}
+                      >
                         Sign Up
                       </button>
                     </SignUpButton>
@@ -225,7 +232,9 @@ const Header = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className={`md:hidden z-50 ${scrolled ? "text-black" : "text-white"}`}
+            className={`md:hidden z-50 ${
+              scrolled ? "text-black" : "text-white"
+            }`}
             onClick={() => setMenuOpen(!menuOpen)}
           >
             {menuOpen ? <X size={28} /> : <Menu size={28} />}
@@ -276,6 +285,7 @@ const Header = () => {
           >
             Downloadables
           </Link>
+          
           {/* Authentication Options in Mobile Menu */}
           {isSignedIn ? (
             <div className="mt-6">
@@ -283,12 +293,12 @@ const Header = () => {
             </div>
           ) : (
             <div className="mt-6 space-y-4">
-              <SignInButton mode="modal">
+              <SignInButton>
                 <button className="block w-full text-left px-6 py-2 text-white hover:text-gray-300">
                   Log In
                 </button>
               </SignInButton>
-              <SignUpButton mode="modal">
+              <SignUpButton>
                 <button className="block w-full text-left px-6 py-2 text-white hover:text-gray-300">
                   Sign Up
                 </button>

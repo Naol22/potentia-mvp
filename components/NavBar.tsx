@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavbar } from "@/context/NavBarContext";
-import { useUser, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
+import { useUser, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import Image from "next/image";
 
 const Header = () => {
@@ -15,7 +15,7 @@ const Header = () => {
   const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [profileDropdownTimeout, setProfileDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
-  const { isSignedIn, user } = useUser();
+  const { isSignedIn } = useUser();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -68,9 +68,9 @@ const Header = () => {
   return (
     <motion.header className={headerClassName}>
       {/* Main container */}
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center relative">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between min-h-[64px]">
         {/* Left Navigation Links */}
-        <div className="hidden md:flex space-x-8 items-center">
+        <div className="hidden md:flex space-x-8 items-center order-1">
           <Link href="/" className={`${linkClassName} font-bold`}>
             Home
           </Link>
@@ -80,7 +80,7 @@ const Header = () => {
         </div>
 
         {/* Logo in the Center */}
-        <div className="absolute left-1/2 transform -translate-x-1/2">
+        <div className="flex items-center order-2 md:order-2 mx-auto md:mx-0">
           <Link href="/" className={linkClassName}>
             <motion.img
               src={scrolled ? "/Artboardb.png" : "/Artboardw.png"}
@@ -112,115 +112,126 @@ const Header = () => {
           </Link>
         </div>
 
-        {/* Right Navigation Links (excluding profile icon)  */}
-        <div className="hidden md:flex space-x-8 items-center">
-          <Link href="/about" className={linkClassName}>
-            About
-          </Link>
-          <div
-            className="relative"
-            onMouseEnter={handleDropdownEnter}
-            onMouseLeave={handleDropdownLeave}
-          >
-            <button
-              className={`${linkClassName} flex items-center space-x-1`}
-              onClick={() => setDropdownOpen(!dropdownOpen)}
+        {/* Right Section: Navigation Links + Profile + Mobile Menu Button */}
+        <div className="flex items-center space-x-8 order-3">
+          {/* Desktop Navigation Links */}
+          <div className="hidden md:flex space-x-8">
+            <Link href="/about" className={linkClassName}>
+              About
+            </Link>
+            <div
+              className="relative"
+              onMouseEnter={handleDropdownEnter}
+              onMouseLeave={handleDropdownLeave}
             >
-              <span>Resources</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 inline-block"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+              <button
+                className={`${linkClassName} flex items-center space-x-1`}
+                onClick={() => setDropdownOpen(!dropdownOpen)}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </button>
-            {dropdownOpen && (
-              <motion.div
-                className={`absolute left-0 top-full mt-2 ${
-                  scrolled ? "bg-white" : "bg-transparent"
-                } text-black shadow-lg w-56 py-2 rounded-md z-40`}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
+                <span>Resources</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 inline-block"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+              {dropdownOpen && (
+                <motion.div
+                  className={`absolute left-0 top-full mt-2 ${
+                    scrolled ? "bg-white" : "bg-transparent"
+                  } text-black shadow-lg w-56 py-2 rounded-md z-40`}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Link
+                    href="/facilities"
+                    className={`${linkClassName} hover:bg-gray-100 block`}
+                  >
+                    Facilities
+                  </Link>
+                  <Link
+                    href="/learn"
+                    className={`${linkClassName} hover:bg-gray-100 block`}
+                  >
+                    Learn
+                  </Link>
+                  <Link
+                    href="/faq"
+                    className={`${linkClassName} hover:bg-gray-100 block`}
+                  >
+                    Downloadables
+                  </Link>
+                </motion.div>
+              )}
+            </div>
+          </div>
+
+          {/* Profile Section (Desktop Only) */}
+          <div className="hidden md:block">
+            {isSignedIn ? (
+              <UserButton />
+            ) : (
+              <div
+                className="relative"
+                onMouseEnter={handleProfileDropdownEnter}
+                onMouseLeave={handleProfileDropdownLeave}
               >
-                <Link
-                  href="/learn"
-                  className={`${linkClassName} hover:bg-gray-100 block`}
-                >
-                  Learn
-                </Link>
-                <Link
-                  href="/faq"
-                  className={`${linkClassName} hover:bg-gray-100 block`}
-                >
-                  Downloadables
-                </Link>
-              </motion.div>
+                <button className="py-1 transition-colors duration-300">
+                  <Image
+                    src={scrolled ? "/profileb.png" : "/profile.png"}
+                    alt="Profile"
+                    width={32}
+                    height={32}
+                    className="transition-opacity duration-300"
+                    priority
+                  />
+                </button>
+                {profileDropdownOpen && (
+                  <motion.div
+                    className={`absolute right-0 top-full ${
+                      scrolled ? "bg-white" : "bg-transparent"
+                    } text-black shadow-lg w-40 py-2 rounded-md z-40`}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <SignInButton mode="modal">
+                      <button className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}>
+                        Log In
+                      </button>
+                    </SignInButton>
+                    <SignUpButton mode="modal">
+                      <button className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}>
+                        Sign Up
+                      </button>
+                    </SignUpButton>
+                  </motion.div>
+                )}
+              </div>
             )}
           </div>
-        </div>
-      </div>
 
-      {/* Absolutely Positioned Profile Icon */}
-      <div className="hidden md:block absolute right-6 top-4">
-        <div
-          className="relative"
-          onMouseEnter={handleProfileDropdownEnter}
-          onMouseLeave={handleProfileDropdownLeave}
-        >
-          <button className="py-1 transition-colors duration-300 mr-5 ">
-            <Image
-              src={scrolled ? "/profileb.png" : "/profile.png"}
-              alt="Profile"
-              width={32}
-              height={32}
-              className="transition-opacity duration-300"
-              priority
-            />
+          {/* Mobile Menu Button */}
+          <button
+            className={`md:hidden z-50 ${scrolled ? "text-black" : "text-white"}`}
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            {menuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
-          {profileDropdownOpen && (
-            <motion.div
-              className={`absolute right-0 top-full ${
-                scrolled ? "bg-white" : "bg-transparent"
-              } text-black shadow-lg w-40 py-2 rounded-md z-40`}
-              initial={{ opacity: 0, y: -10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Link
-                href="/login"
-                className={`${linkClassName} hover:bg-gray-100 block`}
-              >
-                Log In
-              </Link>
-              <Link
-                href="/signup"
-                className={`${linkClassName} hover:bg-gray-100 block`}
-              >
-                Sign Up
-              </Link>
-            </motion.div>
-          )}
         </div>
       </div>
-
-      {/* Mobile Menu Button */}
-      <button
-        className={`md:hidden z-50 ${scrolled ? "text-black" : "text-white"}`}
-        onClick={() => setMenuOpen(!menuOpen)}
-      >
-        {menuOpen ? <X size={28} /> : <Menu size={28} />}
-      </button>
 
       {/* Mobile Navigation Links */}
       <motion.nav
@@ -265,6 +276,25 @@ const Header = () => {
           >
             Downloadables
           </Link>
+          {/* Authentication Options in Mobile Menu */}
+          {isSignedIn ? (
+            <div className="mt-6">
+              <UserButton />
+            </div>
+          ) : (
+            <div className="mt-6 space-y-4">
+              <SignInButton mode="modal">
+                <button className="block w-full text-left px-6 py-2 text-white hover:text-gray-300">
+                  Log In
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="block w-full text-left px-6 py-2 text-white hover:text-gray-300">
+                  Sign Up
+                </button>
+              </SignUpButton>
+            </div>
+          )}
         </div>
       </motion.nav>
 

@@ -12,8 +12,12 @@ const FlatMap3D = dynamic(() => import("@/components/FlatMap3D"), {
 });
 
 import { useUser } from '@clerk/nextjs';
+// import { useUser } from '@clerk/nextjs';
+// import { loadStripe } from '@stripe/stripe-js';
 
-const BuyPage = () => {
+// const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+
+const Buy = () => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [selectedHashRate, setSelectedHashRate] = useState<string | null>(null);
   const [showMiningHosts, setShowMiningHosts] = useState(false);
@@ -115,6 +119,36 @@ const BuyPage = () => {
           </motion.div>
         </div>
       </motion.section>
+      {/* Existing content wrapper */}
+      <div className="relative z-10">
+        <motion.div
+          className="max-w-4xl mx-auto text-center px-6 lg:px-12 py-12"
+          variants={fadeInVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {/* Force text color inheritance */}
+          <motion.h1 className="text-4xl md:text-5xl font-bold tracking-tight font-sans bg-gradient-to-r from-white to-zinc-300 bg-clip-text text-transparent my-6 p-5">
+          Start mining with potentia
+          </motion.h1>
+          <p className="mt-2 text-lg md:text-xl text-zinc-300 leading-relaxed">
+            Discover our exclusive offerings and take the next step in your Bitcoin mining journey.
+          </p>
+          
+          {/* Fix button clickability */}
+          <Link href="/contact" passHref legacyBehavior>
+            <Button
+              asChild
+              variant="default"
+              size="lg"
+              className="mt-8 px-8 py-3 bg-zinc-800/50 border border-zinc-700 text-white rounded-full hover:bg-zinc-700/50 transition-all duration-300"
+            >
+              <a className="cursor-pointer">Get in Touch</a>
+            </Button>
+          </Link>
+        </motion.div>
+      </div>
+    </motion.section>
 
       <AnimatePresence mode="wait">
         {!showMiningHosts ? (
@@ -198,103 +232,34 @@ const BuyPage = () => {
                 </button>
               </div>
 
-              {/* GPU Grid column */}
-              <div className="bg-gray-200 p-6 rounded-lg shadow-md relative z-10">
-                <ul className="grid grid-cols-5 gap-4">
-                  {renderGPUs()}
-                </ul>
-              </div>
-
-              {/* Combined button container */}
-              <div className="md:col-span-2 flex justify-between mt-8">
-                {/* Checkout button */}
-                <Button
-                  variant="default"
-                  size="lg"
-                  className="px-12 py-4 bg-zinc-800/80 border border-zinc-700 text-white rounded-full hover:bg-zinc-700/80 transition-all duration-300 text-xl"
-                  disabled={!selectedPlan || !selectedHashRate}
-                  onClick={() => {
-                    if (selectedPlan && selectedHashRate) {
-                      console.log(`Selected Plan: ${selectedPlan}, Selected Hash Rate: ${selectedHashRate}`);
-                    }
-                  }}  
-                >
-                  CheckOut
-                </Button>
-
-                {/* Our Mining Pool button */}
-                <Button
-                  variant="default"
-                  size="lg"
-                  className="px-12 py-4 bg-zinc-800/80 border border-zinc-700 text-white rounded-full hover:bg-zinc-700/80 transition-all duration-300 text-xl"
-                  onClick={() => setShowMiningHosts(true)}
-                >
-                  Our Mining Pool
-                </Button>
-              </div>
-            </div>
-          </motion.section>
-        ) : (
-          <motion.section
-            key="miningHosts"
-            layout
-            layoutId="morphSection"
-            className="relative py-14 px-6 text-white overflow-hidden"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
-          >
-            {/* Your existing mining hosts content */}
-            <div className="absolute inset-0 z-0">
-              <Image
-                src="/BackgroundMap.jpg"
-                alt="Mining background"
-                fill
-                className="object-cover object-center"
-                priority
-              />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/80" />
-            </div>
-                  
-            <div className="max-w-6xl mx-auto relative z-10">
-              <motion.div className="bg-gray-200/4 p-6 rounded-lg shadow-xl border border-white/10">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-3xl font-bold mb-4">Our Mining Host's</h3>
-                  <Button 
-                    onClick={() => setShowMiningHosts(false)}
-                    className="mb-4  bg-zinc-800/80 border border-zinc-700 text-white rounded-full hover:bg-zinc-700/80 transition-all duration-300 text-xl"
-                  >
-                    Back to Plans
-                  </Button>
-                </div>
-                {/* Grid layout for locations */}
-                <ul className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {["Ethiopia", "Dubai", "USA", "Canada", "Iceland", "Norway"].map((location, index) => (
-                    <li key={index} className="relative">
-                      <button
-                        className="group w-full bg-white/15 p-4 rounded-md shadow-sm overflow-hidden relative transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/30"
-                      >
-                        <span className="relative z-10 block">
-                          <div className="bg-white h-36 rounded-full transition-transform group-hover:scale-110"></div>
-                          <div className="mt-4 text-center">
-                            <p className="text-lg font-semibold relative z-10 transition-colors duration-300 group-hover:text-white">{location}</p>
-                            <p className="relative z-10 transition-colors duration-300 group-hover:text-white">Similar to MIM</p>
-                            <p className="relative z-10 transition-colors duration-300 group-hover:text-white">0.05 c / kWh</p>
-                          </div>
-                        </span>
-                        <div className="absolute inset-0 bg-black/90 transition-all duration-500 transform -translate-x-full group-hover:translate-x-0 ease-out"></div>
-                      </button>
-                    </li>
-                  ))}
-                </ul>         
-              </motion.div>
-            </div>
-          </motion.section>
-        )}
-      </AnimatePresence>
+        <div className="bg-gray-200 p-6 rounded-lg shadow-md relative z-10">
+          <ul className="grid grid-cols-5 gap-4">
+            {renderGPUs()}
+          </ul>
+        </div>
+        
+         {/* Add checkout button after the grid sections: */}
+      
+      <div className="mt-12 text-center">
+        <Button
+          variant="default"
+          size="lg"
+          className="px-12 py-4 bg-zinc-800/80 border border-zinc-700 text-white rounded-full hover:bg-zinc-700/80 transition-all duration-300 text-xl"
+          disabled={!selectedPlan || !selectedHashRate}
+          // could be changed from console to maybe clerk
+          onClick={() => {
+            if (selectedPlan && selectedHashRate) {
+              console.log(`Selected Plan: ${selectedPlan}, Selected Hash Rate: ${selectedHashRate}`);
+            }
+          }}  
+        >
+          CheckOut
+        </Button>
+      </div>
+      </div>
+    </motion.section>
     </section>
   );
 };
 
-export default BuyPage;
+export default Buy;

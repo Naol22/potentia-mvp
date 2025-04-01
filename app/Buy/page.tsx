@@ -15,7 +15,7 @@ import { useUser } from '@clerk/nextjs';
 // import { loadStripe } from '@stripe/stripe-js';
 // const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
-const Buy = () => {
+const buy = () => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [selectedHashRate, setSelectedHashRate] = useState<string | null>(null);
   const [showMiningHosts, setShowMiningHosts] = useState(false);
@@ -303,4 +303,4 @@ const Buy = () => {
   );
 };
 
-export default Buy;
+export default buy;

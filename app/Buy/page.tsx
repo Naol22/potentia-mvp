@@ -4,6 +4,10 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useState } from "react";
+import { loadStripe } from '@stripe/stripe-js';
+
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 const BuyPage = () => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
@@ -12,7 +16,17 @@ const BuyPage = () => {
     hidden: { opacity: 0, y: -20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
   };
-
+  const [paymentMethod, setPaymentMethod] = useState<string>('card');
+  const paymentMethods = [
+    { id: 'card', name: 'Credit/Debit Card' },
+    { id: 'apple_pay', name: 'Apple Pay' },
+    { id: 'google_pay', name: 'Google Pay' },
+    { id: 'alipay', name: 'Alipay' },
+    { id: 'wechat_pay', name: 'WeChat Pay' },
+    { id: 'paypal', name: 'PayPal' },
+    { id: 'klarna', name: 'Klarna' },
+    { id: 'affirm', name: 'Affirm' }
+  ];
   const renderGPUs = () => {
     const totalGPUs = 20; // Updated total number of GPUs to display
     let unlockedGPUs = 0;
@@ -206,9 +220,25 @@ const BuyPage = () => {
           </ul>
         </div>
         
-         {/* Add checkout button after the grid sections: */}
-      
       <div className="mt-12 text-center">
+        <div className="mb-6">
+          <h3 className="text-xl font-bold mb-4">Payment Method</h3>
+          <div className="flex flex-wrap justify-center gap-3 max-w-3xl mx-auto">
+            {paymentMethods.map(method => (
+              <button
+                key={method.id}
+                onClick={() => setPaymentMethod(method.id)}
+                className={`px-4 py-2 rounded-md text-sm transition-all ${
+                  paymentMethod === method.id 
+                    ? 'bg-zinc-800 text-white scale-105' 
+                    : 'bg-gray-200 text-black hover:bg-gray-300'
+                }`}
+              >
+                {method.name}
+              </button>
+            ))}
+          </div>
+        </div>
         <Button
           variant="default"
           size="lg"

@@ -263,14 +263,27 @@ const BuyPage = () => {
           }),
         });
         
-        const { sessionId } = await response.json();
+        const data = await response.json();
+        
+        if (!data.sessionId) {
+          throw new Error('Failed to create checkout session');
+        }
+        
         const stripe = await stripePromise;
         
         if (stripe) {
-          await stripe.redirectToCheckout({ sessionId });
+          const { error } = await stripe.redirectToCheckout({
+            sessionId: data.sessionId
+          });
+          
+          if (error) {
+            console.error('Stripe redirect error:', error);
+            alert('Payment system error. Please try again later.');
+          }
         }
       } catch (error) {
         console.error('Error:', error);
+        alert('There was a problem processing your request. Please try again.');
       }
     }
   }}

@@ -80,13 +80,13 @@ const Header = () => {
         </div>
 
         {/* Logo in the Center */}
-        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 md:-translate-y-0 -translate-y-1/2">
+        <div className="absolute left-1/2 top-6 transform -translate-x-1/2 md:-translate-y-0 -translate-y-1/2">
           <Link href="/" className={linkClassName}>
             <motion.img
               src={scrolled ? "/Artboardb.png" : "/Artboardw.png"}
               alt="Logo"
-              width={90}
-              height={40}
+              width={80}
+              height={30}
               className="transition-opacity duration-300"
               animate={{
                 opacity: 1,
@@ -146,7 +146,7 @@ const Header = () => {
               <motion.div
                 className={`absolute left-0 top-full mt-2 ${
                   scrolled ? "bg-white" : "bg-transparent"
-                } text-black shadow-lg w-56 py-2 rounded-mdPOT z-40`}
+                } text-black shadow-lg w-56 py-2 rounded-md z-40`}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
@@ -224,7 +224,9 @@ const Header = () => {
 
       {/* Mobile Menu Button */}
       <button
-        className={`md:hidden z-50 ${scrolled ? "text-black" : "text-white"}`}
+        className={`md:hidden absolute right-6 top-1/2 transform -translate-y-1/2 z-50 ${
+          scrolled ? "text-black" : "text-white"
+        }`}
         onClick={() => setMenuOpen(!menuOpen)}
       >
         {menuOpen ? <X size={28} /> : <Menu size={28} />}

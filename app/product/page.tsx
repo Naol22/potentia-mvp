@@ -89,7 +89,7 @@ const BuyPage = () => {
       <div className="absolute  inset-0 opacity-10 pointer-events-none" style={{ background: "url('/noise.png') repeat" }} />
 
       {/* New Bitcoin logo animation */}
-      <motion.img
+      {/* <motion.img
         src="pngimg.com - bitcoin_PNG27.png"
         alt="Bitcoin"
         className="absolute left-20 top-1/4 w-24 h-24 z-30 pointer-events-none"
@@ -115,7 +115,7 @@ const BuyPage = () => {
             opacity: { duration: 0.8 }
           }
         }}
-      />
+      /> */}
 
       {/* Existing content wrapper */}
       <div className="relative z-10">

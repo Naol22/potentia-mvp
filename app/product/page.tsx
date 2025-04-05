@@ -240,6 +240,7 @@ const buy = () => {
             </div>
           </motion.section>
         ) : (
+          //second section
           <motion.section
             key="miningHosts"
             layout
@@ -252,6 +253,7 @@ const buy = () => {
           >
             {/* Background image with dark overlay */}
             <div className="absolute inset-0 z-0">
+              {/* Image background commented out
               <Image
                 src="/BackgroundMap.jpg"
                 alt="Mining background"
@@ -259,13 +261,17 @@ const buy = () => {
                 className="object-cover object-center"
                 priority
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/80" />
+              */}
+              {/* Gradient background */}
+                            {/* Gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-zinc/70 to-[#f5f5dc]" />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/30" />
             </div>
                   
             <div className="max-w-6xl mx-auto relative z-10">
-              <motion.div className="bg-gray-200/4 p-6 rounded-lg shadow-xl border border-white/10">
+              <motion.div className="bg-black p-6 rounded-lg shadow-xl border border-white/10">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-3xl font-bold">Our Mining Host's</h3>
+                  <h3 className="text-3xl font-bold ">Our Mining Host's</h3>
                   <Button 
                     onClick={() => setShowMiningHosts(false)}
                     className="bg-zinc-800/80 border border-zinc-700 text-white rounded-full hover:bg-zinc-700/80 transition-all duration-300"
@@ -276,20 +282,37 @@ const buy = () => {
                 
                 {/* Grid layout for locations */}
                 <ul className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {["Ethiopia", "Dubai", "USA", "Canada", "Iceland", "Norway"].map((location, index) => (
+                  {[
+                    { name: "Ethiopia", image: "/et1.jpg" },
+                    { name: "Dubai", image: "/dubai.jpg" },
+                    { name: "USA", image: "/usa1.jpg" },
+                    { name: "Canada", image: "/canada.jpg" },
+                    { name: "Iceland", image: "/iceland.jpg" },
+                    { name: "Norway", image: "/norway.jpg" }
+                  ].map((location, index) => (
                     <li key={index} className="relative">
                       <button
-                        className="group w-full bg-white/15 p-4 rounded-md shadow-sm overflow-hidden relative transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/30"
+                        className="group w-full bg-white/15 p-4 rounded-md shadow-sm overflow-hidden relative transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/70"
                       >
                         <span className="relative z-10 block">
-                          <div className="bg-white h-36 rounded-full transition-transform group-hover:scale-110"></div>
+                          <div className="bg-white h-36 rounded-full relative transition-transform group-hover:scale-110 overflow-hidden">
+                            <Image
+                              src={location.image}
+                              alt={`${location.name} mining location`}
+                              fill
+                              className="object-cover object-center"
+                              priority
+                            />
+                            {/* Dark overlay on images */}
+                            <div className="absolute inset-0 bg-black/60 group-hover:bg-black/10 transition-all duration-300"></div>
+                          </div>
                           <div className="mt-4 text-center">
-                            <p className="text-lg font-semibold relative z-10 transition-colors duration-300 group-hover:text-white">{location}</p>
+                            <p className="text-lg font-semibold relative z-10 transition-colors duration-300 group-hover:text-white">{location.name}</p>
                             <p className="relative z-10 transition-colors duration-300 group-hover:text-white">Similar to MIM</p>
                             <p className="relative z-10 transition-colors duration-300 group-hover:text-white">0.05 c / kWh</p>
                           </div>
                         </span>
-                        <div className="absolute inset-0 bg-black/90 transition-all duration-500 transform -translate-x-full group-hover:translate-x-0 ease-out"></div>
+                        <div className="absolute inset-0 bg-white/60 transition-all duration-500 transform -translate-x-full group-hover:translate-x-0 ease-out"></div>
                       </button>
                     </li>
                   ))}

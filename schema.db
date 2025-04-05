@@ -1,0 +1,26 @@
+-- Users table to sync Clerk users
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  clerk_user_id TEXT UNIQUE NOT NULL,
+  email TEXT NOT NULL,
+  stripe_customer_id TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Transactions table for Stripe payments
+CREATE TABLE transactions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  clerk_user_id TEXT REFERENCES users(clerk_user_id),
+  stripe_transaction_id TEXT UNIQUE,
+  amount INTEGER NOT NULL,
+  status TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS for security
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
+
+-- Admin-only policy (adjust with your auth logic)
+CREATE POLICY "Admin can view all" ON users FOR ALL TO authenticated USING (true);
+CREATE POLICY "Admin can view all transactions" ON transactions FOR ALL TO authenticated USING (true);

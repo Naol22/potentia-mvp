@@ -44,7 +44,7 @@ const HeroSection = () => {
               size="lg"
               className="mt-8 px-8 py-3 bg-zinc-800/50 border border-zinc-700 text-white rounded-full hover:bg-zinc-700/50 transition-all duration-300"
             >
-              <a className="cursor-pointer">Select a Plan</a>
+              <a className="cursor-pointer">Select a Host</a>
             </Button>
           </Link>
         </motion.div>
@@ -115,14 +115,107 @@ const HashRateSelector = ({ selectedHashRate, setSelectedHashRate, renderGPUs }:
 };
 
 // MiningHosts Component
+
+// MiningHosts Component with Hover Effect
 const MiningHosts = ({ setShowMiningHosts }: { setShowMiningHosts: (show: boolean) => void }) => {
   const locations = [
-    { name: 'Ethiopia', image: '/et1.jpg' },
-    { name: 'Dubai', image: '/dubai.jpg' },
-    { name: 'USA', image: '/usa1.jpg' },
-    { name: 'Canada', image: '/canada.jpg' },
-    { name: 'Iceland', image: '/iceland.jpg' },
-    { name: 'Norway', image: '/norway.jpg' },
+    { 
+      name: 'Ethiopia', 
+      image: '/ethio.jpg',
+      hostingInfo: {
+        price: '4.0ct / kWh',
+        minOrder: '1 piece',
+        setupFee: ' $150'
+      },
+      generalInfo: {
+        source: 'Mixed',
+        minerType: 'Hydro Power',
+        capacity: '30 MW',
+        innovation: 'Einspeisung ins Fernwärme Netz',
+        surveillance: '24 hours'
+      }
+    },
+    { 
+      name: 'Dubai', 
+      image: '/dubai.jpg',
+      hostingInfo: {
+        price: '8.0ct / kWh',
+        minOrder: '2 pieces',
+        setupFee: '50,00 €'
+      },
+      generalInfo: {
+        source: 'Solar/Grid',
+        minerType: 'ASIC Miner',
+        capacity: '15 MW',
+        innovation: 'Smart Grid Integration',
+        surveillance: '24 hours'
+      }
+    },
+    { 
+      name: 'Texas, Fort Worth', 
+      image: '/Texas.jpg',
+      hostingInfo: {
+        price: '7.8ct / kWh',
+        minOrder: '1 pieces',
+        setupFee: '1050,00 €'
+      },
+      generalInfo: {
+        source: 'Mains power',
+        minerType: 'Warehouse Miner',
+        capacity: '25 MW',
+        innovation: 'Smart Grid Integration',
+        surveillance: '24 hours'
+      }
+    },
+    { 
+      name: 'Paraguay, Villarica', 
+      image: '/para.jpg',
+      hostingInfo: {
+        price: '7.8ct / kWh',
+        minOrder: '1 pieces',
+        setupFee: '50,00 €'
+      },
+      generalInfo: {
+        source: 'Hydro Power',
+        minerType: 'Warehouse Miner',
+        capacity: '10 MW',
+        innovation: 'Smart Grid Integration',
+        surveillance: '24 hours'
+      }
+    },
+    { 
+      name: 'Georgia, Tbilisi', 
+      image: '/geo.jpg',
+      hostingInfo: {
+        price: '10.5ct / kWh',
+        minOrder: '1 pieces',
+        setupFee: '-'
+      },
+      generalInfo: {
+        source: 'Hydro Power',
+        minerType: 'Warehouse/Container',
+        capacity: '5 MW',
+        innovation: 'Smart Grid Integration',
+        surveillance: '24 hours'
+      }
+    },
+    { 
+      name: 'Finnland, Heat Recovery', 
+      image: '/dubai.jpg',
+      hostingInfo: {
+        price: '8.0ct / kWh',
+        minOrder: '1 pieces',
+        setupFee: '-'
+      },
+      generalInfo: {
+        source: 'Mixed',
+        minerType: 'Hydro Miner',
+        capacity: '10 MW',
+        innovation: 'Smart Grid Integration',
+        surveillance: '24 hours'
+      }
+    },
+    // Add similar objects for other locations
   ];
 
   return (
@@ -162,9 +255,10 @@ const MiningHosts = ({ setShowMiningHosts }: { setShowMiningHosts: (show: boolea
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 * index, duration: 0.4 }}
               >
-                <button className="group w-full bg-white/15 p-4 rounded-md shadow-sm overflow-hidden relative transition-all hover:scale-105">
-                  <span className="relative z-10 block">
-                    <div className="bg-white h-36 rounded-full relative overflow-hidden">
+                <button className="group w-full bg-white/15 p-4 rounded-md shadow-sm overflow-hidden relative transition-all hover:scale-105 cursor-pointer">
+                  {/* Default Content */}
+                  <div className="relative z-10 transition-opacity duration-300 opacity-100 group-hover:opacity-0">
+                    <div className="bg-white w-48 h-48 rounded-full relative overflow-hidden mx-auto">
                       <Image
                         src={location.image}
                         alt={`${location.name} mining location`}
@@ -173,15 +267,29 @@ const MiningHosts = ({ setShowMiningHosts }: { setShowMiningHosts: (show: boolea
                         priority
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       />
-                      <div className="absolute inset-0 bg-black/60 group-hover:bg-black/10 transition-all duration-300" />
+                      <div className="absolute inset-0 bg-black/47 group-hover:bg-black/10 transition-all duration-300" />
                     </div>
-                    <div className="mt-4 text-center">
-                      <p className="text-lg font-semibold group-hover:text-white">{location.name}</p>
-                      <p className="text-sm group-hover:text-white">Efficient Mining Infrastructure</p>
-                      <p className="text-sm group-hover:text-white">0.05¢ / kWh</p>
+                    <div className="mt-6 text-center space-y-2">
+                      <p className="text-2xl font-semibold">{location.name}</p>
+                      <p className="text-base">Efficient Mining Infrastructure</p>
+                      <p className="text-base">0.05¢ / kWh</p>
                     </div>
-                  </span>
-                  <div className="absolute inset-0 bg-white/60 transition-all duration-500 transform -translate-x-full group-hover:translate-x-0 ease-out" />
+                  </div>
+                  {/* Hover Content */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100 text-white text-sm z-20 space-y-2">
+                    <h2 className="text-lg font-bold mb-2">Hosting Information</h2>
+                    <p>Price: {location.hostingInfo.price}</p>
+                    <p>Minimum Order: {location.hostingInfo.minOrder}</p>
+                    <p>Setup Fee: {location.hostingInfo.setupFee}</p>
+                    <h2 className="text-lg font-bold mb-2">General Information</h2>
+                    <p>Source: {location.generalInfo.source}</p>
+                    <p>Miner Type: {location.generalInfo.minerType}</p>
+                    <p>Capacity: {location.generalInfo.capacity}</p>
+                    <p>Innovation: {location.generalInfo.innovation}</p>
+                    <p>Surveillance: {location.generalInfo.surveillance}</p>
+                  </div>
+                  {/* Background Transition Layer */}
+                  <div className="absolute inset-0 bg-white/60 transition-all duration-500 transform -translate-x-full group-hover:translate-x-0 ease-out z-0" />
                 </button>
               </motion.li>
             ))}
@@ -268,26 +376,25 @@ const ProductPage = () => {
               transition={{ duration: 0.5 }}
             >
               <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 relative z-5">
-                <PlanSelector selectedPlan={selectedPlan} setSelectedPlan={setSelectedPlan} />
-                <div className="bg-gray-200 p-6 rounded-lg shadow-md relative z-10">
-                  <h3 className="text-xl font-bold mb-4">Pricing Details</h3>
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="bg-white p-4 rounded-md shadow-sm text-center">
-                      <h4 className="text-xl font-bold">$399</h4>
-                      <p>One-Time Payment</p>
+                <div className="space-y-6">
+                  <PlanSelector selectedPlan={selectedPlan} setSelectedPlan={setSelectedPlan} />
+                  <div className="bg-gray-200 p-6 rounded-lg shadow-md relative z-10">
+                    <h3 className="text-xl font-bold mb-4">Pricing Details</h3>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="bg-white p-4 rounded-md shadow-sm text-center">
+                        <h4 className="text-xl font-bold">$399</h4>
+                        <p>One-Time Payment</p>
+                      </div>
+                      <div className="bg-white p-4 rounded-md shadow-sm text-center">
+                        <h4 className="text-xl font-bold">$109</h4>
+                        <p>Monthly Subscription</p>
+                      </div>
                     </div>
                     <div className="bg-white p-4 rounded-md shadow-sm text-center">
-                      <h4 className="text-xl font-bold">$109</h4>
-                      <p>Monthly Subscription</p>
+                      <p>24-Hour Overwatch<br />98% Uptime Guaranteed</p>
                     </div>
-                  </div>
-                  <div className="bg-white p-4 rounded-md shadow-sm text-center">
-                    <p>24-Hour Overwatch<br />98% Uptime Guaranteed</p>
                   </div>
                 </div>
-              </div>
-
-              <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 mt-12">
                 <HashRateSelector
                   selectedHashRate={selectedHashRate}
                   setSelectedHashRate={setSelectedHashRate}

@@ -9,6 +9,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { ClerkProvider } from "@clerk/nextjs";
 import ClientLayout from "./ClientLayout"; 
 import { dark } from '@clerk/themes'
+import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
   title: "Potentia",
@@ -50,10 +51,17 @@ export default function RootLayout({
           <link rel="icon" href="/O.png" />
         </head>
         <body className="bg-black text-white">
-          <NavbarProvider>
-            <ClientLayout>{children}</ClientLayout>
-            <Analytics />
-          </NavbarProvider>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <NavbarProvider>
+              <ClientLayout>{children}</ClientLayout>
+              <Analytics />
+            </NavbarProvider>
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

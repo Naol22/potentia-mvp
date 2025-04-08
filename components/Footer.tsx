@@ -3,6 +3,16 @@ import React from "react";
 import { Footer, FooterColumn, FooterBottom, FooterContent } from "./ui/footer";
 import Image from "next/image";
 import Link from "next/link";
+import PublicIcon from "@mui/icons-material/Public";
+import YouTubeIcon from "@mui/icons-material/YouTube";
+import TelegramIcon from "@mui/icons-material/Telegram";
+import InstagramIcon from "@mui/icons-material/Instagram";
+import FacebookIcon from "@mui/icons-material/Facebook";
+import TwitterIcon from "@mui/icons-material/Twitter";
+import MusicVideoIcon from "@mui/icons-material/MusicVideo";
+import EmailIcon from "@mui/icons-material/Email";
+import PhoneIcon from "@mui/icons-material/Phone";
+import ContactPageIcon from "@mui/icons-material/ContactPage";
 
 export default function FooterSection() {
   return (
@@ -25,109 +35,180 @@ export default function FooterSection() {
 
             {/* About Us Section */}
             <FooterColumn>
-              <h3 className="text-lg font-semibold text-white mb-4">
-                About Us
-              </h3>
-              <div className="flex flex-col gap-3">
-                <Link
-                  href="/about"
-                  className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
-                >
-                  Our Story
-                </Link>
-                <Link
-                  href="/about#mission"
-                  className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
-                >
-                  Mission
-                </Link>
-                <Link
-                  href="/about#team"
-                  className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
-                >
-                  Team
-                </Link>
-              </div>
-            </FooterColumn>
+                    <h3 className="text-lg font-semibold text-white mb-4">About Us</h3>
+                    <div className="flex flex-col gap-3">
+                      <Link
+                        href="/about"
+                        className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
+                      >
+                        Our Story
+                      </Link>
+                      <Link
+                        href="/about#mission"
+                        className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
+                      >
+                        Mission
+                      </Link>
+                      <Link
+                        href="/about#team"
+                        className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
+                      >
+                        Team
+                      </Link>
+                    </div>
+                  </FooterColumn>
 
-            {/* Contact Section */}
-            <FooterColumn>
-              <h3 className="text-lg font-semibold text-white mb-4">Contact</h3>
-              <div className="flex flex-col gap-3">
-                <Link
-                  href="mailto:support@potentia.com"
-                  className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
-                >
+                  {/* Contact Section */}
+                  <FooterColumn>
+                  <h3 className="text-lg font-semibold text-white mb-4 text-center md:text-left">Contact</h3>
+            <div className="flex flex-col gap-3 items-start">
+              {/* Email Us */}
+              <Link
+                href="mailto:support@potentia.com"
+                className="relative flex items-center text-sm text-zinc-400 hover:text-white transition-colors duration-200 group w-full"
+              >
+                <span className="transition-opacity duration-300 opacity-100 group-hover:opacity-0">
                   Email Us
-                </Link>
-                <Link
-                  href="tel:+1234567890"
-                  className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
-                >
+                </span>
+                <span className="absolute left-0 flex items-center transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+                  <EmailIcon className="w-5 h-5" />
+                </span>
+              </Link>
+
+              {/* Call Us */}
+              <Link
+                href="tel:+1234567890"
+                className="relative flex items-center text-sm text-zinc-400 hover:text-white transition-colors duration-200 group w-full"
+              >
+                <span className="transition-opacity duration-300 opacity-100 group-hover:opacity-0">
                   Call Us
-                </Link>
-                <Link
-                  href="/contact"
-                  className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
-                >
+                </span>
+                <span className="absolute left-0 flex items-center transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+                  <PhoneIcon className="w-5 h-5" />
+                </span>
+              </Link>
+
+              {/* Contact Form */}
+              <Link
+                href="/contact"
+                className="relative flex items-center text-sm text-zinc-400 hover:text-white transition-colors duration-200 group w-full"
+              >
+                <span className="transition-opacity duration-300 opacity-100 group-hover:opacity-0">
                   Contact Form
-                </Link>
-              </div>
+                </span>
+                <span className="absolute left-0 flex items-center transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+                  <ContactPageIcon className="w-5 h-5" />
+                </span>
+              </Link>
+            </div>
             </FooterColumn>
 
             {/* Social Media Section */}
             <FooterColumn>
-              <h3 className="text-lg font-semibold text-white mb-4">
-                Social Media
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
+              <h3 className="text-lg font-semibold text-white mb-4">Social Media</h3>
+              <div className="grid grid-cols-2 gap-4">
+                {/* VK */}
                 <Link
                   href="https://vk.com/potentiadigital"
-                  className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
+                  className="relative p-2 text-sm text-zinc-400 hover:text-white transition-colors duration-200 group"
                 >
-                  VK
+                  <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-100 group-hover:opacity-0">
+                    VK
+                  </span>
+                  <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+                    <PublicIcon className="w-5 h-5" />
+                  </span>
                 </Link>
+
+                {/* YouTube */}
                 <Link
                   href="https://www.youtube.com/@potentiadigital"
-                  className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
+                  className="relative p-2 text-sm text-zinc-400 hover:text-white transition-colors duration-200 group"
                 >
-                  YouTube
+                  <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-100 group-hover:opacity-0">
+                    YouTube
+                  </span>
+                  <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+                    <YouTubeIcon className="w-5 h-5" />
+                  </span>
                 </Link>
+
+                {/* Telegram Channel */}
                 <Link
                   href="https://t.me/potentia_digital"
-                  className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
+                  className="relative p-2 text-sm text-zinc-400 hover:text-white transition-colors duration-200 group"
                 >
-                  Telegram Channel
+                  <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-100 group-hover:opacity-0">
+                    Telegram Channel
+                  </span>
+                  <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+                    <TelegramIcon className="w-5 h-5" />
+                  </span>
                 </Link>
+
+                {/* Telegram User */}
                 <Link
                   href="https://t.me/potentiadigital"
-                  className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
+                  className="relative p-2 text-sm text-zinc-400 hover:text-white transition-colors duration-200 group"
                 >
-                  Telegram User
+                  <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-100 group-hover:opacity-0">
+                    Telegram User
+                  </span>
+                  <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+                    <TelegramIcon className="w-5 h-5" />
+                  </span>
                 </Link>
+
+                {/* Instagram */}
                 <Link
                   href="https://www.instagram.com/potentia.digital?igsh=ZGEyYnFhajdiZjUz&utm_source=qr"
-                  className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
+                  className="relative p-2 text-sm text-zinc-400 hover:text-white transition-colors duration-200 group"
                 >
-                  Instagram
+                  <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-100 group-hover:opacity-0">
+                    Instagram
+                  </span>
+                  <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+                    <InstagramIcon className="w-5 h-5" />
+                  </span>
                 </Link>
+
+                {/* Facebook */}
                 <Link
                   href="https://www.facebook.com/share/1YeRxGYzCj/?mibextid=wwXIfr"
-                  className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
+                  className="relative p-2 text-sm text-zinc-400 hover:text-white transition-colors duration-200 group"
                 >
-                  Facebook
+                  <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-100 group-hover:opacity-0">
+                    Facebook
+                  </span>
+                  <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+                    <FacebookIcon className="w-5 h-5" />
+                  </span>
                 </Link>
+
+                {/* X (Twitter) */}
                 <Link
                   href="https://x.com/potentiapower"
-                  className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
+                  className="relative p-2 text-sm text-zinc-400 hover:text-white transition-colors duration-200 group"
                 >
-                  X
+                  <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-100 group-hover:opacity-0">
+                    X
+                  </span>
+                  <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+                    <TwitterIcon className="w-5 h-5" />
+                  </span>
                 </Link>
+
+                {/* TikTok */}
                 <Link
                   href="https://www.tiktok.com/@potentiadigital?_t=ZM-8uBQuhs3MSl&_r=1"
-                  className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
+                  className="relative p-2 text-sm text-zinc-400 hover:text-white transition-colors duration-200 group"
                 >
-                  TikTok
+                  <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-100 group-hover:opacity-0">
+                    TikTok
+                  </span>
+                  <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+                    <MusicVideoIcon className="w-5 h-5" />
+                  </span>
                 </Link>
               </div>
             </FooterColumn>

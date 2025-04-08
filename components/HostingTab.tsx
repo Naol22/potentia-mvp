@@ -26,11 +26,7 @@ const facilities = [
   {
     name: "Ethiopia",
     image: "/ethio.jpg",
-    hostingInfo: {
-      price: "4.0ct / kWh",
-      minOrder: "1 piece",
-      setupFee: "$150",
-    },
+    hostingInfo: { price: "4.0ct / kWh", minOrder: "1 piece", setupFee: "$150" },
     generalInfo: {
       source: "Mixed",
       minerType: "Hydro Power",
@@ -42,11 +38,7 @@ const facilities = [
   {
     name: "Dubai",
     image: "/dubai.jpg",
-    hostingInfo: {
-      price: "8.0ct / kWh",
-      minOrder: "2 pieces",
-      setupFee: "50,00 €",
-    },
+    hostingInfo: { price: "8.0ct / kWh", minOrder: "2 pieces", setupFee: "50,00 €" },
     generalInfo: {
       source: "Solar/Grid",
       minerType: "ASIC Miner",
@@ -58,11 +50,7 @@ const facilities = [
   {
     name: "Texas, Fort Worth",
     image: "/Texas.jpg",
-    hostingInfo: {
-      price: "7.8ct / kWh",
-      minOrder: "1 piece",
-      setupFee: "1050,00 €",
-    },
+    hostingInfo: { price: "7.8ct / kWh", minOrder: "1 piece", setupFee: "1050,00 €" },
     generalInfo: {
       source: "Mains power",
       minerType: "Warehouse Miner",
@@ -74,11 +62,7 @@ const facilities = [
   {
     name: "Paraguay, Villarica",
     image: "/para.jpg",
-    hostingInfo: {
-      price: "7.8ct / kWh",
-      minOrder: "1 piece",
-      setupFee: "50,00 €",
-    },
+    hostingInfo: { price: "7.8ct / kWh", minOrder: "1 piece", setupFee: "50,00 €" },
     generalInfo: {
       source: "Hydro Power",
       minerType: "Warehouse Miner",
@@ -177,19 +161,15 @@ const HostingTab = () => {
   const router = useRouter();
   const [selectedCrypto, setSelectedCrypto] = useState<Crypto | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const [selectedHashRate, setSelectedHashRate] = useState<HashRate | null>(
-    null
-  );
+  const [selectedHashRate, setSelectedHashRate] = useState<HashRate | null>(null);
   const [selectedFacility, setSelectedFacility] = useState<string | null>(null);
-  const [openFAQ, setOpenFAQ] = useState<number | null>(null); // State for FAQ accordion
+  const [openFAQ, setOpenFAQ] = useState<number | null>(null);
 
   const totalPrice =
     selectedPlan && selectedHashRate
       ? planBasePrices[selectedPlan] + hashRateCosts[selectedHashRate]
       : 0;
-  const unlockedGPUs = selectedHashRate
-    ? hashRateToGPUs[selectedHashRate] || 0
-    : 0;
+  const unlockedGPUs = selectedHashRate ? hashRateToGPUs[selectedHashRate] || 0 : 0;
 
   const renderGPUs = () => {
     const totalGPUs = 20;
@@ -207,11 +187,7 @@ const HostingTab = () => {
           alt={i < gpuCount ? "GPU Unlocked" : "GPU Locked"}
           className="w-full h-full object-cover"
         />
-        <span
-          className={`absolute bottom-2 right-2 text-xs ${
-            i < gpuCount ? "text-white" : "text-white"
-          }`}
-        >
+        <span className="absolute bottom-2 right-2 text-xs text-white">
           {i < gpuCount ? "Unlocked" : "Locked"}
         </span>
       </motion.li>
@@ -221,13 +197,7 @@ const HostingTab = () => {
   const handleViewDetails = () => {
     if (selectedPlan && selectedHashRate && selectedFacility) {
       router.push(
-        `/details?crypto=${encodeURIComponent(
-          selectedCrypto || ""
-        )}&duration=${encodeURIComponent(
-          selectedPlan
-        )}&hashRate=${encodeURIComponent(
-          selectedHashRate
-        )}&facility=${encodeURIComponent(selectedFacility)}`
+        `/details?crypto=${encodeURIComponent(selectedCrypto || "")}&duration=${encodeURIComponent(selectedPlan)}&hashRate=${encodeURIComponent(selectedHashRate)}&facility=${encodeURIComponent(selectedFacility)}`
       );
     }
   };
@@ -256,23 +226,24 @@ const HostingTab = () => {
 
   return (
     <motion.section
-      className="py-24 px-6"
+      className="py-24 px-6 bg-black"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       transition={{ duration: 1 }}
     >
       <div className="max-w-6xl mx-auto">
+        {/* Progress Indicator */}
         <div className="mb-8 text-center">
           <p className="text-sm text-white">
             Step 1: Select Crypto, Plan, Hash Rate & Facility
           </p>
-          <div className="mt-2 h-1 w-32 bg-white mx-auto rounded-full">
-            <div className="h-full w-1/2 bg-white opacity-50 rounded-full" />
+          <div className="mt-2 h-1 w-32 bg-black mx-auto rounded-full border border-gray-300">
+            <div className="h-full w-1/2 bg-white rounded-full" />
           </div>
         </div>
 
         {/* Facilities Selection Section */}
-        <div className="bg-black p-6 rounded-lg shadow-md mb-12">
+        <div className="bg-neutral-900 p-6 rounded-lg shadow-md mb-12 border border-neutral-700">
           <h2 className="text-2xl font-bold mb-4 text-center text-white">
             Choose Your Mining Facility
           </h2>
@@ -287,10 +258,10 @@ const HostingTab = () => {
               >
                 <button
                   onClick={() => setSelectedFacility(facility.name)}
-                  className={`w-full p-4 text-left rounded-lg shadow-sm transition-all border ${
+                  className={`w-full p-4 text-left rounded-lg shadow-sm transition-all border border-neutral-700 ${
                     selectedFacility === facility.name
-                      ? "bg-black text-white border-black"
-                      : "bg-white text-black border-white hover:scale-105"
+                      ? "bg-black text-white opacity-80"
+                      : "bg-black text-white hover:opacity-80"
                   } snap-center`}
                 >
                   <img
@@ -298,17 +269,11 @@ const HostingTab = () => {
                     alt={facility.name}
                     className="w-full h-32 object-cover rounded-md mb-2"
                   />
-                  <h3 className="text-lg font-semibold">{facility.name}</h3>
-                  <p className="text-sm text-black">
-                    {facility.generalInfo.capacity} Capacity
-                  </p>
-                  <p className="text-sm text-black">
-                    {facility.hostingInfo.price}
-                  </p>
-                  <Link
-                    href={`/facilities/${encodeURIComponent(facility.name)}`}
-                  >
-                    <Button className="mt-2 w-full bg-white text-black hover:bg-black hover:text-white rounded-full py-2 text-sm">
+                  <h3 className="text-lg font-semibold text-white">{facility.name}</h3>
+                  <p className="text-sm text-white">{facility.generalInfo.capacity} Capacity</p>
+                  <p className="text-sm text-white">{facility.hostingInfo.price}</p>
+                  <Link href={`/facilities/${encodeURIComponent(facility.name)}`}>
+                    <Button className="mt-2 w-full bg-black text-white hover:opacity-80 rounded-full py-2 text-sm border border-gray-300">
                       View Facility
                     </Button>
                   </Link>
@@ -327,19 +292,17 @@ const HostingTab = () => {
             transition={{ duration: 0.8 }}
           >
             {/* Crypto Selection */}
-            <div className="bg-white p-6 rounded-lg shadow-md border border-white">
-              <h2 className="text-xl font-bold mb-4 text-black">
-                Select Cryptocurrency
-              </h2>
+            <div className="bg-black p-6 rounded-lg shadow-md border border-neutral-700">
+              <h2 className="text-xl font-bold mb-4 text-white">Select Cryptocurrency</h2>
               <div className="flex space-x-4">
                 {cryptocurrencies.map((crypto) => (
                   <button
                     key={crypto}
                     onClick={() => setSelectedCrypto(crypto)}
-                    className={`px-4 py-2 rounded-md transition border-2 border-black ${
+                    className={`px-4 py-2 rounded-md transition border border-gray-300 ${
                       selectedCrypto === crypto
-                        ? "bg-black text-white"
-                        : "bg-white text-black hover:bg-black hover:text-white"
+                        ? "bg-black text-white opacity-80"
+                        : "bg-black text-gray-300 hover:opacity-80"
                     }`}
                   >
                     {crypto}
@@ -349,23 +312,20 @@ const HostingTab = () => {
             </div>
 
             {/* Plan Selector */}
-            <div className="bg-white p-6 rounded-lg shadow-md border border-white">
-              <h2 className="text-xl font-bold mb-2 text-black">
-                Choose Your Plan
-              </h2>
-              <p className="text-sm text-black mb-4">
-                Choose a plan duration that fits your mining goals. Longer plans
-                offer better value.
+            <div className="bg-black p-6 rounded-lg shadow-md border border--neutral-700">
+              <h2 className="text-xl font-bold mb-2 text-white">Choose Your Plan</h2>
+              <p className="text-sm text-gray-300 mb-4">
+                Choose a plan duration that fits your mining goals. Longer plans offer better value.
               </p>
               <div className="space-y-4">
                 {plans.map((plan) => (
                   <button
                     key={plan}
                     onClick={() => setSelectedPlan(plan)}
-                    className={`w-full p-4 text-left rounded-md transition-all flex items-center justify-between border-2 border-black ${
+                    className={`w-full p-4 text-left rounded-md transition-all border border-gray-300 ${
                       selectedPlan === plan
-                        ? "bg-black text-white"
-                        : "bg-white text-black border-2 border-black hover:bg-black hover:text-white"
+                        ? "bg-black text-white opacity-80"
+                        : "bg-black text-gray-300 hover:opacity-80"
                     }`}
                   >
                     <span>{plan}</span>
@@ -376,29 +336,26 @@ const HostingTab = () => {
             </div>
 
             {/* Hash Rate Selector */}
-            <div className="bg-white p-6 rounded-lg shadow-md border border-white">
-              <h2 className="text-xl font-bold mb-2 text-black">
-                Select Hash Rate
-              </h2>
-              <p className="text-sm text-black mb-4">
-                Select a hash rate to determine your mining power. Higher rates
-                unlock more GPUs and increase potential earnings.
+            <div className="bg-black p-6 rounded-lg shadow-md border border-neutral-700">
+              <h2 className="text-xl font-bold mb-2 text-white">Select Hash Rate</h2>
+              <p className="text-sm text-gray-300 mb-4">
+                Select a hash rate to determine your mining power. Higher rates unlock more GPUs and increase potential earnings.
               </p>
               <div className="space-y-4">
                 {hashRates.map((rate) => (
                   <div key={rate} className="group relative">
                     <button
                       onClick={() => setSelectedHashRate(rate)}
-                      className={`w-full p-4 text-left rounded-md transition-all flex items-center justify-between ${
+                      className={`w-full p-4 text-left rounded-md transition-all border border-gray-300 ${
                         selectedHashRate === rate
-                          ? "bg-black text-white"
-                          : "bg-white text-black border-2 border-black hover:bg-black hover:text-white"
+                          ? "bg-black text-white opacity-80"
+                          : "bg-black text-gray-300 hover:opacity-80"
                       }`}
                     >
                       <span>{rate}</span>
                       {selectedHashRate === rate && <CheckmarkIcon />}
                     </button>
-                    <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-black text-white text-xs rounded-md px-2 py-1 z-10">
+                    <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-black text-white text-xs rounded-md px-2 py-1 z-10 border border-gray-300">
                       Unlocks {hashRateToGPUs[rate]} GPUs
                     </div>
                   </div>
@@ -409,64 +366,40 @@ const HostingTab = () => {
 
           {/* Right Column: Order Summary */}
           <motion.div
-            className="bg-white p-8 rounded-lg shadow-md border border-white md:sticky md:top-4"
+            className="bg-black p-8 rounded-lg shadow-md border border-neutral-700 md:sticky md:top-4"
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-2xl font-bold mb-4 text-black">
-              Order Summary
-            </h2>
+            <h2 className="text-2xl font-bold mb-4 text-white">Order Summary</h2>
             <div className="space-y-4">
               <div className="flex justify-between">
-                <span className="text-black">Cryptocurrency:</span>
-                <span className="font-medium text-black">
-                  {selectedCrypto || "Not selected"}
-                </span>
+                <span className="text-gray-300">Cryptocurrency:</span>
+                <span className="font-medium text-white">{selectedCrypto || "Not selected"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-black">Plan:</span>
-                <span className="font-medium text-black">
-                  {selectedPlan || "Not selected"}
-                </span>
+                <span className="text-gray-300">Plan:</span>
+                <span className="font-medium text-white">{selectedPlan || "Not selected"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-black">Hash Rate:</span>
-                <span className="font-medium text-black">
-                  {selectedHashRate || "Not selected"}
-                </span>
+                <span className="text-gray-300">Hash Rate:</span>
+                <span className="font-medium text-white">{selectedHashRate || "Not selected"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-black">Facility:</span>
-                <span className="font-medium text-black">
-                  {selectedFacility || "Not selected"}
-                </span>
+                <span className="text-gray-300">Facility:</span>
+                <span className="font-medium text-white">{selectedFacility || "Not selected"}</span>
               </div>
               {selectedFacility && (
-                <div className="text-sm text-black">
-                  <p>
-                    Price per kWh:{" "}
-                    {
-                      facilities.find((f) => f.name === selectedFacility)
-                        ?.hostingInfo.price
-                    }
-                  </p>
-                  <p>
-                    Setup Fee:{" "}
-                    {
-                      facilities.find((f) => f.name === selectedFacility)
-                        ?.hostingInfo.setupFee
-                    }
-                  </p>
+                <div className="text-sm text-gray-300">
+                  <p>Price per kWh: {facilities.find((f) => f.name === selectedFacility)?.hostingInfo.price}</p>
+                  <p>Setup Fee: {facilities.find((f) => f.name === selectedFacility)?.hostingInfo.setupFee}</p>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-black">Unlocked GPUs:</span>
-                <span className="font-medium text-black">
-                  {unlockedGPUs} / 20
-                </span>
+                <span className="text-gray-300">Unlocked GPUs:</span>
+                <span className="font-medium text-white">{unlockedGPUs} / 20</span>
               </div>
-              <div className="border-t border-black my-4" />
+              <div className="border-t border-gray-300 my-4" />
               <AnimatePresence>
                 {selectedPlan && selectedHashRate && selectedFacility && (
                   <motion.div
@@ -478,32 +411,25 @@ const HostingTab = () => {
                     {selectedPlan === "Monthly" ? (
                       <>
                         <div className="flex justify-between">
-                          <span className="text-black">Monthly Price:</span>
-                          <span className="font-medium text-black">
-                            ${planBasePrices[selectedPlan]}
-                          </span>
+                          <span className="text-gray-300">Monthly Price:</span>
+                          <span className="font-medium text-white">${planBasePrices[selectedPlan]}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-black">One-Time Fee:</span>
-                          <span className="font-medium text-black">
-                            ${hashRateCosts[selectedHashRate]}
-                          </span>
+                          <span className="text-gray-300">One-Time Fee:</span>
+                          <span className="font-medium text-white">${hashRateCosts[selectedHashRate]}</span>
                         </div>
                       </>
                     ) : (
-                      <div className="flex justify-between font-bold text-xl text-black">
+                      <div className="flex justify-between font-bold text-xl text-white">
                         <span>Total Price:</span>
                         <span>${totalPrice}</span>
                       </div>
                     )}
-                    <div className="mt-4 text-sm text-black">
-                      <p>
-                        Estimated Output: 0.001 BTC/month (based on current
-                        rates)
-                      </p>
+                    <div className="mt-4 text-sm text-gray-300">
+                      <p>Estimated Output: 0.001 BTC/month (based on current rates)</p>
                     </div>
                     {selectedPlan === "6 Months" && (
-                      <div className="mt-2 inline-block bg-white text-black px-3 py-1 rounded-full text-sm border border-black">
+                      <div className="mt-2 inline-block bg-black text-white px-3 py-1 rounded-full text-sm border border-gray-300">
                         Save 10% with 6 Months
                       </div>
                     )}
@@ -517,9 +443,7 @@ const HostingTab = () => {
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <h3 className="text-lg font-semibold mb-2 text-black">
-                    GPU Visualization
-                  </h3>
+                  <h3 className="text-lg font-semibold mb-2 text-white">GPU Visualization</h3>
                   <ul className="grid grid-cols-5 gap-4">{renderGPUs()}</ul>
                 </motion.div>
               )}
@@ -528,18 +452,13 @@ const HostingTab = () => {
               className="mt-6"
               animate={
                 selectedPlan && selectedHashRate && selectedFacility
-                  ? {
-                      scale: [1, 1.05, 1],
-                      transition: { repeat: Infinity, duration: 1.5 },
-                    }
+                  ? { scale: [1, 1.05, 1], transition: { repeat: Infinity, duration: 1.5 } }
                   : {}
               }
             >
               <Button
-                className="w-full bg-black text-white hover:bg-white hover:text-black disabled:bg-white disabled:text-black rounded-full py-4 text-lg"
-                disabled={
-                  !selectedPlan || !selectedHashRate || !selectedFacility
-                }
+                className="w-full bg-black text-white hover:opacity-80 disabled:opacity-50 disabled:text-gray-400 rounded-full py-4 text-lg border border-gray-300"
+                disabled={!selectedPlan || !selectedHashRate || !selectedFacility}
                 onClick={handleViewDetails}
               >
                 Check Details
@@ -549,36 +468,21 @@ const HostingTab = () => {
         </div>
 
         {/* Info Section */}
-        <div className="mt-12 bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold mb-4 text-black">
-            About Hosting Services
-          </h2>
-          <p className="text-black leading-relaxed">
-            Our hosting services at Potentia empower you to mine
-            cryptocurrencies effortlessly using top-tier facilities worldwide,
-            without the hassle of managing hardware. We take care of
-            everything—from setup and maintenance to power management—ensuring
-            optimal performance and uptime for your mining operations. Whether
-            you&apos;re a beginner or an experienced miner, our state-of-the-art
-            data centers in locations like Ethiopia, Dubai, and Texas offer
-            competitive electricity rates, advanced cooling systems, and 24/7
-            surveillance. This allows you to focus on maximizing your mining
-            profits while we handle the technical complexities. Join thousands
-            of users who trust Potentia to deliver reliable, scalable, and
-            eco-friendly cloud mining solutions tailored to your needs.
+        <div className="mt-12 bg-black p-6 rounded-lg shadow-md border border--neutral-700">
+          <h2 className="text-2xl font-bold mb-4 text-white">About Hosting Services</h2>
+          <p className="text-gray-300 leading-relaxed">
+            Our hosting services at Potentia empower you to mine cryptocurrencies effortlessly using top-tier facilities worldwide, without the hassle of managing hardware. We take care of everything—from setup and maintenance to power management—ensuring optimal performance and uptime for your mining operations. Whether you're a beginner or an experienced miner, our state-of-the-art data centers in locations like Ethiopia, Dubai, and Texas offer competitive electricity rates, advanced cooling systems, and 24/7 surveillance. This allows you to focus on maximizing your mining profits while we handle the technical complexities. Join thousands of users who trust Potentia to deliver reliable, scalable, and eco-friendly cloud mining solutions tailored to your needs.
           </p>
         </div>
 
         {/* FAQ Section */}
-        <div className="mt-12 bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold mb-4 text-black">
-            Frequently Asked Questions
-          </h2>
+        <div className="mt-12 bg-black p-6 rounded-lg shadow-md border border-neutral-700">
+          <h2 className="text-2xl font-bold mb-4 text-white">Frequently Asked Questions</h2>
           <div className="space-y-2">
             {faqs.map((faq, index) => (
-              <div key={index} className="border-b border-black py-4">
+              <div key={index} className="border-b border--neutral-700 py-4">
                 <button
-                  className="w-full flex justify-between items-center text-lg font-semibold cursor-pointer text-left text-black"
+                  className="w-full flex justify-between items-center text-lg font-semibold cursor-pointer text-left text-white"
                   onClick={() => toggleFAQ(index)}
                 >
                   <span>{faq.question}</span>
@@ -593,9 +497,7 @@ const HostingTab = () => {
                       transition={{ duration: 0.3 }}
                       className="overflow-hidden"
                     >
-                      <p className="text-black leading-relaxed mt-2">
-                        {faq.answer}
-                      </p>
+                      <p className="text-gray-300 leading-relaxed mt-2">{faq.answer}</p>
                     </motion.div>
                   )}
                 </AnimatePresence>

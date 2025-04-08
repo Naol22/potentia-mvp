@@ -19,16 +19,26 @@ const ProductsPage = () => {
         transition={{ duration: 1 }}
       >
         <div
+          aria-hidden="true"
+          className="flex absolute -top-96 start-1/2 transform -translate-x-1/2"
+        >
+          <div className="bg-gradient-to-r from-black/50 via-white/60 to-black/70 blur-[8rem] w-[25rem] h-[44rem] rotate-[-60deg] transform -translate-x-[10rem]" />
+          <div className="bg-gradient-to-tl from-black/70 via-white/15 to-black/50 blur-[8rem] w-[90rem] h-[50rem] rounded-full origin-top-left -rotate-12 -translate-x-[15rem]" />
+        </div>
+
+        {/* <div
           className="absolute inset-0 opacity-10 pointer-events-none"
           style={{ background: "url('/noise.png') repeat" }}
-        />
+        /> */}
         <motion.div
           className="text-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <h1 className="text-5xl md:text-6xl font-bold">Start Your Mining Journey</h1>
+          <h1 className="text-5xl md:text-6xl font-bold">
+            Start Your Mining Journey
+          </h1>
           <p className="mt-4 text-xl md:text-2xl text-gray-400">
             Choose the perfect Bitcoin cloud mining plan with Potentia.
           </p>

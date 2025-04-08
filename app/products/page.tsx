@@ -10,7 +10,7 @@ const ProductsPage = () => {
   const [activeTab, setActiveTab] = useState<"hosting" | "hashrate">("hosting");
 
   return (
-    <section className="bg-gradient-to-b from-gray-50 to-gray-100 text-black min-h-screen font-['Inter']">
+    <section className="bg-black text-white min-h-screen font-['Inter']">
       {/* Hero Section */}
       <motion.section
         className="relative h-screen bg-black text-white flex items-center justify-center"
@@ -29,7 +29,7 @@ const ProductsPage = () => {
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           <h1 className="text-5xl md:text-6xl font-bold">Start Your Mining Journey</h1>
-          <p className="mt-4 text-xl md:text-2xl text-gray-300">
+          <p className="mt-4 text-xl md:text-2xl text-gray-400">
             Choose the perfect Bitcoin cloud mining plan with Potentia.
           </p>
           <motion.div
@@ -47,27 +47,33 @@ const ProductsPage = () => {
       </motion.section>
 
       {/* Tab Selector */}
-      <div className="flex justify-center space-x-4 py-6 border-b border-gray-200">
-        <button
-          className={`px-6 py-2 rounded-lg transition-all ${
-            activeTab === "hosting" ? "bg-black text-white" : "bg-gray-200 text-black hover:bg-gray-300"
-          }`}
-          onClick={() => setActiveTab("hosting")}
-        >
-          Hosting
-        </button>
-        <button
-          className={`px-6 py-2 rounded-lg transition-all ${
-            activeTab === "hashrate" ? "bg-black text-white" : "bg-gray-200 text-black hover:bg-gray-300"
-          }`}
-          onClick={() => setActiveTab("hashrate")}
-        >
-          Hashrate Plans
-        </button>
+      <div className="bg-black py-6">
+        <div className="max-w-2xl mx-auto flex justify-center space-x-6">
+          <button
+            className={`relative px-12 py-3 text-lg font-semibold transition-all ${
+              activeTab === "hosting"
+                ? "bg-white text-black shadow-sm border-4 border-black"
+                : "bg-black text-gray-300 hover:bg-white text-black"
+            } min-w-[200px]`}
+            onClick={() => setActiveTab("hosting")}
+          >
+            Hosting
+          </button>
+          <button
+            className={`relative px-12 py-3 text-lg font-semibold transition-all ${
+              activeTab === "hashrate"
+                ? "bg-white text-black shadow-sm border-b-4 border-white"
+                : "bg-black text-gray-300 hover:bg-gray-700"
+            } min-w-[200px]`}
+            onClick={() => setActiveTab("hashrate")}
+          >
+            Hashrate Plans
+          </button>
+        </div>
       </div>
 
       {/* Tab Content */}
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-black">
         {activeTab === "hosting" ? <HostingTab /> : <HashrateTab />}
       </div>
     </section>

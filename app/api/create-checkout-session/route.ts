@@ -1,16 +1,25 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { auth } from "@clerk/nextjs/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia", // Use a stable API version
+  apiVersion: "2025-02-24.acacia",
 });
 
 export async function POST(req: Request) {
   try {
+    const { userId } = await auth();
     const { planId, hashRateId, paymentMethod } = await req.json();
 
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     // Base configuration
-    const paymentMethodTypes: string[] = ["card"]; // Default always included
+    const paymentMethodTypes: string[] = ["card"];
 
     // Add selected payment method if not card
     if (paymentMethod !== "card") {
@@ -40,10 +49,10 @@ export async function POST(req: Request) {
       }
     }
 
-    // Create checkout session with product IDs
+    // Create checkout session with product IDs and user metadata
     const session = await stripe.checkout.sessions.create({
       payment_method_types:
-        paymentMethodTypes as Stripe.Checkout.SessionCreateParams.PaymentMethodType[], // Cast to correct Stripe type
+        paymentMethodTypes as Stripe.Checkout.SessionCreateParams.PaymentMethodType[],
       line_items: [
         {
           price: planId,
@@ -57,9 +66,12 @@ export async function POST(req: Request) {
       mode: "payment",
       success_url: `${process.env.NEXT_PUBLIC_URL}/success`,
       cancel_url: `${process.env.NEXT_PUBLIC_URL}/cancel`,
-      // Enable automatic tax calculation if needed
       automatic_tax: { enabled: true },
-      // Remove the incorrect payment_method_options
+      metadata: {
+        userId: userId,
+        planId: planId,
+        hashRateId: hashRateId
+      }
     });
 
     return NextResponse.json({ sessionId: session.id });

@@ -26,7 +26,11 @@ const facilities = [
   {
     name: "Ethiopia",
     image: "/ethio.jpg",
-    hostingInfo: { price: "4.0ct / kWh", minOrder: "1 piece", setupFee: "$150" },
+    hostingInfo: {
+      price: "4.0ct / kWh",
+      minOrder: "1 piece",
+      setupFee: "$150",
+    },
     generalInfo: {
       source: "Mixed",
       minerType: "Hydro Power",
@@ -38,7 +42,11 @@ const facilities = [
   {
     name: "Dubai",
     image: "/dubai.jpg",
-    hostingInfo: { price: "8.0ct / kWh", minOrder: "2 pieces", setupFee: "50,00 €" },
+    hostingInfo: {
+      price: "8.0ct / kWh",
+      minOrder: "2 pieces",
+      setupFee: "50,00 €",
+    },
     generalInfo: {
       source: "Solar/Grid",
       minerType: "ASIC Miner",
@@ -50,7 +58,11 @@ const facilities = [
   {
     name: "Texas, Fort Worth",
     image: "/Texas.jpg",
-    hostingInfo: { price: "7.8ct / kWh", minOrder: "1 piece", setupFee: "1050,00 €" },
+    hostingInfo: {
+      price: "7.8ct / kWh",
+      minOrder: "1 piece",
+      setupFee: "1050,00 €",
+    },
     generalInfo: {
       source: "Mains power",
       minerType: "Warehouse Miner",
@@ -62,7 +74,11 @@ const facilities = [
   {
     name: "Paraguay, Villarica",
     image: "/para.jpg",
-    hostingInfo: { price: "7.8ct / kWh", minOrder: "1 piece", setupFee: "50,00 €" },
+    hostingInfo: {
+      price: "7.8ct / kWh",
+      minOrder: "1 piece",
+      setupFee: "50,00 €",
+    },
     generalInfo: {
       source: "Hydro Power",
       minerType: "Warehouse Miner",
@@ -161,7 +177,9 @@ const HostingTab = () => {
   const router = useRouter();
   const [selectedCrypto, setSelectedCrypto] = useState<Crypto | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const [selectedHashRate, setSelectedHashRate] = useState<HashRate | null>(null);
+  const [selectedHashRate, setSelectedHashRate] = useState<HashRate | null>(
+    null
+  );
   const [selectedFacility, setSelectedFacility] = useState<string | null>(null);
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
 
@@ -169,7 +187,9 @@ const HostingTab = () => {
     selectedPlan && selectedHashRate
       ? planBasePrices[selectedPlan] + hashRateCosts[selectedHashRate]
       : 0;
-  const unlockedGPUs = selectedHashRate ? hashRateToGPUs[selectedHashRate] || 0 : 0;
+  const unlockedGPUs = selectedHashRate
+    ? hashRateToGPUs[selectedHashRate] || 0
+    : 0;
 
   const renderGPUs = () => {
     const totalGPUs = 20;
@@ -197,7 +217,13 @@ const HostingTab = () => {
   const handleViewDetails = () => {
     if (selectedPlan && selectedHashRate && selectedFacility) {
       router.push(
-        `/details?crypto=${encodeURIComponent(selectedCrypto || "")}&duration=${encodeURIComponent(selectedPlan)}&hashRate=${encodeURIComponent(selectedHashRate)}&facility=${encodeURIComponent(selectedFacility)}`
+        `/details?crypto=${encodeURIComponent(
+          selectedCrypto || ""
+        )}&duration=${encodeURIComponent(
+          selectedPlan
+        )}&hashRate=${encodeURIComponent(
+          selectedHashRate
+        )}&facility=${encodeURIComponent(selectedFacility)}`
       );
     }
   };
@@ -269,10 +295,18 @@ const HostingTab = () => {
                     alt={facility.name}
                     className="w-full h-32 object-cover rounded-md mb-2"
                   />
-                  <h3 className="text-lg font-semibold text-white">{facility.name}</h3>
-                  <p className="text-sm text-white">{facility.generalInfo.capacity} Capacity</p>
-                  <p className="text-sm text-white">{facility.hostingInfo.price}</p>
-                  <Link href={`/facilities/${encodeURIComponent(facility.name)}`}>
+                  <h3 className="text-lg font-semibold text-white">
+                    {facility.name}
+                  </h3>
+                  <p className="text-sm text-white">
+                    {facility.generalInfo.capacity} Capacity
+                  </p>
+                  <p className="text-sm text-white">
+                    {facility.hostingInfo.price}
+                  </p>
+                  <Link
+                    href={`/facilities/${encodeURIComponent(facility.name)}`}
+                  >
                     <Button className="mt-2 w-full bg-black text-white hover:opacity-80 rounded-full py-2 text-sm border border-gray-300">
                       View Facility
                     </Button>
@@ -293,7 +327,9 @@ const HostingTab = () => {
           >
             {/* Crypto Selection */}
             <div className="bg-black p-6 rounded-lg shadow-md border border-neutral-700">
-              <h2 className="text-xl font-bold mb-4 text-white">Select Cryptocurrency</h2>
+              <h2 className="text-xl font-bold mb-4 text-white">
+                Select Cryptocurrency
+              </h2>
               <div className="flex space-x-4">
                 {cryptocurrencies.map((crypto) => (
                   <button
@@ -313,9 +349,12 @@ const HostingTab = () => {
 
             {/* Plan Selector */}
             <div className="bg-black p-6 rounded-lg shadow-md border border--neutral-700">
-              <h2 className="text-xl font-bold mb-2 text-white">Choose Your Plan</h2>
+              <h2 className="text-xl font-bold mb-2 text-white">
+                Choose Your Plan
+              </h2>
               <p className="text-sm text-gray-300 mb-4">
-                Choose a plan duration that fits your mining goals. Longer plans offer better value.
+                Choose a plan duration that fits your mining goals. Longer plans
+                offer better value.
               </p>
               <div className="space-y-4">
                 {plans.map((plan) => (
@@ -337,9 +376,12 @@ const HostingTab = () => {
 
             {/* Hash Rate Selector */}
             <div className="bg-black p-6 rounded-lg shadow-md border border-neutral-700">
-              <h2 className="text-xl font-bold mb-2 text-white">Select Hash Rate</h2>
+              <h2 className="text-xl font-bold mb-2 text-white">
+                Select Hash Rate
+              </h2>
               <p className="text-sm text-gray-300 mb-4">
-                Select a hash rate to determine your mining power. Higher rates unlock more GPUs and increase potential earnings.
+                Select a hash rate to determine your mining power. Higher rates
+                unlock more GPUs and increase potential earnings.
               </p>
               <div className="space-y-4">
                 {hashRates.map((rate) => (
@@ -371,33 +413,57 @@ const HostingTab = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-2xl font-bold mb-4 text-white">Order Summary</h2>
+            <h2 className="text-2xl font-bold mb-4 text-white">
+              Order Summary
+            </h2>
             <div className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-gray-300">Cryptocurrency:</span>
-                <span className="font-medium text-white">{selectedCrypto || "Not selected"}</span>
+                <span className="font-medium text-white">
+                  {selectedCrypto || "Not selected"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-300">Plan:</span>
-                <span className="font-medium text-white">{selectedPlan || "Not selected"}</span>
+                <span className="font-medium text-white">
+                  {selectedPlan || "Not selected"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-300">Hash Rate:</span>
-                <span className="font-medium text-white">{selectedHashRate || "Not selected"}</span>
+                <span className="font-medium text-white">
+                  {selectedHashRate || "Not selected"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-300">Facility:</span>
-                <span className="font-medium text-white">{selectedFacility || "Not selected"}</span>
+                <span className="font-medium text-white">
+                  {selectedFacility || "Not selected"}
+                </span>
               </div>
               {selectedFacility && (
                 <div className="text-sm text-gray-300">
-                  <p>Price per kWh: {facilities.find((f) => f.name === selectedFacility)?.hostingInfo.price}</p>
-                  <p>Setup Fee: {facilities.find((f) => f.name === selectedFacility)?.hostingInfo.setupFee}</p>
+                  <p>
+                    Price per kWh:{" "}
+                    {
+                      facilities.find((f) => f.name === selectedFacility)
+                        ?.hostingInfo.price
+                    }
+                  </p>
+                  <p>
+                    Setup Fee:{" "}
+                    {
+                      facilities.find((f) => f.name === selectedFacility)
+                        ?.hostingInfo.setupFee
+                    }
+                  </p>
                 </div>
               )}
               <div className="flex justify-between">
                 <span className="text-gray-300">Unlocked GPUs:</span>
-                <span className="font-medium text-white">{unlockedGPUs} / 20</span>
+                <span className="font-medium text-white">
+                  {unlockedGPUs} / 20
+                </span>
               </div>
               <div className="border-t border-gray-300 my-4" />
               <AnimatePresence>
@@ -412,11 +478,15 @@ const HostingTab = () => {
                       <>
                         <div className="flex justify-between">
                           <span className="text-gray-300">Monthly Price:</span>
-                          <span className="font-medium text-white">${planBasePrices[selectedPlan]}</span>
+                          <span className="font-medium text-white">
+                            ${planBasePrices[selectedPlan]}
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-300">One-Time Fee:</span>
-                          <span className="font-medium text-white">${hashRateCosts[selectedHashRate]}</span>
+                          <span className="font-medium text-white">
+                            ${hashRateCosts[selectedHashRate]}
+                          </span>
                         </div>
                       </>
                     ) : (
@@ -426,7 +496,10 @@ const HostingTab = () => {
                       </div>
                     )}
                     <div className="mt-4 text-sm text-gray-300">
-                      <p>Estimated Output: 0.001 BTC/month (based on current rates)</p>
+                      <p>
+                        Estimated Output: 0.001 BTC/month (based on current
+                        rates)
+                      </p>
                     </div>
                     {selectedPlan === "6 Months" && (
                       <div className="mt-2 inline-block bg-black text-white px-3 py-1 rounded-full text-sm border border-gray-300">
@@ -443,7 +516,9 @@ const HostingTab = () => {
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <h3 className="text-lg font-semibold mb-2 text-white">GPU Visualization</h3>
+                  <h3 className="text-lg font-semibold mb-2 text-white">
+                    GPU Visualization
+                  </h3>
                   <ul className="grid grid-cols-5 gap-4">{renderGPUs()}</ul>
                 </motion.div>
               )}
@@ -452,13 +527,18 @@ const HostingTab = () => {
               className="mt-6"
               animate={
                 selectedPlan && selectedHashRate && selectedFacility
-                  ? { scale: [1, 1.05, 1], transition: { repeat: Infinity, duration: 1.5 } }
+                  ? {
+                      scale: [1, 1.05, 1],
+                      transition: { repeat: Infinity, duration: 1.5 },
+                    }
                   : {}
               }
             >
               <Button
                 className="w-full bg-black text-white hover:opacity-80 disabled:opacity-50 disabled:text-gray-400 rounded-full py-4 text-lg border border-gray-300"
-                disabled={!selectedPlan || !selectedHashRate || !selectedFacility}
+                disabled={
+                  !selectedPlan || !selectedHashRate || !selectedFacility
+                }
                 onClick={handleViewDetails}
               >
                 Check Details
@@ -469,15 +549,30 @@ const HostingTab = () => {
 
         {/* Info Section */}
         <div className="mt-12 bg-black p-6 rounded-lg shadow-md border border--neutral-700">
-          <h2 className="text-2xl font-bold mb-4 text-white">About Hosting Services</h2>
+          <h2 className="text-2xl font-bold mb-4 text-white">
+            About Hosting Services
+          </h2>
           <p className="text-gray-300 leading-relaxed">
-            Our hosting services at Potentia empower you to mine cryptocurrencies effortlessly using top-tier facilities worldwide, without the hassle of managing hardware. We take care of everything—from setup and maintenance to power management—ensuring optimal performance and uptime for your mining operations. Whether you're a beginner or an experienced miner, our state-of-the-art data centers in locations like Ethiopia, Dubai, and Texas offer competitive electricity rates, advanced cooling systems, and 24/7 surveillance. This allows you to focus on maximizing your mining profits while we handle the technical complexities. Join thousands of users who trust Potentia to deliver reliable, scalable, and eco-friendly cloud mining solutions tailored to your needs.
+            Our hosting services at Potentia empower you to mine
+            cryptocurrencies effortlessly using top-tier facilities worldwide,
+            without the hassle of managing hardware. We take care of
+            everything—from setup and maintenance to power management ensuring
+            optimal performance and uptime for your mining operations. Whether
+            you&apos;re a beginner or an experienced miner, our state-of-the-art data
+            centers in locations like Ethiopia, Dubai, and Texas offer
+            competitive electricity rates, advanced cooling systems, and 24/7
+            surveillance. This allows you to focus on maximizing your mining
+            profits while we handle the technical complexities. Join thousands
+            of users who trust Potentia to deliver reliable, scalable, and
+            eco-friendly cloud mining solutions tailored to your needs.
           </p>
         </div>
 
         {/* FAQ Section */}
         <div className="mt-12 bg-black p-6 rounded-lg shadow-md border border-neutral-700">
-          <h2 className="text-2xl font-bold mb-4 text-white">Frequently Asked Questions</h2>
+          <h2 className="text-2xl font-bold mb-4 text-white">
+            Frequently Asked Questions
+          </h2>
           <div className="space-y-2">
             {faqs.map((faq, index) => (
               <div key={index} className="border-b border--neutral-700 py-4">
@@ -497,7 +592,9 @@ const HostingTab = () => {
                       transition={{ duration: 0.3 }}
                       className="overflow-hidden"
                     >
-                      <p className="text-gray-300 leading-relaxed mt-2">{faq.answer}</p>
+                      <p className="text-gray-300 leading-relaxed mt-2">
+                        {faq.answer}
+                      </p>
                     </motion.div>
                   )}
                 </AnimatePresence>

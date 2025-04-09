@@ -282,13 +282,20 @@ const HostingTab = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
-                <button
+                <div
                   onClick={() => setSelectedFacility(facility.name)}
-                  className={`w-full p-4 text-left rounded-lg shadow-sm transition-all border border-neutral-700 ${
+                  className={`w-full p-4 text-left rounded-lg shadow-sm transition-all border border-neutral-700 cursor-pointer ${
                     selectedFacility === facility.name
                       ? "bg-black text-white opacity-80"
                       : "bg-black text-white hover:opacity-80"
                   } snap-center`}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      setSelectedFacility(facility.name);
+                    }
+                  }}
                 >
                   <img
                     src={facility.image}
@@ -311,7 +318,7 @@ const HostingTab = () => {
                       View Facility
                     </Button>
                   </Link>
-                </button>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -558,8 +565,8 @@ const HostingTab = () => {
             without the hassle of managing hardware. We take care of
             everything—from setup and maintenance to power management ensuring
             optimal performance and uptime for your mining operations. Whether
-            you&apos;re a beginner or an experienced miner, our state-of-the-art data
-            centers in locations like Ethiopia, Dubai, and Texas offer
+            you&apos;re a beginner or an experienced miner, our state-of-the-art
+            data centers in locations like Ethiopia, Dubai, and Texas offer
             competitive electricity rates, advanced cooling systems, and 24/7
             surveillance. This allows you to focus on maximizing your mining
             profits while we handle the technical complexities. Join thousands

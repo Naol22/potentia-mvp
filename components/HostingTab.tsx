@@ -535,7 +535,18 @@ const HostingTab = () => {
             About Hosting Services
           </h2>
           <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-            Our hosting services at Potentia empower you to mine cryptocurrencies effortlessly...
+            Our hosting services at Potentia empower you to mine
+            cryptocurrencies effortlessly using top-tier facilities worldwide,
+            without the hassle of managing hardware. We take care of
+            everything—from setup and maintenance to power management—ensuring
+            optimal performance and uptime for your mining operations. Whether
+            you&apos;re a beginner or an experienced miner, our state-of-the-art
+            data centers in locations like Ethiopia, Dubai, and Texas offer
+            competitive electricity rates, advanced cooling systems, and 24/7
+            surveillance. This allows you to focus on maximizing your mining
+            profits while we handle the technical complexities. Join thousands
+            of users who trust Potentia to deliver reliable, scalable, and
+            eco-friendly cloud mining solutions tailored to your needs.
           </p>
         </div>
 

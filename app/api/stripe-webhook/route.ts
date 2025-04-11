@@ -53,7 +53,7 @@ export async function POST(req: Request) {
 
       // Calculate end date based on duration
       const startDate = new Date()
-      let endDate = new Date(startDate)
+      const endDate = new Date(startDate)
       const duration = planData.duration
       const durationValue = parseInt(duration)
       

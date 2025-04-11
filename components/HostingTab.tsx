@@ -588,14 +588,46 @@ const HostingTab = () => {
         </AnimatePresence>
 
         {/* Info Section */}
-        <div className="mt-12 bg-white dark:bg-black p-6 rounded-lg shadow-md border border-gray-300 dark:border-neutral-700">
-          <h2 className="text-2xl font-bold mb-4 text-black dark:text-white">
-            About Hosting Services
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-            Our hosting services at Potentia empower you to mine cryptocurrencies effortlessly...
+        <motion.div
+          className="mt-12 bg-black p-6 rounded-lg shadow-md border border-neutral-600"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
+        >
+          <h2 className="text-2xl font-bold mb-4 text-white">Why Choose Our Hosting Services?</h2>
+          <p className="text-white leading-relaxed mb-6">
+            Potentia’s hosting services make cryptocurrency mining accessible and efficient. We manage state-of-the-art facilities worldwide, handling hardware, power, and maintenance so you can focus on earning rewards. Our data centers in Ethiopia, Dubai, Texas, and more offer low electricity rates, advanced cooling, and 24/7 security. Whether you’re new or experienced, our scalable solutions maximize profits with minimal hassle.
           </p>
-        </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            <motion.div
+              className="p-6 bg-black rounded-lg border border-neutral-600"
+              whileHover={{ scale: 1.05 }}
+            >
+              <h3 className="text-xl font-semibold mb-2 text-white">Global Facilities</h3>
+              <p className="text-sm text-white">
+                Mine from top-tier data centers across multiple continents, optimized for cost and performance.
+              </p>
+            </motion.div>
+            <motion.div
+              className="p-6 bg-black rounded-lg border border-neutral-600"
+              whileHover={{ scale: 1.05 }}
+            >
+              <h3 className="text-xl font-semibold mb-2 text-white">Sustainable Mining</h3>
+              <p className="text-sm text-white">
+                Use hydro and solar-powered facilities like Ethiopia and Dubai for eco-friendly operations.
+              </p>
+            </motion.div>
+            <motion.div
+              className="p-6 bg-black rounded-lg border border-neutral-600"
+              whileHover={{ scale: 1.05 }}
+            >
+              <h3 className="text-xl font-semibold mb-2 text-white">Round-the-Clock Support</h3>
+              <p className="text-sm text-white">
+                Our team is available 24/7 to ensure your mining runs smoothly.
+              </p>
+            </motion.div>
+          </div>
+        </motion.div>
 
         {/* FAQ Section */}
         <motion.div

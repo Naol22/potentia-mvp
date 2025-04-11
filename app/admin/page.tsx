@@ -1,4 +1,12 @@
-// "use client";
+import React from 'react'
+
+const page = () => {
+  return (
+    <div>page</div>
+  )
+}
+
+export default page// "use client";
 // import { useUser } from "@clerk/nextjs";
 // import { createClient } from "@supabase/supabase-js";
 // import { useEffect, useState } from "react";

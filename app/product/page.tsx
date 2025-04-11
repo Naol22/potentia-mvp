@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import HostingTab from "@/components/HostingTab";
 import HashrateTab from "@/components/HashrateTab"; // Placeholder for future implementation
 import { Button } from "@/components/ui/button";
@@ -22,33 +22,29 @@ const ProductsPage = () => {
           aria-hidden="true"
           className="flex absolute -top-96 start-1/2 transform -translate-x-1/2"
         >
-          <div className="bg-gradient-to-r from-black/50 via-white/60 to-black/70 blur-[8rem] w-[25rem] h-[44rem] rotate-[-60deg] transform -translate-x-[10rem]" />
-          <div className="bg-gradient-to-tl from-black/70 via-white/15 to-black/50 blur-[8rem] w-[90rem] h-[50rem] rounded-full origin-top-left -rotate-12 -translate-x-[15rem]" />
+          <div className="bg-gradient-to-r from-black/50 to-white/35 blur-[8rem] w-[25rem] h-[44rem] rotate-[-60deg] transform -translate-x-[10rem]" />
+          <div className="bg-gradient-to-tl from-black/70 to-white/35 blur-[8rem] w-[90rem] h-[50rem] rounded-full origin-top-left -rotate-12 -translate-x-[15rem]" />
         </div>
 
-        {/* <div
-          className="absolute inset-0 opacity-10 pointer-events-none"
-          style={{ background: "url('/noise.png') repeat" }}
-        /> */}
         <motion.div
-          className="text-center"
-          initial={{ opacity: 0, y: 20 }}
+          className="text-center z-10"
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
         >
-          <h1 className="text-5xl md:text-6xl font-bold">
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
             Start Your Mining Journey
           </h1>
-          <p className="mt-4 text-xl md:text-2xl text-gray-400">
+          <p className="mt-6 text-xl md:text-2xl font-light tracking-wide">
             Choose the perfect Bitcoin cloud mining plan with Potentia.
           </p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
+            transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
           >
             <Link href="/facilities">
-              <Button className="mt-8 bg-white text-black hover:bg-gray-200 rounded-full px-8 py-4 text-lg">
+              <Button className="mt-10 border-2 border-white text-white bg-transparent hover:bg-white hover:text-black rounded-full px-8 py-3 text-lg font-medium transition-all duration-300">
                 View Facilities
               </Button>
             </Link>
@@ -57,34 +53,60 @@ const ProductsPage = () => {
       </motion.section>
 
       {/* Tab Selector */}
-      <div className="bg-black py-6">
-        <div className="max-w-2xl mx-auto flex justify-center space-x-6">
-          <button
-            className={`relative px-12 py-3 text-lg font-semibold transition-all ${
-              activeTab === "hosting"
-                ? "bg-white text-black shadow-sm border-4 border-black"
-                : "bg-black text-gray-300 hover:bg-white text-black"
-            } min-w-[200px]`}
-            onClick={() => setActiveTab("hosting")}
-          >
-            Hosting
-          </button>
-          <button
-            className={`relative px-12 py-3 text-lg font-semibold transition-all ${
-              activeTab === "hashrate"
-                ? "bg-white text-black shadow-sm border-b-4 border-white"
-                : "bg-black text-gray-300 hover:bg-gray-700"
-            } min-w-[200px]`}
-            onClick={() => setActiveTab("hashrate")}
-          >
-            Hashrate Plans
-          </button>
+      <div className="bg-black py-12">
+        <div className="max-w-md mx-auto">
+          <div className="flex justify-center space-x-10 bg-black border border-white/10 rounded-full px-6 py-3 shadow-lg backdrop-blur-sm">
+            <button
+              className={`relative px-4 py-2 text-lg font-semibold tracking-wide transition-all duration-300 ${
+                activeTab === "hosting" ? "text-white" : "text-white opacity-50 hover:opacity-75 hover:scale-105 hover:tracking-wider"
+              } focus:outline-none focus:ring-2 focus:ring-white rounded-full`}
+              onClick={() => setActiveTab("hosting")}
+            >
+              Hosting
+              {activeTab === "hosting" && (
+                <motion.div
+                  className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-black via-white to-black"
+                  layoutId="underline"
+                  initial={false}
+                  transition={{ duration: 0.4, ease: "easeInOut", scale: { duration: 0.4 } }}
+                  animate={{ scaleX: [1, 1.1, 1] }}
+                />
+              )}
+            </button>
+            <button
+              className={`relative px-4 py-2 text-lg font-semibold tracking-wide transition-all duration-300 ${
+                activeTab === "hashrate" ? "text-white" : "text-white opacity-50 hover:opacity-75 hover:scale-105 hover:tracking-wider"
+              } focus:outline-none focus:ring-2 focus:ring-white rounded-full`}
+              onClick={() => setActiveTab("hashrate")}
+            >
+              Hashrate Plans
+              {activeTab === "hashrate" && (
+                <motion.div
+                  className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-black via-white to-black"
+                  layoutId="underline"
+                  initial={false}
+                  transition={{ duration: 0.4, ease: "easeInOut", scale: { duration: 0.4 } }}
+                  animate={{ scaleX: [1, 1.1, 1] }}
+                />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Tab Content */}
       <div className="min-h-screen bg-black">
-        {activeTab === "hosting" ? <HostingTab /> : <HashrateTab />}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
+          >
+            {activeTab === "hosting" ? <HostingTab /> : <HashrateTab />}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </section>
   );

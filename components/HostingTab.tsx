@@ -4,8 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { IconButton } from "@mui/material";
-import { Brightness4, WbSunny } from "@mui/icons-material";
 
 // Define available options with `as const` for TypeScript literal types
 const cryptocurrencies = ["BTC", "ETH", "DOGE", "LTC"] as const;
@@ -28,11 +26,7 @@ const facilities = [
   {
     name: "Ethiopia",
     image: "/ethio.jpg",
-    hostingInfo: {
-      price: "4.0ct / kWh",
-      minOrder: "1 piece",
-      setupFee: "$150",
-    },
+    hostingInfo: { price: "4.0ct / kWh", minOrder: "1 piece", setupFee: "$150" },
     generalInfo: {
       source: "Mixed",
       minerType: "Hydro Power",
@@ -44,11 +38,7 @@ const facilities = [
   {
     name: "Dubai",
     image: "/dubai.jpg",
-    hostingInfo: {
-      price: "8.0ct / kWh",
-      minOrder: "2 pieces",
-      setupFee: "50,00 €",
-    },
+    hostingInfo: { price: "8.0ct / kWh", minOrder: "2 pieces", setupFee: "50,00 €" },
     generalInfo: {
       source: "Solar/Grid",
       minerType: "ASIC Miner",
@@ -60,11 +50,7 @@ const facilities = [
   {
     name: "Texas, Fort Worth",
     image: "/Texas.jpg",
-    hostingInfo: {
-      price: "7.8ct / kWh",
-      minOrder: "1 piece",
-      setupFee: "1050,00 €",
-    },
+    hostingInfo: { price: "7.8ct / kWh", minOrder: "1 piece", setupFee: "1050,00 €" },
     generalInfo: {
       source: "Mains power",
       minerType: "Warehouse Miner",
@@ -76,11 +62,7 @@ const facilities = [
   {
     name: "Paraguay, Villarica",
     image: "/para.jpg",
-    hostingInfo: {
-      price: "7.8ct / kWh",
-      minOrder: "1 piece",
-      setupFee: "50,00 €",
-    },
+    hostingInfo: { price: "7.8ct / kWh", minOrder: "1 piece", setupFee: "50,00 €" },
     generalInfo: {
       source: "Hydro Power",
       minerType: "Warehouse Miner",
@@ -182,15 +164,12 @@ const HostingTab = () => {
   const [selectedHashRate, setSelectedHashRate] = useState<HashRate | null>(null);
   const [selectedFacility, setSelectedFacility] = useState<string | null>(null);
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(true);
 
   const totalPrice =
     selectedPlan && selectedHashRate
       ? planBasePrices[selectedPlan] + hashRateCosts[selectedHashRate]
       : 0;
-  const unlockedGPUs = selectedHashRate
-    ? hashRateToGPUs[selectedHashRate] || 0
-    : 0;
+  const unlockedGPUs = selectedHashRate ? hashRateToGPUs[selectedHashRate] || 0 : 0;
 
   const renderGPUs = () => {
     const totalGPUs = 20;
@@ -218,13 +197,7 @@ const HostingTab = () => {
   const handleViewDetails = () => {
     if (selectedPlan && selectedHashRate && selectedFacility) {
       router.push(
-        `/details?crypto=${encodeURIComponent(
-          selectedCrypto || ""
-        )}&duration=${encodeURIComponent(
-          selectedPlan
-        )}&hashRate=${encodeURIComponent(
-          selectedHashRate
-        )}&facility=${encodeURIComponent(selectedFacility)}`
+        `/details?crypto=${encodeURIComponent(selectedCrypto || "")}&duration=${encodeURIComponent(selectedPlan)}&hashRate=${encodeURIComponent(selectedHashRate)}&facility=${encodeURIComponent(selectedFacility)}`
       );
     }
   };
@@ -253,37 +226,25 @@ const HostingTab = () => {
 
   return (
     <motion.section
-      className={`py-24 px-6 ${isDarkMode ? 'bg-black text-white' : 'bg-white text-black'}`}
+      className="py-24 px-6 bg-black"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       transition={{ duration: 1 }}
     >
-      <div className="max-w-6xl mx-auto relative">
-        {/* Theme Toggle Button */}
-        <div className="absolute top-0 right-0 p-4">
-          <IconButton
-            className={`transition-colors duration-300 ${
-              isDarkMode ? 'text-white bg-black' : 'text-black bg-white'
-            } hover:bg-opacity-80`}
-            onClick={() => setIsDarkMode(!isDarkMode)}
-          >
-            {isDarkMode ? <WbSunny /> : <Brightness4 />}
-          </IconButton>
-        </div>
-
+      <div className="max-w-6xl mx-auto">
         {/* Progress Indicator */}
-        <div className="mb-8 text-center">
-          <p className="text-sm text-black dark:text-white">
+        {/* <div className="mb-8 text-center">
+          <p className="text-sm text-white">
             Step 1: Select Crypto, Plan, Hash Rate & Facility
           </p>
-          <div className="mt-2 h-1 w-32 bg-white dark:bg-black mx-auto rounded-full border border-gray-300 dark:border-neutral-700">
-            <div className="h-full w-1/2 bg-black dark:bg-white rounded-full" />
+          <div className="mt-2 h-1 w-32 bg-black mx-auto rounded-full border border-gray-300">
+            <div className="h-full w-1/2 bg-white rounded-full" />
           </div>
-        </div>
+        </div> */}
 
         {/* Facilities Selection Section */}
-        <div className="bg-white dark:bg-neutral-900 p-6 rounded-lg shadow-md mb-12 border border-gray-300 dark:border-neutral-700">
-          <h2 className="text-2xl font-bold mb-4 text-center text-black dark:text-white">
+        <div className="bg-black p-6 rounded-lg shadow-md mb-12 border border-neutral-600">
+          <h2 className="text-2xl font-bold mb-4 text-center text-white">
             Choose Your Mining Facility
           </h2>
           <div className="flex overflow-x-auto space-x-4 pb-4 snap-x snap-mandatory">
@@ -295,41 +256,28 @@ const HostingTab = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
-                <div
+                <button
                   onClick={() => setSelectedFacility(facility.name)}
-                  className={`w-full p-4 text-left rounded-lg shadow-sm transition-all border border-gray-300 dark:border-neutral-700 ${
+                  className={`w-full p-4 text-left rounded-lg shadow-sm transition-all border border-neutral-300 ${
                     selectedFacility === facility.name
-                      ? "bg-white dark:bg-black text-black dark:text-white opacity-80"
-                      : "bg-white dark:bg-black text-black dark:text-gray-300 hover:opacity-80"
+                      ? "bg-black text-white opacity-80"
+                      : "bg-black text-white hover:opacity-80"
                   } snap-center`}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      setSelectedFacility(facility.name);
-                    }
-                  }}
                 >
                   <img
                     src={facility.image}
                     alt={facility.name}
                     className="w-full h-32 object-cover rounded-md mb-2"
                   />
-                  <h3 className="text-lg font-semibold text-black dark:text-white">
-                    {facility.name}
-                  </h3>
-                  <p className="text-sm text-black dark:text-white">
-                    {facility.generalInfo.capacity} Capacity
-                  </p>
-                  <p className="text-sm text-black dark:text-white">
-                    {facility.hostingInfo.price}
-                  </p>
+                  <h3 className="text-lg font-semibold text-white">{facility.name}</h3>
+                  <p className="text-sm text-white">{facility.generalInfo.capacity} Capacity</p>
+                  <p className="text-sm text-white">{facility.hostingInfo.price}</p>
                   <Link href={`/facilities/${encodeURIComponent(facility.name)}`}>
-                    <Button className="mt-2 w-full bg-white dark:bg-black text-black dark:text-white hover:opacity-80 rounded-full py-2 text-sm border border-gray-300 dark:border-neutral-700">
+                    <Button className="mt-2 w-full bg-black text-white hover:opacity-80 rounded-full py-2 text-sm border border-gray-300">
                       View Facility
                     </Button>
                   </Link>
-                </div>
+                </button>
               </motion.div>
             ))}
           </div>
@@ -337,21 +285,24 @@ const HostingTab = () => {
 
         <div className="grid md:grid-cols-2 gap-12">
           {/* Left Column */}
-          <motion.div className="space-y-6">
+          <motion.div
+            className="space-y-6"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+          >
             {/* Crypto Selection */}
-            <div className="bg-white dark:bg-black p-6 rounded-lg shadow-md border border-gray-300 dark:border-neutral-700">
-              <h2 className="text-xl font-bold mb-4 text-black dark:text-white">
-                Select Cryptocurrency
-              </h2>
+            <div className="bg-black p-6 rounded-lg shadow-md border border-neutral-600">
+              <h2 className="text-xl font-bold mb-4 text-white">Select Cryptocurrency</h2>
               <div className="flex space-x-4">
                 {cryptocurrencies.map((crypto) => (
                   <button
                     key={crypto}
                     onClick={() => setSelectedCrypto(crypto)}
-                    className={`px-4 py-2 rounded-md transition border border-gray-300 dark:border-neutral-700 ${
+                    className={`px-4 py-2 rounded-md transition border border-gray-600 ${
                       selectedCrypto === crypto
-                        ? "bg-white dark:bg-black text-black dark:text-white opacity-80"
-                        : "bg-white dark:bg-black text-gray-600 dark:text-gray-300 hover:opacity-80"
+                        ? "bg-black text-white opacity-80"
+                        : "bg-black text-gray-300 hover:opacity-80"
                     }`}
                   >
                     {crypto}
@@ -361,11 +312,9 @@ const HostingTab = () => {
             </div>
 
             {/* Plan Selector */}
-            <div className="bg-white dark:bg-black p-6 rounded-lg shadow-md border border-gray-300 dark:border-neutral-700">
-              <h2 className="text-xl font-bold mb-2 text-black dark:text-white">
-                Choose Your Plan
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+            <div className="bg-black p-6 rounded-lg shadow-md border border-neutral-600">
+              <h2 className="text-xl font-bold mb-2 text-white">Choose Your Plan</h2>
+              <p className="text-sm text-gray-300 mb-4">
                 Choose a plan duration that fits your mining goals. Longer plans offer better value.
               </p>
               <div className="space-y-4">
@@ -373,10 +322,10 @@ const HostingTab = () => {
                   <button
                     key={plan}
                     onClick={() => setSelectedPlan(plan)}
-                    className={`w-full p-4 text-left rounded-md transition-all border border-gray-300 dark:border-neutral-700 ${
+                    className={`w-full p-4 text-left rounded-md transition-all border border-gray-300 ${
                       selectedPlan === plan
-                        ? "bg-white dark:bg-black text-black dark:text-white opacity-80"
-                        : "bg-white dark:bg-black text-gray-600 dark:text-gray-300 hover:opacity-80"
+                        ? "bg-black text-white opacity-80"
+                        : "bg-black text-gray-300 hover:opacity-80"
                     }`}
                   >
                     <span>{plan}</span>
@@ -387,28 +336,26 @@ const HostingTab = () => {
             </div>
 
             {/* Hash Rate Selector */}
-            <div className="bg-white dark:bg-black p-6 rounded-lg shadow-md border border-gray-300 dark:border-neutral-700">
-              <h2 className="text-xl font-bold mb-2 text-black dark:text-white">
-                Select Hash Rate
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                Select a hash rate to determine your mining power.
+            <div className="bg-black p-6 rounded-lg shadow-md border border-neutral-600">
+              <h2 className="text-xl font-bold mb-2 text-white">Select Hash Rate</h2>
+              <p className="text-sm text-gray-300 mb-4">
+                Select a hash rate to determine your mining power. Higher rates unlock more GPUs and increase potential earnings.
               </p>
               <div className="space-y-4">
                 {hashRates.map((rate) => (
                   <div key={rate} className="group relative">
                     <button
                       onClick={() => setSelectedHashRate(rate)}
-                      className={`w-full p-4 text-left rounded-md transition-all border border-gray-300 dark:border-neutral-700 ${
+                      className={`w-full p-4 text-left rounded-md transition-all border border-gray-300 ${
                         selectedHashRate === rate
-                          ? "bg-white dark:bg-black text-black dark:text-white opacity-80"
-                          : "bg-white dark:bg-black text-gray-600 dark:text-gray-300 hover:opacity-80"
+                          ? "bg-black text-white opacity-80"
+                          : "bg-black text-gray-300 hover:opacity-80"
                       }`}
                     >
                       <span>{rate}</span>
                       {selectedHashRate === rate && <CheckmarkIcon />}
                     </button>
-                    <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-white dark:bg-black text-black dark:text-white text-xs rounded-md px-2 py-1 z-10 border border-gray-300 dark:border-neutral-700">
+                    <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-black text-white text-xs rounded-md px-2 py-1 z-10 border border-gray-300">
                       Unlocks {hashRateToGPUs[rate]} GPUs
                     </div>
                   </div>
@@ -419,55 +366,40 @@ const HostingTab = () => {
 
           {/* Right Column: Order Summary */}
           <motion.div
-            className="bg-white dark:bg-black p-8 rounded-lg shadow-md border border-gray-300 dark:border-neutral-700 md:sticky md:top-4"
+            className="bg-black p-8 rounded-lg shadow-md border border-neutral-600 md:sticky md:top-4"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
           >
-            <h2 className="text-2xl font-bold mb-4 text-black dark:text-white">
-              Order Summary
-            </h2>
+            <h2 className="text-2xl font-bold mb-4 text-white">Order Summary</h2>
             <div className="space-y-4">
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-300">Cryptocurrency:</span>
-                <span className="font-medium text-black dark:text-white">
-                  {selectedCrypto || "Not selected"}
-                </span>
+                <span className="text-gray-300">Cryptocurrency:</span>
+                <span className="font-medium text-white">{selectedCrypto || "Not selected"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-300">Plan:</span>
-                <span className="font-medium text-black dark:text-white">
-                  {selectedPlan || "Not selected"}
-                </span>
+                <span className="text-gray-300">Plan:</span>
+                <span className="font-medium text-white">{selectedPlan || "Not selected"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-300">Hash Rate:</span>
-                <span className="font-medium text-black dark:text-white">
-                  {selectedHashRate || "Not selected"}
-                </span>
+                <span className="text-gray-300">Hash Rate:</span>
+                <span className="font-medium text-white">{selectedHashRate || "Not selected"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-300">Facility:</span>
-                <span className="font-medium text-black dark:text-white">
-                  {selectedFacility || "Not selected"}
-                </span>
+                <span className="text-gray-300">Facility:</span>
+                <span className="font-medium text-white">{selectedFacility || "Not selected"}</span>
               </div>
               {selectedFacility && (
-                <div className="text-sm text-gray-600 dark:text-gray-300">
-                  <p>
-                    Price per kWh:{" "}
-                    {facilities.find((f) => f.name === selectedFacility)?.hostingInfo.price}
-                  </p>
-                  <p>
-                    Setup Fee:{" "}
-                    {facilities.find((f) => f.name === selectedFacility)?.hostingInfo.setupFee}
-                  </p>
+                <div className="text-sm text-gray-300">
+                  <p>Price per kWh: {facilities.find((f) => f.name === selectedFacility)?.hostingInfo.price}</p>
+                  <p>Setup Fee: {facilities.find((f) => f.name === selectedFacility)?.hostingInfo.setupFee}</p>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-300">Unlocked GPUs:</span>
-                <span className="font-medium text-black dark:text-white">
-                  {unlockedGPUs} / 20
-                </span>
+                <span className="text-gray-300">Unlocked GPUs:</span>
+                <span className="font-medium text-white">{unlockedGPUs} / 20</span>
               </div>
-              <div className="border-t border-gray-300 dark:border-neutral-700 my-4" />
+              <div className="border-t border-gray-300 my-4" />
               <AnimatePresence>
                 {selectedPlan && selectedHashRate && selectedFacility && (
                   <motion.div
@@ -479,29 +411,25 @@ const HostingTab = () => {
                     {selectedPlan === "Monthly" ? (
                       <>
                         <div className="flex justify-between">
-                          <span className="text-gray-600 dark:text-gray-300">Monthly Price:</span>
-                          <span className="font-medium text-black dark:text-white">
-                            ${planBasePrices[selectedPlan]}
-                          </span>
+                          <span className="text-gray-300">Monthly Price:</span>
+                          <span className="font-medium text-white">${planBasePrices[selectedPlan]}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600 dark:text-gray-300">One-Time Fee:</span>
-                          <span className="font-medium text-black dark:text-white">
-                            ${hashRateCosts[selectedHashRate]}
-                          </span>
+                          <span className="text-gray-300">One-Time Fee:</span>
+                          <span className="font-medium text-white">${hashRateCosts[selectedHashRate]}</span>
                         </div>
                       </>
                     ) : (
-                      <div className="flex justify-between font-bold text-xl text-black dark:text-white">
+                      <div className="flex justify-between font-bold text-xl text-white">
                         <span>Total Price:</span>
                         <span>${totalPrice}</span>
                       </div>
                     )}
-                    <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
+                    <div className="mt-4 text-sm text-gray-300">
                       <p>Estimated Output: 0.001 BTC/month (based on current rates)</p>
                     </div>
                     {selectedPlan === "6 Months" && (
-                      <div className="mt-2 inline-block bg-white dark:bg-black text-black dark:text-white px-3 py-1 rounded-full text-sm border border-gray-300 dark:border-neutral-700">
+                      <div className="mt-2 inline-block bg-black text-white px-3 py-1 rounded-full text-sm border border-gray-300">
                         Save 10% with 6 Months
                       </div>
                     )}
@@ -509,10 +437,13 @@ const HostingTab = () => {
                 )}
               </AnimatePresence>
               {selectedHashRate && (
-                <motion.div className="mt-6">
-                  <h3 className="text-lg font-semibold mb-2 text-black dark:text-white">
-                    GPU Visualization
-                  </h3>
+                <motion.div
+                  className="mt-6"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <h3 className="text-lg font-semibold mb-2 text-white">GPU Visualization</h3>
                   <ul className="grid grid-cols-5 gap-4">{renderGPUs()}</ul>
                 </motion.div>
               )}
@@ -526,7 +457,7 @@ const HostingTab = () => {
               }
             >
               <Button
-                className="w-full bg-white dark:bg-black text-black dark:text-white hover:opacity-80 disabled:opacity-50 disabled:text-gray-400 rounded-full py-4 text-lg border border-gray-300 dark:border-neutral-700"
+                className="w-full bg-black text-white hover:opacity-80 disabled:opacity-50 disabled:text-gray-400 rounded-full py-4 text-lg border border-gray-300"
                 disabled={!selectedPlan || !selectedHashRate || !selectedFacility}
                 onClick={handleViewDetails}
               >
@@ -537,25 +468,21 @@ const HostingTab = () => {
         </div>
 
         {/* Info Section */}
-        <div className="mt-12 bg-white dark:bg-black p-6 rounded-lg shadow-md border border-gray-300 dark:border-neutral-700">
-          <h2 className="text-2xl font-bold mb-4 text-black dark:text-white">
-            About Hosting Services
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-            Our hosting services at Potentia empower you to mine cryptocurrencies effortlessly...
+        <div className="mt-12 bg-black p-6 rounded-lg shadow-md border border-neutral-600">
+          <h2 className="text-2xl font-bold mb-4 text-white">About Hosting Services</h2>
+          <p className="text-gray-300 leading-relaxed">
+            Our hosting services at Potentia empower you to mine cryptocurrencies effortlessly using top-tier facilities worldwide, without the hassle of managing hardware. We take care of everything—from setup and maintenance to power management—ensuring optimal performance and uptime for your mining operations. Whether you're a beginner or an experienced miner, our state-of-the-art data centers in locations like Ethiopia, Dubai, and Texas offer competitive electricity rates, advanced cooling systems, and 24/7 surveillance. This allows you to focus on maximizing your mining profits while we handle the technical complexities. Join thousands of users who trust Potentia to deliver reliable, scalable, and eco-friendly cloud mining solutions tailored to your needs.
           </p>
         </div>
 
         {/* FAQ Section */}
-        <div className="mt-12 bg-white dark:bg-black p-6 rounded-lg shadow-md border border-gray-300 dark:border-neutral-700">
-          <h2 className="text-2xl font-bold mb-4 text-black dark:text-white">
-            Frequently Asked Questions
-          </h2>
+        <div className="mt-12 bg-black p-6 rounded-lg shadow-md border border-neutral-600">
+          <h2 className="text-2xl font-bold mb-4 text-white">Frequently Asked Questions</h2>
           <div className="space-y-2">
             {faqs.map((faq, index) => (
-              <div key={index} className="border-b border-gray-300 dark:border-neutral-700 py-4">
+              <div key={index} className="border-b border-gray-300 py-4">
                 <button
-                  className="w-full flex justify-between items-center text-lg font-semibold cursor-pointer text-left text-black dark:text-white"
+                  className="w-full flex justify-between items-center text-lg font-semibold cursor-pointer text-left text-white"
                   onClick={() => toggleFAQ(index)}
                 >
                   <span>{faq.question}</span>
@@ -570,9 +497,7 @@ const HostingTab = () => {
                       transition={{ duration: 0.3 }}
                       className="overflow-hidden"
                     >
-                      <p className="text-gray-600 dark:text-gray-300 leading-relaxed mt-2">
-                        {faq.answer}
-                      </p>
+                      <p className="text-gray-300 leading-relaxed mt-2">{faq.answer}</p>
                     </motion.div>
                   )}
                 </AnimatePresence>

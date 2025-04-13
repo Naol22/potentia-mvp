@@ -10,10 +10,10 @@ const ProductsPage = () => {
   const [activeTab, setActiveTab] = useState<"hosting" | "hashrate">("hosting");
 
   return (
-    <section className="bg-black text-white min-h-screen font-['Inter']">
+    <section className="bg-black text-white min-h-screen font-['Inter'] overflow-x-hidden">
       {/* Hero Section */}
       <motion.section
-        className="relative h-screen bg-black text-white flex items-center justify-center"
+        className="relative h-screen bg-black text-white flex items-center justify-center overflow-x-hidden"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
@@ -53,7 +53,7 @@ const ProductsPage = () => {
       </motion.section>
 
       {/* Tab Selector */}
-      <div className="bg-black py-12">
+      <div className="bg-black py-12 overflow-x-hidden">
         <div className="max-w-md mx-auto">
           <div className="flex justify-center space-x-10 bg-black border border-white/10 rounded-full px-6 py-3 shadow-lg backdrop-blur-sm">
             <button
@@ -95,7 +95,7 @@ const ProductsPage = () => {
       </div>
 
       {/* Tab Content */}
-      <div className="min-h-screen bg-black">
+      <div className="min-h-screen bg-black overflow-x-hidden">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}

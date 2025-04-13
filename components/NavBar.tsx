@@ -74,8 +74,8 @@ const Header = () => {
           <Link href="/" className={`${linkClassName} ${pathname === '/' ? 'font-bold' : ''}`}>
             Home
           </Link>
-          <Link href="/Buy" className={`${linkClassName} ${pathname === '/Buy' ? 'font-bold' : ''}`}>
-            Buy now
+          <Link href="/product" className={linkClassName}>
+            Products
           </Link>
         </div>
 

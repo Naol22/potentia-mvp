@@ -2,6 +2,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Head from "next/head";
+import Team from "@/components/Team";
 import {
   Globe,
   Bitcoin,
@@ -121,7 +122,7 @@ const About = () => {
           We’re pioneering sustainable Bitcoin mining, blending advanced technology and renewable energy to empower communities and redefine profitability. Starting in Africa, our journey is just beginning—join us.
         </motion.p>
       </motion.section>
-
+      {/* <Team/> */}
       {/* Mission & Vision */}
       <motion.section
         className="py-20 px-6 bg-black"

@@ -1,4 +1,14 @@
-// "use client";
+import React from 'react'
+
+type Props = {}
+
+const page = (props: Props) => {
+  return (
+    <div>page</div>
+  )
+}
+
+export default page// "use client";
 // import { useUser } from "@clerk/nextjs";
 // import { useState, useEffect } from "react";
 // import { useSearchParams } from "next/navigation";

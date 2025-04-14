@@ -141,7 +141,7 @@ const Header = () => {
               }`}
               onClick={() => setDropdownOpen(!dropdownOpen)}
             >
-              <span>Resources</span>
+              <span>More</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-4 w-4 inline-block"
@@ -176,12 +176,12 @@ const Header = () => {
                   Learn
                 </Link>
                 <Link
-                  href="/faq"
+                  href="/resources"
                   className={`${linkClassName} hover:bg-gray-100 block ${
                     pathname === "/faq" ? "font-bold" : ""
                   }`}
                 >
-                  Downloadables
+                  Resources
                 </Link>
               </motion.div>
             )}
@@ -293,11 +293,11 @@ const Header = () => {
             Learn
           </Link>
           <Link
-            href="/faq"
+            href="/resources"
             className={`${mobileLinkClassName} ${pathname === "/faq" ? "font-bold" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
-            Downloadables
+            Resources
           </Link>
 
           {/* Mobile Profile Section with Clerk Integration */}

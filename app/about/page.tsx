@@ -133,7 +133,7 @@ const About = () => {
       >
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
           <motion.div variants={fadeInUp}>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">Our Mission</h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white" id="mission">Our Mission</h2>
             <p className="text-zinc-300 text-lg leading-relaxed">
               To harness Bitcoin mining as a force for economic empowerment and energy innovation, delivering sustainable, accessible solutions worldwide through cutting-edge tech and strategic alliances.
             </p>

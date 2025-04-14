@@ -41,7 +41,7 @@ export default function FooterSection() {
                         href="/about"
                         className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
                       >
-                        Our Story
+                        About potentia
                       </Link>
                       <Link
                         href="/about#mission"

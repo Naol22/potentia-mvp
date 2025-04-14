@@ -26,7 +26,11 @@ const facilities = [
   {
     name: "Ethiopia",
     image: "/ethio.jpg",
-    hostingInfo: { price: "4.0ct / kWh", minOrder: "1 piece", setupFee: "$150" },
+    hostingInfo: {
+      price: "4.0ct / kWh",
+      minOrder: "1 piece",
+      setupFee: "$150",
+    },
     generalInfo: {
       source: "Hydro Power",
       minerType: "ASIC Miner",
@@ -40,7 +44,11 @@ const facilities = [
   {
     name: "Dubai",
     image: "/ethio.jpg",
-    hostingInfo: { price: "8.0ct / kWh", minOrder: "2 pieces", setupFee: "$50" },
+    hostingInfo: {
+      price: "8.0ct / kWh",
+      minOrder: "2 pieces",
+      setupFee: "$50",
+    },
     generalInfo: {
       source: "Solar/Grid",
       minerType: "ASIC Miner",
@@ -54,7 +62,11 @@ const facilities = [
   {
     name: "Texas, Fort Worth",
     image: "/Texas.jpg",
-    hostingInfo: { price: "7.8ct / kWh", minOrder: "1 piece", setupFee: "$1050" },
+    hostingInfo: {
+      price: "7.8ct / kWh",
+      minOrder: "1 piece",
+      setupFee: "$1050",
+    },
     generalInfo: {
       source: "Mains Power",
       minerType: "Warehouse Miner",
@@ -178,7 +190,9 @@ const HostingTab = () => {
   const router = useRouter();
   const [selectedCrypto, setSelectedCrypto] = useState<Crypto | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const [selectedHashRate, setSelectedHashRate] = useState<HashRate | null>(null);
+  const [selectedHashRate, setSelectedHashRate] = useState<HashRate | null>(
+    null
+  );
   const [selectedFacility, setSelectedFacility] = useState<string | null>(null);
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -188,7 +202,9 @@ const HostingTab = () => {
     selectedPlan && selectedHashRate
       ? planBasePrices[selectedPlan] + hashRateCosts[selectedHashRate]
       : 0;
-  const unlockedGPUs = selectedHashRate ? hashRateToGPUs[selectedHashRate] || 0 : 0;
+  const unlockedGPUs = selectedHashRate
+    ? hashRateToGPUs[selectedHashRate] || 0
+    : 0;
 
   // Animate price counter
   useEffect(() => {
@@ -239,7 +255,13 @@ const HostingTab = () => {
   const confirmDetails = () => {
     if (selectedPlan && selectedHashRate && selectedFacility) {
       router.push(
-        `/details?crypto=${encodeURIComponent(selectedCrypto || "")}&duration=${encodeURIComponent(selectedPlan)}&hashRate=${encodeURIComponent(selectedHashRate)}&facility=${encodeURIComponent(selectedFacility)}`
+        `/details?crypto=${encodeURIComponent(
+          selectedCrypto || ""
+        )}&duration=${encodeURIComponent(
+          selectedPlan
+        )}&hashRate=${encodeURIComponent(
+          selectedHashRate
+        )}&facility=${encodeURIComponent(selectedFacility)}`
       );
     }
     setShowModal(false);
@@ -316,9 +338,9 @@ const HostingTab = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <button
+                  <div
                     onClick={() => setSelectedFacility(facility.name)}
-                    className={`w-full h-full flex flex-col text-left rounded-lg shadow-sm transition-all bg-neutral-800 text-white hover:bg-neutral-800 snap-center p-4 ${
+                    className={`w-full h-full flex flex-col text-left rounded-lg shadow-sm transition-all bg-neutral-800 text-white hover:bg-neutral-800 snap-center p-4 cursor-pointer ${
                       selectedFacility === facility.name ? "opacity-80" : ""
                     }`}
                   >
@@ -327,16 +349,23 @@ const HostingTab = () => {
                       alt={facility.name}
                       className="w-full h-48 object-cover rounded-md mb-2"
                     />
-                    <h3 className="text-lg font-semibold truncate my-2">{facility.name}</h3>
-                    <p className="text-sm flex-1 my-2">{facility.generalInfo.capacity} Capacity</p>
+                    <h3 className="text-lg font-semibold truncate my-2">
+                      {facility.name}
+                    </h3>
+                    <p className="text-sm flex-1 my-2">
+                      {facility.generalInfo.capacity} Capacity
+                    </p>
                     <p className="text-sm my-2">{facility.hostingInfo.price}</p>
                     {facility.generalInfo.ecoFriendly && <EcoBadge />}
-                    <Link href={`/facilities/${encodeURIComponent(facility.name)}`} className="mt-auto">
+                    <Link
+                      href={`/facilities/${encodeURIComponent(facility.name)}`}
+                      className="mt-auto"
+                    >
                       <Button className="w-full bg-black text-white hover:bg-neutral-800 rounded-full py-2 text-sm border border-neutral-300">
                         View Facility
                       </Button>
                     </Link>
-                  </button>
+                  </div>
                 </motion.div>
               ))}
             </div>
@@ -354,7 +383,9 @@ const HostingTab = () => {
           >
             {/* Crypto Selection */}
             <div className="bg-neutral-800 p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-bold mb-4 text-white">Select Cryptocurrency</h2>
+              <h2 className="text-xl font-bold mb-4 text-white">
+                Select Cryptocurrency
+              </h2>
               <p className="text-sm text-white mb-4">
                 Choose the cryptocurrency you want to mine.
               </p>
@@ -379,7 +410,9 @@ const HostingTab = () => {
 
             {/* Plan Selector */}
             <div className="bg-neutral-800 p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-bold mb-2 text-white">Choose Your Plan</h2>
+              <h2 className="text-xl font-bold mb-2 text-white">
+                Choose Your Plan
+              </h2>
               <p className="text-sm text-white mb-4">
                 Select a duration that fits your mining goals.
               </p>
@@ -404,7 +437,9 @@ const HostingTab = () => {
 
             {/* Hash Rate Selector */}
             <div className="bg-neutral-800 p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-bold mb-2 text-white">Select Hash Rate</h2>
+              <h2 className="text-xl font-bold mb-2 text-white">
+                Select Hash Rate
+              </h2>
               <p className="text-sm text-white mb-4">
                 Higher hash rates boost your mining power.
               </p>
@@ -439,34 +474,64 @@ const HostingTab = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-2xl font-bold mb-4 text-white">Order Summary</h2>
+            <h2 className="text-2xl font-bold mb-4 text-white">
+              Order Summary
+            </h2>
             <div className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-white">Cryptocurrency:</span>
-                <span className="font-medium text-white">{selectedCrypto || "Not selected"}</span>
+                <span className="font-medium text-white">
+                  {selectedCrypto || "Not selected"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-white">Plan:</span>
-                <span className="font-medium text-white">{selectedPlan || "Not selected"}</span>
+                <span className="font-medium text-white">
+                  {selectedPlan || "Not selected"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-white">Hash Rate:</span>
-                <span className="font-medium text-white">{selectedHashRate || "Not selected"}</span>
+                <span className="font-medium text-white">
+                  {selectedHashRate || "Not selected"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-white">Facility:</span>
-                <span className="font-medium text-white">{selectedFacility || "Not selected"}</span>
+                <span className="font-medium text-white">
+                  {selectedFacility || "Not selected"}
+                </span>
               </div>
               {selectedFacility && (
                 <div className="text-sm text-white">
-                  <p>Price per kWh: {facilities.find((f) => f.name === selectedFacility)?.hostingInfo.price}</p>
-                  <p>Setup Fee: {facilities.find((f) => f.name === selectedFacility)?.hostingInfo.setupFee}</p>
-                  <p>Uptime: {facilities.find((f) => f.name === selectedFacility)?.generalInfo.uptime}</p>
+                  <p>
+                    Price per kWh:{" "}
+                    {
+                      facilities.find((f) => f.name === selectedFacility)
+                        ?.hostingInfo.price
+                    }
+                  </p>
+                  <p>
+                    Setup Fee:{" "}
+                    {
+                      facilities.find((f) => f.name === selectedFacility)
+                        ?.hostingInfo.setupFee
+                    }
+                  </p>
+                  <p>
+                    Uptime:{" "}
+                    {
+                      facilities.find((f) => f.name === selectedFacility)
+                        ?.generalInfo.uptime
+                    }
+                  </p>
                 </div>
               )}
               <div className="flex justify-between">
                 <span className="text-white">Unlocked GPUs:</span>
-                <span className="font-medium text-white">{unlockedGPUs} / 20</span>
+                <span className="font-medium text-white">
+                  {unlockedGPUs} / 20
+                </span>
               </div>
               <div className="border-t border-neutral-300 my-4" />
               <AnimatePresence>
@@ -512,7 +577,9 @@ const HostingTab = () => {
                       </div>
                     )}
                     <div className="mt-4 text-sm text-white">
-                      <p>Estimated Output: ~0.001 BTC/month (varies with market)</p>
+                      <p>
+                        Estimated Output: ~0.001 BTC/month (varies with market)
+                      </p>
                     </div>
                     {selectedPlan === "6 Months" && (
                       <motion.div
@@ -534,7 +601,9 @@ const HostingTab = () => {
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <h3 className="text-lg font-semibold mb-2 text-white">GPU Visualization</h3>
+                  <h3 className="text-lg font-semibold mb-2 text-white">
+                    GPU Visualization
+                  </h3>
                   <ul className="grid grid-cols-5 gap-4">{renderGPUs()}</ul>
                 </motion.div>
               )}
@@ -543,13 +612,18 @@ const HostingTab = () => {
               className="mt-6"
               animate={
                 selectedPlan && selectedHashRate && selectedFacility
-                  ? { scale: [1, 1.05, 1], transition: { repeat: Infinity, duration: 1.5 } }
+                  ? {
+                      scale: [1, 1.05, 1],
+                      transition: { repeat: Infinity, duration: 1.5 },
+                    }
                   : {}
               }
             >
               <Button
                 className="w-full bg-black text-white hover:opacity-80 disabled:opacity-50 disabled:text-neutral-400 rounded-full py-4 text-lg border border-neutral-300"
-                disabled={!selectedPlan || !selectedHashRate || !selectedFacility}
+                disabled={
+                  !selectedPlan || !selectedHashRate || !selectedFacility
+                }
                 onClick={handleViewDetails}
               >
                 Check Details
@@ -573,9 +647,13 @@ const HostingTab = () => {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.8, opacity: 0 }}
               >
-                <h3 className="text-2xl font-bold mb-4 text-white">Confirm Your Selection</h3>
+                <h3 className="text-2xl font-bold mb-4 text-white">
+                  Confirm Your Selection
+                </h3>
                 <p className="text-white mb-6">
-                  You’ve selected {selectedCrypto}, {selectedPlan}, {selectedHashRate}, and {selectedFacility}. Proceed to view details?
+                  You’ve selected {selectedCrypto}, {selectedPlan},{" "}
+                  {selectedHashRate}, and {selectedFacility}. Proceed to view
+                  details?
                 </p>
                 <div className="flex justify-end gap-4">
                   <Button
@@ -603,34 +681,50 @@ const HostingTab = () => {
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
         >
-          <h2 className="text-2xl font-bold mb-4 text-white">Why Choose Our Hosting Services?</h2>
+          <h2 className="text-2xl font-bold mb-4 text-white">
+            Why Choose Our Hosting Services?
+          </h2>
           <p className="text-white leading-relaxed mb-6">
-            Potentia’s hosting services make cryptocurrency mining accessible and efficient. We manage state-of-the-art facilities worldwide, handling hardware, power, and maintenance so you can focus on earning rewards. Our data centers in Ethiopia, Dubai, Texas, and more offer low electricity rates, advanced cooling, and 24/7 security. Whether you’re new or experienced, our scalable solutions maximize profits with minimal hassle.
+            Potentia’s hosting services make cryptocurrency mining accessible
+            and efficient. We manage state-of-the-art facilities worldwide,
+            handling hardware, power, and maintenance so you can focus on
+            earning rewards. Our data centers in Ethiopia, Dubai, Texas, and
+            more offer low electricity rates, advanced cooling, and 24/7
+            security. Whether you’re new or experienced, our scalable solutions
+            maximize profits with minimal hassle.
           </p>
           <div className="grid md:grid-cols-3 gap-6">
             <motion.div
               className="p-6 bg-black rounded-lg border border-neutral-600"
               whileHover={{ scale: 1.05 }}
             >
-              <h3 className="text-xl font-semibold mb-2 text-white">Global Facilities</h3>
+              <h3 className="text-xl font-semibold mb-2 text-white">
+                Global Facilities
+              </h3>
               <p className="text-sm text-white">
-                Mine from top-tier data centers across multiple continents, optimized for cost and performance.
+                Mine from top-tier data centers across multiple continents,
+                optimized for cost and performance.
               </p>
             </motion.div>
             <motion.div
               className="p-6 bg-black rounded-lg border border-neutral-600"
               whileHover={{ scale: 1.05 }}
             >
-              <h3 className="text-xl font-semibold mb-2 text-white">Sustainable Mining</h3>
+              <h3 className="text-xl font-semibold mb-2 text-white">
+                Sustainable Mining
+              </h3>
               <p className="text-sm text-white">
-                Use hydro and solar-powered facilities like Ethiopia and Dubai for eco-friendly operations.
+                Use hydro and solar-powered facilities like Ethiopia and Dubai
+                for eco-friendly operations.
               </p>
             </motion.div>
             <motion.div
               className="p-6 bg-black rounded-lg border border-neutral-600"
               whileHover={{ scale: 1.05 }}
             >
-              <h3 className="text-xl font-semibold mb-2 text-white">Round-the-Clock Support</h3>
+              <h3 className="text-xl font-semibold mb-2 text-white">
+                Round-the-Clock Support
+              </h3>
               <p className="text-sm text-white">
                 Our team is available 24/7 to ensure your mining runs smoothly.
               </p>
@@ -645,7 +739,9 @@ const HostingTab = () => {
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
         >
-          <h2 className="text-2xl font-bold mb-4 text-white">Frequently Asked Questions</h2>
+          <h2 className="text-2xl font-bold mb-4 text-white">
+            Frequently Asked Questions
+          </h2>
           <div className="space-y-2">
             {faqs.map((faq, index) => (
               <motion.div
@@ -671,7 +767,9 @@ const HostingTab = () => {
                       transition={{ duration: 0.3 }}
                       className="overflow-hidden"
                     >
-                      <p className="text-white leading-relaxed mt-2">{faq.answer}</p>
+                      <p className="text-white leading-relaxed mt-2">
+                        {faq.answer}
+                      </p>
                     </motion.div>
                   )}
                 </AnimatePresence>

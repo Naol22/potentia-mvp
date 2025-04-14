@@ -247,11 +247,11 @@ const Header = () => {
             About Us
           </Link>
           <Link
-            href="/Buy"
+            href="/product"
             className={`${mobileLinkClassName} ${pathname === '/Buy' ? 'font-bold' : ''}`}
             onClick={() => setMenuOpen(false)}
           >
-            Buy now
+            Products
           </Link>
           <Link
             href="/facilities"

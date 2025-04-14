@@ -5,6 +5,8 @@ import { Menu, X, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavbar } from "@/context/NavBarContext";
 import { usePathname } from "next/navigation";
+import { useUser, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import Image from "next/image";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -15,6 +17,7 @@ const Header = () => {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [profileDropdownTimeout, setProfileDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
   const [mobileProfileDropdownOpen, setMobileProfileDropdownOpen] = useState(false);
+  const { isSignedIn } = useUser();
   const pathname = usePathname();
 
   useEffect(() => {
@@ -68,10 +71,17 @@ const Header = () => {
   return (
     <motion.header className={headerClassName}>
       {/* Main container */}
-      <div className={`max-w-7xl mx-auto px-6 ${scrolled ? "md:py-4 py-6" : "py-4"} flex justify-between items-center relative`}>
+      <div
+        className={`max-w-7xl mx-auto px-6 ${
+          scrolled ? "md:py-4 py-6" : "py-4"
+        } flex justify-between items-center relative`}
+      >
         {/* Left Navigation Links - Desktop Only */}
         <div className="hidden xl:flex space-x-8 items-center">
-          <Link href="/" className={`${linkClassName} ${pathname === '/' ? 'font-bold' : ''}`}>
+          <Link
+            href="/"
+            className={`${linkClassName} ${pathname === "/" ? "font-bold" : ""}`}
+          >
             Home
           </Link>
           <Link href="/product" className={linkClassName}>
@@ -92,7 +102,6 @@ const Header = () => {
                 opacity: 1,
                 y: scrolled ? 0 : 10,
                 scale: scrolled ? 1.3 : 2.5,
-                 // Decreased initial size from 2.5 to 2.0
               }}
               whileHover={{
                 scale: scrolled ? 1.1 : 2.6,
@@ -115,7 +124,10 @@ const Header = () => {
 
         {/* Right Navigation Links - Desktop Only */}
         <div className="hidden xl:flex space-x-8 items-center">
-          <Link href="/about" className={`${linkClassName} ${pathname === '/about' ? 'font-bold' : ''}`}>
+          <Link
+            href="/about"
+            className={`${linkClassName} ${pathname === "/about" ? "font-bold" : ""}`}
+          >
             About
           </Link>
           <div
@@ -125,7 +137,7 @@ const Header = () => {
           >
             <button
               className={`${linkClassName} flex items-center space-x-1 ${
-                pathname === '/learn' || pathname === '/faq' ? 'font-bold' : ''
+                pathname === "/learn" || pathname === "/faq" ? "font-bold" : ""
               }`}
               onClick={() => setDropdownOpen(!dropdownOpen)}
             >
@@ -157,13 +169,17 @@ const Header = () => {
               >
                 <Link
                   href="/learn"
-                  className={`${linkClassName} hover:bg-gray-100 block ${pathname === '/learn' ? 'font-bold' : ''}`}
+                  className={`${linkClassName} hover:bg-gray-100 block ${
+                    pathname === "/learn" ? "font-bold" : ""
+                  }`}
                 >
                   Learn
                 </Link>
                 <Link
                   href="/faq"
-                  className={`${linkClassName} hover:bg-gray-100 block ${pathname === '/faq' ? 'font-bold' : ''}`}
+                  className={`${linkClassName} hover:bg-gray-100 block ${
+                    pathname === "/faq" ? "font-bold" : ""
+                  }`}
                 >
                   Downloadables
                 </Link>
@@ -175,46 +191,55 @@ const Header = () => {
 
       {/* Absolutely Positioned Profile Icon - Desktop Only */}
       <div className="hidden xl:block absolute right-6 top-4">
-        <div
-          className="relative"
-          onMouseEnter={handleProfileDropdownEnter}
-          onMouseLeave={handleProfileDropdownLeave}
-        >
-          <button className="py-1 transition-colors duration-300 mr-5 ">
-            <img
-              src={scrolled ? "/profileb.png" : "/profile.png"}
-              alt="Profile"
-              className="w-8 h-8"
-            />
-          </button>
-          {profileDropdownOpen && (
-            <motion.div
-              className={`absolute right-0 top-full ${
-                scrolled ? "bg-white" : "bg-transparent"
-              } text-black shadow-lg w-40 py-2 rounded-md z-40`}
-              initial={{ opacity: 0, y: -10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Link
-                href="/login"
-                className={`${linkClassName} hover:bg-gray-100 block`}
+        {isSignedIn ? (
+          <UserButton />
+        ) : (
+          <div
+            className="relative"
+            onMouseEnter={handleProfileDropdownEnter}
+            onMouseLeave={handleProfileDropdownLeave}
+          >
+            <button className="py-1 transition-colors duration-300">
+              <Image
+                src={scrolled ? "/profileb.png" : "/profile.png"}
+                alt="Profile"
+                width={32}
+                height={32}
+                className="transition-opacity duration-300"
+                priority
+              />
+            </button>
+            {profileDropdownOpen && (
+              <motion.div
+                className={`absolute right-0 top-full mt-2 ${
+                  scrolled ? "bg-white" : "bg-transparent"
+                } text-black shadow-lg w-40 py-2 rounded-md z-40`}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
               >
-                Log In
-              </Link>
-              <Link
-                href="/signup"
-                className={`${linkClassName} hover:bg-gray-100 block`}
-              >
-                Sign Up
-              </Link>
-            </motion.div>
-          )}
-        </div>
+                <SignInButton>
+                  <button
+                    className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}
+                  >
+                    Sign In
+                  </button>
+                </SignInButton>
+                <SignUpButton>
+                  <button
+                    className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}
+                  >
+                    Sign Up
+                  </button>
+                </SignUpButton>
+              </motion.div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Mobile Menu Button - Centered */}
+      {/* Mobile Menu Button */}
       <div className="xl:hidden flex justify-center items-center absolute right-6 top-4">
         <button
           className={`z-50 ${scrolled ? "text-black" : "text-white"}`}
@@ -234,80 +259,90 @@ const Header = () => {
         <div className="flex flex-col items-start pt-20 px-6 space-y-6">
           <Link
             href="/"
-            className={`${mobileLinkClassName} ${pathname === '/' ? 'font-bold' : ''}`}
+            className={`${mobileLinkClassName} ${pathname === "/" ? "font-bold" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
             Home
           </Link>
           <Link
             href="/about"
-            className={`${mobileLinkClassName} ${pathname === '/about' ? 'font-bold' : ''}`}
+            className={`${mobileLinkClassName} ${pathname === "/about" ? "font-bold" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
             About Us
           </Link>
           <Link
             href="/product"
-            className={`${mobileLinkClassName} ${pathname === '/Buy' ? 'font-bold' : ''}`}
+            className={`${mobileLinkClassName} ${pathname === "/product" ? "font-bold" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
             Products
           </Link>
           <Link
             href="/facilities"
-            className={`${mobileLinkClassName} ${pathname === '/facilities' ? 'font-bold' : ''}`}
+            className={`${mobileLinkClassName} ${pathname === "/facilities" ? "font-bold" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
             Facilities
           </Link>
           <Link
             href="/learn"
-            className={`${mobileLinkClassName} ${pathname === '/learn' ? 'font-bold' : ''}`}
+            className={`${mobileLinkClassName} ${pathname === "/learn" ? "font-bold" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
             Learn
           </Link>
           <Link
             href="/faq"
-            className={`${mobileLinkClassName} ${pathname === '/faq' ? 'font-bold' : ''}`}
+            className={`${mobileLinkClassName} ${pathname === "/faq" ? "font-bold" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
             Downloadables
           </Link>
-          
-          {/* Mobile Profile Section with Dropdown */}
+
+          {/* Mobile Profile Section with Clerk Integration */}
           <div className="relative w-full">
-            <button 
-              className={`${mobileLinkClassName} flex items-center space-x-2 w-full`}
-              onClick={() => setMobileProfileDropdownOpen(!mobileProfileDropdownOpen)}
-            >
-              <User size={18} />
-              <span>Profile</span>
-            </button>
-            
-            {mobileProfileDropdownOpen && (
-              <motion.div
-                className="pl-6 mt-2 space-y-3"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Link
-                  href="/login"
-                  className={mobileLinkClassName}
-                  onClick={() => setMenuOpen(false)}
+            {isSignedIn ? (
+              <div className="flex items-center px-6 py-3">
+                <UserButton />
+                <span className={`${mobileLinkClassName} ml-2`}>Profile</span>
+              </div>
+            ) : (
+              <>
+                <button
+                  className={`${mobileLinkClassName} flex items-center space-x-2 w-full`}
+                  onClick={() => setMobileProfileDropdownOpen(!mobileProfileDropdownOpen)}
                 >
-                  Log In
-                </Link>
-                <Link
-                  href="/signup"
-                  className={mobileLinkClassName}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Sign Up
-                </Link>
-              </motion.div>
+                  <User size={18} />
+                  <span>Profile</span>
+                </button>
+                {mobileProfileDropdownOpen && (
+                  <motion.div
+                    className="pl-6 mt-2 space-y-3 w-full"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <SignInButton>
+                      <button
+                        className={`${mobileLinkClassName} block w-full text-left`}
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        Sign In
+                      </button>
+                    </SignInButton>
+                    <SignUpButton>
+                      <button
+                        className={`${mobileLinkClassName} block w-full text-left`}
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        Sign Up
+                      </button>
+                    </SignUpButton>
+                  </motion.div>
+                )}
+              </>
             )}
           </div>
         </div>

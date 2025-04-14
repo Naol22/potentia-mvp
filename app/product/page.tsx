@@ -6,8 +6,10 @@ import HashrateTab from "@/components/HashrateTab";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-const ProductsPage = () => {
+// Child component for search params logic
+function ProductsContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const initialTab = tabParam === "hashrate" ? "hashrate" : "hosting";
@@ -62,7 +64,9 @@ const ProductsPage = () => {
           <div className="flex justify-center space-x-10 bg-black border border-white/10 rounded-full px-6 py-3 shadow-lg backdrop-blur-sm">
             <button
               className={`relative px-4 py-2 text-lg font-semibold tracking-wide transition-all duration-300 ${
-                activeTab === "hosting" ? "text-white" : "text-white opacity-50 hover:opacity-75 hover:scale-105 hover:tracking-wider"
+                activeTab === "hosting"
+                  ? "text-white"
+                  : "text-white opacity-50 hover:opacity-75 hover:scale-105 hover:tracking-wider"
               } focus:outline-none focus:ring-2 focus:ring-white rounded-full`}
               onClick={() => setActiveTab("hosting")}
             >
@@ -79,7 +83,9 @@ const ProductsPage = () => {
             </button>
             <button
               className={`relative px-4 py-2 text-lg font-semibold tracking-wide transition-all duration-300 ${
-                activeTab === "hashrate" ? "text-white" : "text-white opacity-50 hover:opacity-75 hover:scale-105 hover:tracking-wider"
+                activeTab === "hashrate"
+                  ? "text-white"
+                  : "text-white opacity-50 hover:opacity-75 hover:scale-105 hover:tracking-wider"
               } focus:outline-none focus:ring-2 focus:ring-white rounded-full`}
               onClick={() => setActiveTab("hashrate")}
             >
@@ -114,6 +120,13 @@ const ProductsPage = () => {
       </div>
     </section>
   );
-};
+}
 
-export default ProductsPage;
+// Main page component
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div className="bg-black text-white min-h-screen p-8">Loading products...</div>}>
+      <ProductsContent />
+    </Suspense>
+  );
+}

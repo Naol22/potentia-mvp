@@ -55,7 +55,7 @@ const Hero = () => {
             transformation, and empowers economies.
           </p>
           <div>
-            <Link href="/about" passHref>
+            <Link href="" passHref>
               <Button
                 variant="ghost"
                 size="lg"

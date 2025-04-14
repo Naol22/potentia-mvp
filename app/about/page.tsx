@@ -259,7 +259,7 @@ const About = () => {
       >
         <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">Build Now</h2>
         <p className="text-zinc-200 max-w-2xl mx-auto mb-10 text-lg">
-          Ready to join Potentia’s sustainable mining revolution? Let’s build a greener, wealthier tomorrow together.
+          Ready to join Potentia&apos;s sustainable mining revolution? Let&apos;s build a greener, wealthier tomorrow together.
         </p>
         <Link href="/contact" passHref>
           <Button

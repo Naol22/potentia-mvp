@@ -2,7 +2,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Head from "next/head";
-import Team from "@/components/Team";
+// import Team from "@/components/Team";
 import {
   Globe,
   Bitcoin,

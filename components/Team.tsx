@@ -1,7 +1,7 @@
 "use client";
 import { Twitter, Github, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import { motion } from "framer-motion";
 

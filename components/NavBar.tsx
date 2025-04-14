@@ -1,24 +1,21 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavbar } from "@/context/NavBarContext";
-import { useUser, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
-import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { sticky } = useNavbar();
-  const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(
-    null
-  );
+  const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [profileDropdownTimeout, setProfileDropdownTimeout] =
-    useState<NodeJS.Timeout | null>(null);
-  const { isSignedIn } = useUser();
+  const [profileDropdownTimeout, setProfileDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [mobileProfileDropdownOpen, setMobileProfileDropdownOpen] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,7 +28,7 @@ const Header = () => {
   const headerClassName = `${
     sticky ? "fixed top-0 w-full z-30" : "relative"
   } transition-all duration-300 ${
-    scrolled ? "bg-white shadow-md" : "bg-transparent"
+    scrolled ? "bg-white shadow-md md:py-0 py-2" : "bg-transparent"
   }`;
 
   const linkClassName = `block px-6 py-2 transition-colors duration-300 ${
@@ -71,10 +68,10 @@ const Header = () => {
   return (
     <motion.header className={headerClassName}>
       {/* Main container */}
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between min-h-[64px]">
-        {/* Left Navigation Links */}
-        <div className="hidden md:flex space-x-8 items-center order-1">
-          <Link href="/" className={`${linkClassName} font-bold`}>
+      <div className={`max-w-7xl mx-auto px-6 ${scrolled ? "md:py-4 py-6" : "py-4"} flex justify-between items-center relative`}>
+        {/* Left Navigation Links - Desktop Only */}
+        <div className="hidden xl:flex space-x-8 items-center">
+          <Link href="/" className={`${linkClassName} ${pathname === '/' ? 'font-bold' : ''}`}>
             Home
           </Link>
           <Link href="/product" className={linkClassName}>
@@ -82,8 +79,8 @@ const Header = () => {
           </Link>
         </div>
 
-        {/* Logo in the Center */}
-        <div className="flex items-center order-2 md:order-2 mx-auto md:mx-0">
+        {/* Logo in the Center - Both Mobile and Desktop */}
+        <div className="absolute left-1/2 transform -translate-x-1/2">
           <Link href="/" className={linkClassName}>
             <motion.img
               src={scrolled ? "/Artboardb.png" : "/Artboardw.png"}
@@ -94,7 +91,8 @@ const Header = () => {
               animate={{
                 opacity: 1,
                 y: scrolled ? 0 : 10,
-                scale: scrolled ? 1.5 : 2.5,
+                scale: scrolled ? 1.3 : 2.5,
+                 // Decreased initial size from 2.5 to 2.0
               }}
               whileHover={{
                 scale: scrolled ? 1.1 : 2.6,
@@ -107,144 +105,128 @@ const Header = () => {
                 },
               }}
               transition={{
-                scale: { duration: 0.7, ease: "easeOut" },
-                duration: 0.7,
+                scale: { duration: 5, ease: "easeOut" },
+                duration: scrolled ? 4 : 7,
                 ease: "easeInOut",
               }}
             />
           </Link>
         </div>
 
-        {/* Right Section: Navigation Links + Profile + Mobile Menu Button */}
-        <div className="flex items-center space-x-8 order-3">
-          {/* Desktop Navigation Links */}
-          <div className="hidden md:flex space-x-8">
-            <Link href="/about" className={linkClassName}>
-              About
-            </Link>
-            <div
-              className="relative"
-              onMouseEnter={handleDropdownEnter}
-              onMouseLeave={handleDropdownLeave}
+        {/* Right Navigation Links - Desktop Only */}
+        <div className="hidden xl:flex space-x-8 items-center">
+          <Link href="/about" className={`${linkClassName} ${pathname === '/about' ? 'font-bold' : ''}`}>
+            About
+          </Link>
+          <div
+            className="relative"
+            onMouseEnter={handleDropdownEnter}
+            onMouseLeave={handleDropdownLeave}
+          >
+            <button
+              className={`${linkClassName} flex items-center space-x-1 ${
+                pathname === '/learn' || pathname === '/faq' ? 'font-bold' : ''
+              }`}
+              onClick={() => setDropdownOpen(!dropdownOpen)}
             >
-              <button
-                className={`${linkClassName} flex items-center space-x-1`}
-                onClick={() => setDropdownOpen(!dropdownOpen)}
+              <span>Resources</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 inline-block"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                <span>Resources</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 inline-block"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </button>
-              {dropdownOpen && (
-                <motion.div
-                  className={`absolute left-0 top-full mt-2 ${
-                    scrolled ? "bg-white" : "bg-transparent"
-                  } text-black shadow-lg w-56 py-2 rounded-md z-40`}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Link
-                    href="/facilities"
-                    className={`${linkClassName} hover:bg-gray-100 block`}
-                  >
-                    Facilities
-                  </Link>
-                  <Link
-                    href="/learn"
-                    className={`${linkClassName} hover:bg-gray-100 block`}
-                  >
-                    Learn
-                  </Link>
-                  <Link
-                    href="/faq"
-                    className={`${linkClassName} hover:bg-gray-100 block`}
-                  >
-                    Downloadables
-                  </Link>
-                </motion.div>
-              )}
-            </div>
-          </div>
-
-          {/* Profile Section (Desktop Only) */}
-          <div className="hidden md:block">
-            {isSignedIn ? (
-              <UserButton />
-            ) : (
-              <div
-                className="relative"
-                onMouseEnter={handleProfileDropdownEnter}
-                onMouseLeave={handleProfileDropdownLeave}
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </button>
+            {dropdownOpen && (
+              <motion.div
+                className={`absolute left-0 top-full mt-2 ${
+                  scrolled ? "bg-white" : "bg-transparent"
+                } text-black shadow-lg w-56 py-2 rounded-md z-40`}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
               >
-                <button className="py-1 transition-colors duration-300">
-                  <Image
-                    src={scrolled ? "/profileb.png" : "/profile.png"}
-                    alt="Profile"
-                    width={32}
-                    height={32}
-                    className="transition-opacity duration-300"
-                    priority
-                  />
-                </button>
-                {profileDropdownOpen && (
-                  <motion.div
-                    className={`absolute right-0 top-full ${
-                      scrolled ? "bg-white" : "bg-transparent"
-                    } text-black shadow-lg w-40 py-2 rounded-md z-40`}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <SignInButton>
-                      <button
-                        className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}
-                      >
-                        Sign In
-                      </button>
-                    </SignInButton>
-                    <SignUpButton>
-                      <button
-                        className={`${linkClassName} hover:bg-gray-100 block w-full text-left`}
-                      >
-                        Sign Up
-                      </button>
-                    </SignUpButton>
-                  </motion.div>
-                )}
-              </div>
+                <Link
+                  href="/learn"
+                  className={`${linkClassName} hover:bg-gray-100 block ${pathname === '/learn' ? 'font-bold' : ''}`}
+                >
+                  Learn
+                </Link>
+                <Link
+                  href="/faq"
+                  className={`${linkClassName} hover:bg-gray-100 block ${pathname === '/faq' ? 'font-bold' : ''}`}
+                >
+                  Downloadables
+                </Link>
+              </motion.div>
             )}
           </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            className={`md:hidden z-50 ${
-              scrolled ? "text-black" : "text-white"
-            }`}
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            {menuOpen ? <X size={28} /> : <Menu size={28} />}
-          </button>
         </div>
+      </div>
+
+      {/* Absolutely Positioned Profile Icon - Desktop Only */}
+      <div className="hidden xl:block absolute right-6 top-4">
+        <div
+          className="relative"
+          onMouseEnter={handleProfileDropdownEnter}
+          onMouseLeave={handleProfileDropdownLeave}
+        >
+          <button className="py-1 transition-colors duration-300 mr-5 ">
+            <img
+              src={scrolled ? "/profileb.png" : "/profile.png"}
+              alt="Profile"
+              className="w-8 h-8"
+            />
+          </button>
+          {profileDropdownOpen && (
+            <motion.div
+              className={`absolute right-0 top-full ${
+                scrolled ? "bg-white" : "bg-transparent"
+              } text-black shadow-lg w-40 py-2 rounded-md z-40`}
+              initial={{ opacity: 0, y: -10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Link
+                href="/login"
+                className={`${linkClassName} hover:bg-gray-100 block`}
+              >
+                Log In
+              </Link>
+              <Link
+                href="/signup"
+                className={`${linkClassName} hover:bg-gray-100 block`}
+              >
+                Sign Up
+              </Link>
+            </motion.div>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Menu Button - Centered */}
+      <div className="xl:hidden flex justify-center items-center absolute right-6 top-4">
+        <button
+          className={`z-50 ${scrolled ? "text-black" : "text-white"}`}
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          {menuOpen ? <X size={28} /> : <Menu size={28} />}
+        </button>
       </div>
 
       {/* Mobile Navigation Links */}
       <motion.nav
-        className="md:hidden fixed top-0 right-0 h-full w-3/4 max-w-xs bg-black text-white shadow-lg z-40"
+        className="xl:hidden fixed top-0 right-0 h-full w-3/4 max-w-xs bg-black text-white shadow-lg z-40"
         initial={{ x: "100%" }}
         animate={{ x: menuOpen ? 0 : "100%" }}
         transition={{ duration: 0.4, ease: "easeInOut" }}
@@ -252,66 +234,89 @@ const Header = () => {
         <div className="flex flex-col items-start pt-20 px-6 space-y-6">
           <Link
             href="/"
-            className={mobileLinkClassName}
+            className={`${mobileLinkClassName} ${pathname === '/' ? 'font-bold' : ''}`}
             onClick={() => setMenuOpen(false)}
           >
             Home
           </Link>
           <Link
             href="/about"
-            className={mobileLinkClassName}
+            className={`${mobileLinkClassName} ${pathname === '/about' ? 'font-bold' : ''}`}
             onClick={() => setMenuOpen(false)}
           >
             About Us
           </Link>
           <Link
+            href="/Buy"
+            className={`${mobileLinkClassName} ${pathname === '/Buy' ? 'font-bold' : ''}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            Buy now
+          </Link>
+          <Link
             href="/facilities"
-            className={mobileLinkClassName}
+            className={`${mobileLinkClassName} ${pathname === '/facilities' ? 'font-bold' : ''}`}
             onClick={() => setMenuOpen(false)}
           >
             Facilities
           </Link>
           <Link
             href="/learn"
-            className={mobileLinkClassName}
+            className={`${mobileLinkClassName} ${pathname === '/learn' ? 'font-bold' : ''}`}
             onClick={() => setMenuOpen(false)}
           >
             Learn
           </Link>
           <Link
             href="/faq"
-            className={mobileLinkClassName}
+            className={`${mobileLinkClassName} ${pathname === '/faq' ? 'font-bold' : ''}`}
             onClick={() => setMenuOpen(false)}
           >
             Downloadables
           </Link>
           
-          {/* Authentication Options in Mobile Menu */}
-          {isSignedIn ? (
-            <div className="mt-6">
-              <UserButton />
-            </div>
-          ) : (
-            <div className="mt-6 space-y-4">
-              <SignInButton>
-                <button className="block w-full text-left px-6 py-2 text-white hover:text-gray-300">
+          {/* Mobile Profile Section with Dropdown */}
+          <div className="relative w-full">
+            <button 
+              className={`${mobileLinkClassName} flex items-center space-x-2 w-full`}
+              onClick={() => setMobileProfileDropdownOpen(!mobileProfileDropdownOpen)}
+            >
+              <User size={18} />
+              <span>Profile</span>
+            </button>
+            
+            {mobileProfileDropdownOpen && (
+              <motion.div
+                className="pl-6 mt-2 space-y-3"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Link
+                  href="/login"
+                  className={mobileLinkClassName}
+                  onClick={() => setMenuOpen(false)}
+                >
                   Log In
-                </button>
-              </SignInButton>
-              <SignUpButton>
-                <button className="block w-full text-left px-6 py-2 text-white hover:text-gray-300">
+                </Link>
+                <Link
+                  href="/signup"
+                  className={mobileLinkClassName}
+                  onClick={() => setMenuOpen(false)}
+                >
                   Sign Up
-                </button>
-              </SignUpButton>
-            </div>
-          )}
+                </Link>
+              </motion.div>
+            )}
+          </div>
         </div>
       </motion.nav>
 
       {/* Overlay for Mobile Menu */}
       {menuOpen && (
         <motion.div
-          className="md:hidden fixed inset-0 bg-black/50 z-30"
+          className="xl:hidden fixed inset-0 bg-black/50 z-30"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

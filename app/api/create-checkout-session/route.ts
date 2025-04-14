@@ -1,3 +1,10 @@
+export async function POST() {
+  return new Response(JSON.stringify({ message: "Webhook temporarily disabled" }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 // import { NextResponse } from "next/server";
 // import Stripe from "stripe";
 // import { auth } from "@clerk/nextjs/server";

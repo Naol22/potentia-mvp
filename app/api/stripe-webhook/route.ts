@@ -1,3 +1,11 @@
+export async function POST() {
+  return new Response(JSON.stringify({ message: "Webhook temporarily disabled" }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+
 // import { headers } from 'next/headers'
 // import Stripe from 'stripe'
 // import { supabase } from '@/utilis/supaBaseClient'

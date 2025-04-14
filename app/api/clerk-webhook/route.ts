@@ -1,3 +1,11 @@
+export async function POST() {
+  return new Response(JSON.stringify({ message: "Webhook temporarily disabled" }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+
 // // import { WebhookEvent } from '@clerk/nextjs/server'
 // import { Webhook } from 'svix'
 // import { headers } from 'next/headers'

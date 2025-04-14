@@ -2,12 +2,16 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import HostingTab from "@/components/HostingTab";
-import HashrateTab from "@/components/HashrateTab"; // Placeholder for future implementation
+import HashrateTab from "@/components/HashrateTab";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 const ProductsPage = () => {
-  const [activeTab, setActiveTab] = useState<"hosting" | "hashrate">("hosting");
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const initialTab = tabParam === "hashrate" ? "hashrate" : "hosting";
+  const [activeTab, setActiveTab] = useState<"hosting" | "hashrate">(initialTab);
 
   return (
     <section className="bg-black text-white min-h-screen font-['Inter'] overflow-x-hidden">

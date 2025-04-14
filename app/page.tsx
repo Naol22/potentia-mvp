@@ -3,6 +3,7 @@ import AboutComponent from "@/components/AboutComponent";
 import Hero from "@/components/Hero";
 import MiningSolutions from "@/components/Solutions";
 import Head from "@/components/Head"
+import HashrateAdSection from "@/components/HashrateAdSection";
 
 
 export default function HomePage() {
@@ -10,6 +11,7 @@ export default function HomePage() {
     <>
     <Head/>
      <Hero/>
+     <HashrateAdSection/>
      <AboutComponent/>
      <MiningSolutions/>
     </>

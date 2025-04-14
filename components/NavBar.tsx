@@ -251,12 +251,12 @@ const Header = () => {
 
       {/* Mobile Navigation Links */}
       <motion.nav
-        className="xl:hidden fixed top-0 right-0 h-full w-3/4 max-w-xs bg-black text-white shadow-lg z-40"
+        className="xl:hidden fixed top-0 right-0 h-full w-3/4 max-w-xs bg-black text-white shadow-lg z-40 overflow-y-auto"
         initial={{ x: "100%" }}
         animate={{ x: menuOpen ? 0 : "100%" }}
         transition={{ duration: 0.4, ease: "easeInOut" }}
       >
-        <div className="flex flex-col items-start pt-20 px-6 space-y-6">
+        <div className="flex flex-col items-start pt-20 px-6 pb-6 space-y-6 min-h-screen">
           <Link
             href="/"
             className={`${mobileLinkClassName} ${pathname === "/" ? "font-bold" : ""}`}

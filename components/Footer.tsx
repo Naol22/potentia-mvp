@@ -11,7 +11,7 @@ import FacebookIcon from "@mui/icons-material/Facebook";
 import TwitterIcon from "@mui/icons-material/X";
 import MusicVideoIcon from "@mui/icons-material/MusicVideo";
 import EmailIcon from "@mui/icons-material/Email";
-import PhoneIcon from "@mui/icons-material/Phone";
+// import PhoneIcon from "@mui/icons-material/Phone";
 import ContactPageIcon from "@mui/icons-material/ContactPage";
 
 export default function FooterSection() {
@@ -50,7 +50,7 @@ export default function FooterSection() {
                   Mission
                 </Link>
                 <Link
-                  href="/about#team"
+                  href=""
                   className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
                 >
                   Team
@@ -66,7 +66,7 @@ export default function FooterSection() {
               <div className="flex flex-col gap-3 items-start">
                 {/* Email Us */}
                 <Link
-                  href="mailto:support@potentia.com"
+                  href="info@potentia.digital"
                   className="relative flex items-center text-sm text-zinc-400 hover:text-white transition-colors duration-200 group w-full"
                 >
                   <span className="transition-opacity duration-300 opacity-100 group-hover:opacity-0">
@@ -78,7 +78,7 @@ export default function FooterSection() {
                 </Link>
 
                 {/* Call Us */}
-                <Link
+                {/* <Link
                   href="tel:+1234567890"
                   className="relative flex items-center text-sm text-zinc-400 hover:text-white transition-colors duration-200 group w-full"
                 >
@@ -88,7 +88,7 @@ export default function FooterSection() {
                   <span className="absolute left-0 flex items-center transition-opacity duration-300 opacity-0 group-hover:opacity-100">
                     <PhoneIcon className="w-5 h-5" />
                   </span>
-                </Link>
+                </Link> */}
 
                 {/* Contact Form */}
                 <Link

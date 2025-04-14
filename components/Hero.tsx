@@ -62,7 +62,7 @@ const Hero = () => {
                 aria-label="Get Started with our services"
                 className="group"
               >
-                About Potentia
+                Virtual Site Tour
                 <svg
                   className="ml-2 h-5 w-5 inline-block transition-transform group-hover:translate-x-1"
                   fill="none"

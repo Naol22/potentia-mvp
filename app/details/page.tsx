@@ -4,24 +4,22 @@ import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
-
-// Placeholder images for miners (replace with actual image paths)
+import { Suspense } from "react";
 const minerImages: { [key: string]: string } = {
   "Antminer S19Pro": "/images/antminer-s19pro.png",
   "Whatsminer M30S": "/images/whatsminer-m30s.png",
   "AvalonMiner 1246": "/images/avalonminer-1246.png",
 };
 
-const Details = () => {
+function DetailsContent() {
   const searchParams = useSearchParams();
   const [isMounted, setIsMounted] = useState(false);
 
-  // Ensure the component is mounted on the client side
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Extract query parameters using useSearchParams
+  // Extract query parameters
   const plan = searchParams.get("plan");
   const crypto = searchParams.get("crypto");
   const hashRate = searchParams.get("hashRate");
@@ -31,11 +29,12 @@ const Details = () => {
   const hashRateFee = searchParams.get("hashRateFee");
   const electricityFee = searchParams.get("electricityFee");
 
-  // Fallback UI while the component is mounting or if query parameters are missing
+  // Fallback UI while mounting
   if (!isMounted) {
     return <div className="bg-black text-white min-h-screen p-8">Loading...</div>;
   }
 
+  // Fallback UI if query parameters are missing
   if (!plan || !crypto || !hashRate || !duration || !total || !minerModel) {
     return (
       <div className="bg-black text-white min-h-screen p-8">
@@ -132,6 +131,13 @@ const Details = () => {
       </div>
     </div>
   );
-};
+}
 
-export default Details;
+// Main page component
+export default function Details() {
+  return (
+    <Suspense fallback={<div className="bg-black text-white min-h-screen p-8">Loading details...</div>}>
+      <DetailsContent />
+    </Suspense>
+  );
+}

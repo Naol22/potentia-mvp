@@ -45,14 +45,14 @@ const team: TeamMember[] = [
 
 const Team: React.FC = () => {
   return (
-    <div className="w-full bg-white flex justify-center items-center">
+    <div className="w-full bg-black text-white flex justify-center items-center">
       <div className="container py-24 lg:py-32 p-10">
         {/* Title */}
         <div className="max-w-2xl mx-auto text-center mb-10 lg:mb-14">
-          <h2 className="text-3xl font-bold md:text-4xl md:leading-tight text-black">
-            Meet our team
+          <h2 className="text-3xl font-bold md:text-4xl md:leading-tight text-white">
+            Our Board Members
           </h2>
-          <p className="mt-1 text-lg text-black">
+          <p className="mt-1 text-lg text-white">
             The amazing people behind the scenes
           </p>
         </div>
@@ -76,7 +76,7 @@ const Team: React.FC = () => {
         {team.map((member) => (
           <motion.div
             key={member.name}
-            className="rounded-lg group relative overflow-hidden border border-black shadow-lg hover:shadow-2xl transition-shadow w-full max-w-xs"
+            className="rounded-lg group relative overflow-hidden border-2 border-neutral-600 shadow-lg hover:shadow-2xl transition-shadow w-full max-w-xs"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -107,8 +107,8 @@ const Team: React.FC = () => {
                 </div>
               </div>
               <div className="p-4">
-                <h3 className="font-medium text-black">{member.name}</h3>
-                <p className="text-sm text-black mt-1">{member.role}</p>
+                <h3 className="font-medium text-white">{member.name}</h3>
+                <p className="text-sm text-white mt-1">{member.role}</p>
               </div>
             </CardContent>
           </motion.div>

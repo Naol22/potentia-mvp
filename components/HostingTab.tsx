@@ -324,7 +324,7 @@ const HostingTab = () => {
 
   return (
     <motion.section
-      className="py-24 px-6 bg-black text-white"
+      className="py-24 px-6 text-white"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       transition={{ duration: 1 }}
@@ -355,7 +355,7 @@ const HostingTab = () => {
       <div className="max-w-6xl mx-auto w-full">
         {/* Full-Width Facility Section */}
         <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
-          <div className="bg-black p-6 rounded-lg shadow-md mb-12 border-neutral-600 max-w-6xl mx-auto">
+          <div className="bg-transparent p-6 rounded-lg shadow-md mb-12 max-w-6xl mx-auto">
             <h2 className="text-2xl font-bold mb-4 text-center text-white">
               Choose Your Mining Facility
             </h2>

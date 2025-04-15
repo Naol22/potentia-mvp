@@ -9,14 +9,14 @@ import Link from "next/link";
 export default function DetailsPage() {
   const searchParams = useSearchParams();
   const hashrate = Number(searchParams.get("hashrate")) || 100;
-  const model = searchParams.get("model") || "antminer-s21";
+  // const model = searchParams.get("model") || "antminer-s21";
   const price = Number(searchParams.get("price")) || 5;
   const machines = Number(searchParams.get("machines")) || 1;
 
   const estimatedOutput = (hashrate * 0.0005).toFixed(4);
 
   return (
-    <div className="bg-black text-white py-8 px-4 overflow-x-hidden font-['Inter']">
+    <div className="bg-black text-white py-8 px-4 mt-[100px] overflow-x-hidden font-['Inter']">
       {/* Hero Section */}
       <motion.section
         className="relative h-96 bg-neutral-800 rounded-xl overflow-hidden"

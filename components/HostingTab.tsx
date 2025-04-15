@@ -331,70 +331,80 @@ const HostingTab = () => {
 
   return (
     <motion.section
-      className="py-24 px-6 bg-black text-white"
+      className="py-4 px-6 bg-black text-white"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       transition={{ duration: 1 }}
     >
-      <div className="max-w-6xl mx-auto w-full">
-        {/* Full-Width Facility Section */}
-        <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
-          <div className="bg-black p-6 rounded-lg shadow-md mb-12 border-neutral-600 max-w-6xl mx-auto">
-            <h2 className="text-2xl font-bold mb-4 text-center text-white">
-              Choose Your Mining Facility
-            </h2>
-            <div
-              className="flex overflow-x-auto space-x-4 pb-4 snap-x snap-mandatory w-screen ml-2 pl-1 pr-96"
-              style={{
-                scrollbarWidth: "none",
-                msOverflowStyle: "none",
-              }}
-            >
-              <style jsx global>{`
-                .flex::-webkit-scrollbar {
-                  display: none;
-                }
-              `}</style>
-              {facilities.map((facility, index) => (
-                <motion.div
-                  key={facility.name}
-                  className="flex-none w-80"
-                  initial={{ opacity: 0, x: -50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
+      <div className="max-w-6xl mx-auto">
+        <div className="relative mb-12">
+          <h2 className="text-2xl font-bold mb-4 text-center text-white">
+            Choose Your Mining Facility
+          </h2>
+          <button
+            onClick={scrollLeft}
+            className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-black/80 border border-neutral-600 text-white rounded-full p-2 hover:bg-neutral-700 transition-all duration-300"
+          >
+            <ChevronLeft size={24} />
+          </button>
+          <div
+            ref={scrollRef}
+            className="flex overflow-x-auto space-x-4 py-4 snap-x snap-mandatory"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            <style jsx global>{`
+              .flex::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
+            {facilities.map((facility, index) => (
+              <motion.div
+                key={facility.name}
+                className="flex-none w-80"
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <div
+                  onClick={() => setSelectedFacility(facility.name)}
+                  className={`w-full h-full flex flex-col text-left rounded-lg shadow-sm transition-all bg-neutral-800 text-white hover:bg-neutral-800 snap-center p-4 cursor-pointer ${
+                    selectedFacility === facility.name ? 'opacity-80' : ''
+                  }`}
                 >
-                  <div
-                    onClick={() => setSelectedFacility(facility.name)}
-                    className={`w-full h-full flex flex-col text-left rounded-lg shadow-sm transition-all bg-neutral-800 text-white hover:bg-neutral-800 snap-center p-4 cursor-pointer ${
-                      selectedFacility === facility.name ? "opacity-80" : ""
-                    }`}
+                  <Image
+                    src={facility.image}
+                    alt={facility.name}
+                    width={400}
+                    height={192}
+                    className="w-full h-48 object-fill rounded-md mb-2"
+                  />
+                  <h3 className="text-lg font-semibold truncate my-2">
+                    {facility.name}
+                  </h3>
+                  <p className="text-sm flex-1 my-2">
+                    {facility.generalInfo.capacity} Capacity
+                  </p>
+                  <p className="text-sm my-2">{facility.hostingInfo.price}</p>
+                  {facility.generalInfo.ecoFriendly && <EcoBadge />}
+                  <Link
+                    href={`/facilities/${encodeURIComponent(facility.name)}`}
+                    className="mt-auto"
                   >
-                    <img
-                      src={facility.image}
-                      alt={facility.name}
-                      className="w-full h-48 object-cover rounded-md mb-2"
-                    />
-                    <h3 className="text-lg font-semibold truncate my-2">
-                      {facility.name}
-                    </h3>
-                    <p className="text-sm flex-1 my-2">
-                      {facility.generalInfo.capacity} Capacity
-                    </p>
-                    <p className="text-sm my-2">{facility.hostingInfo.price}</p>
-                    {facility.generalInfo.ecoFriendly && <EcoBadge />}
-                    <Link
-                      href={`/facilities/${encodeURIComponent(facility.name)}`}
-                      className="mt-auto"
-                    >
-                      <Button className="w-full bg-black text-white hover:bg-neutral-800 rounded-full py-2 text-sm border border-neutral-300">
-                        View Facility
-                      </Button>
-                    </Link>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+                    <Button className="w-full bg-black text-white hover:bg-neutral-800 rounded-full py-2 text-sm">
+                      View Facility
+                    </Button>
+                  </Link>
+                </div>
+              </motion.div>
+            ))}
           </div>
+          {/* Right Arrow */}
+          <button
+            onClick={scrollRight}
+            className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-black/80 border border-neutral-600 text-white rounded-full p-2 hover:bg-neutral-700 transition-all duration-300"
+          >
+            <ChevronRight size={24} />
+          </button>
         </div>
 
         {/* Other sections remain within max-w-6xl */}

@@ -3,13 +3,17 @@ import React, { useState, useEffect, ChangeEvent, FormEvent, Suspense } from "re
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, redirect } from "next/navigation";
+import { useUser, SignedIn, SignedOut } from "@clerk/nextjs";
 
-// Component that uses useSearchParams
 function CheckoutContent() {
+  const { user, isSignedIn } = useUser();
   const searchParams = useSearchParams();
 
-  // Safely parse query parameters with type checking
+  if (!isSignedIn) {
+    redirect("/sign-in");
+  }
+
   const parseNumberParam = (param: string | null, defaultValue: number): number => {
     const value = param ? parseFloat(param) : NaN;
     return isNaN(value) ? defaultValue : value;
@@ -20,17 +24,14 @@ function CheckoutContent() {
   const machines = parseNumberParam(searchParams.get("machines"), 1);
   const model = searchParams.get("model") || "antminer-s21";
 
-  // Form state for user details and payment
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
+    name: user?.fullName || "",
+    email: user?.primaryEmailAddress?.emailAddress || "",
     btcAddress: "",
   });
 
-  // State for dynamic summary
   const [animatedTotalSold, setAnimatedTotalSold] = useState<number>(0);
 
-  // Calculate summary details
   const estimatedOutput = hashrate * 0.0005;
   const hashRateFee = (0.00317 * hashrate).toFixed(2);
   const electricityFee = (0.0059 * hashrate).toFixed(2);
@@ -41,7 +42,16 @@ function CheckoutContent() {
     return () => clearTimeout(totalSoldTimeout);
   }, [totalSold]);
 
-  // Animation variants
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        name: user.fullName || prev.name,
+        email: user.primaryEmailAddress?.emailAddress || prev.email,
+      }));
+    }
+  }, [user]);
+
   const statVariants = {
     hidden: { opacity: 0, y: 10 },
     visible: (i: number) => ({
@@ -51,17 +61,15 @@ function CheckoutContent() {
     }),
   };
 
-  // Handle form input changes
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle form submission
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    // Log the order details (placeholder for backend integration)
     console.log({
+      userId: user?.id,
       ...formData,
       hashrate,
       price,
@@ -100,6 +108,22 @@ function CheckoutContent() {
             />
           </div>
           <div className="p-6">
+            {/* User Info Section */}
+            <motion.div
+              className="bg-black p-4 rounded-lg mb-4 flex items-center gap-3"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="w-10 h-10 rounded-full bg-neutral-700 flex items-center justify-center text-white font-semibold">
+                {user?.firstName?.charAt(0) || "U"}
+              </div>
+              <div>
+                <p className="text-sm font-medium">{user?.fullName || "User"}</p>
+                <p className="text-xs text-gray-400">{user?.primaryEmailAddress?.emailAddress || "email@example.com"}</p>
+              </div>
+            </motion.div>
+
             <h2 className="text-2xl font-bold mb-4">Antminer S21 - {hashrate} TH/s</h2>
             <div className="space-y-2 text-sm">
               <motion.p
@@ -173,68 +197,72 @@ function CheckoutContent() {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <h2 className="text-2xl font-bold mb-6">Complete Your Purchase</h2>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium mb-2" htmlFor="name">
-                Full Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                className="w-full p-3 bg-black border border-neutral-700 rounded-lg text-white focus:ring-2 focus:ring-white/20"
-                placeholder="John Doe"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2" htmlFor="email">
-                Email Address
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="w-full p-3 bg-black border border-neutral-700 rounded-lg text-white focus:ring-2 focus:ring-white/20"
-                placeholder="john.doe@example.com"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2" htmlFor="btcAddress">
-                BTC Address for Payouts
-              </label>
-              <input
-                type="text"
-                id="btcAddress"
-                name="btcAddress"
-                value={formData.btcAddress}
-                onChange={handleInputChange}
-                className="w-full p-3 bg-black border border-neutral-700 rounded-lg text-white focus:ring-2 focus:ring-white/20"
-                placeholder="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
-                required
-              />
-            </div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                type="submit"
-                className="w-full bg-white text-black hover:bg-black hover:text-white rounded-full py-4 text-lg font-semibold transition-all"
-              >
-                Confirm Purchase
-              </Button>
-            </motion.div>
-          </form>
+          <SignedIn>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium mb-2" htmlFor="name">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="w-full p-3 bg-black border border-neutral-700 rounded-lg text-white focus:ring-2 focus:ring-white/20"
+                  placeholder="John Doe"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2" htmlFor="email">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full p-3 bg-black border border-neutral-700 rounded-lg text-white focus:ring-2 focus:ring-white/20"
+                  placeholder="john.doe@example.com"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2" htmlFor="btcAddress">
+                  BTC Address for Payouts
+                </label>
+                <input
+                  type="text"
+                  id="btcAddress"
+                  name="btcAddress"
+                  value={formData.btcAddress}
+                  onChange={handleInputChange}
+                  className="w-full p-3 bg-black border border-neutral-700 rounded-lg text-white focus:ring-2 focus:ring-white/20"
+                  placeholder="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+                  required
+                />
+              </div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  type="submit"
+                  className="w-full bg-white text-black hover:bg-black hover:text-white rounded-full py-4 text-lg font-semibold transition-all"
+                >
+                  Confirm Purchase
+                </Button>
+              </motion.div>
+            </form>
+          </SignedIn>
+          <SignedOut>
+            <p className="text-gray-300">Please sign in to complete your purchase.</p>
+          </SignedOut>
         </motion.div>
       </motion.section>
     </div>
   );
 }
 
-// Main page component
 export default function Page() {
   return (
     <Suspense fallback={<div>Loading...</div>}>

@@ -19,7 +19,17 @@ const plans = [
 ] as const;
 type Plan = (typeof plans)[number];
 
-const hashRates = ["200 TH", "300 TH", "400 TH", "500 TH"] as const;
+// Updated hashRates
+const hashRates = [
+  "100 TH",
+  "300 TH",
+  "500 TH",
+  "1000 TH",
+  "1500 TH",
+  "2000 TH",
+  "2500 TH",
+  "3000 TH",
+] as const;
 type HashRate = (typeof hashRates)[number];
 
 const facilities = [
@@ -131,18 +141,28 @@ const planBasePrices: Record<Plan, number> = {
   Monthly: 150,
 };
 
+// Updated hashRateCosts
 const hashRateCosts: Record<HashRate, number> = {
-  "200 TH": 0,
-  "300 TH": 100,
-  "400 TH": 200,
-  "500 TH": 300,
+  "100 TH": 5,
+  "300 TH": 15,
+  "500 TH": 25,
+  "1000 TH": 50,
+  "1500 TH": 75,
+  "2000 TH": 100,
+  "2500 TH": 125,
+  "3000 TH": 150,
 };
 
+// Updated hashRateToGPUs
 const hashRateToGPUs: Record<HashRate, number> = {
-  "200 TH": 3,
-  "300 TH": 5,
-  "400 TH": 8,
-  "500 TH": 12,
+  "100 TH": 1,
+  "300 TH": 2,
+  "500 TH": 3,
+  "1000 TH": 5,
+  "1500 TH": 7,
+  "2000 TH": 10,
+  "2500 TH": 12,
+  "3000 TH": 15,
 };
 
 // Icons

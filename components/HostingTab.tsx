@@ -1,131 +1,130 @@
-'use client';
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+"use client";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 // Define types for selections
-const cryptocurrencies = ['BTC', 'ETH', 'DOGE', 'LTC'] as const;
+const cryptocurrencies = ["BTC", "ETH", "DOGE", "LTC"] as const;
 type Crypto = (typeof cryptocurrencies)[number];
 
 const plans = [
-  '3 Months',
-  '4 Months',
-  '5 Months',
-  '6 Months',
-  'Monthly',
+  "3 Months",
+  "4 Months",
+  "5 Months",
+  "6 Months",
+  "Monthly",
 ] as const;
 type Plan = (typeof plans)[number];
 
+// Updated hashRates
 const hashRates = [
-  '100 TH',
-  '300 TH',
-  '500 TH',
-  '1000 TH',
-  '1500 TH',
-  '2000 TH',
-  '2500 TH',
-  '3000 TH',
+  "100 TH",
+  "300 TH",
+  "500 TH",
+  "1000 TH",
+  "1500 TH",
+  "2000 TH",
+  "2500 TH",
+  "3000 TH",
 ] as const;
 type HashRate = (typeof hashRates)[number];
 
 const facilities = [
   {
-    name: 'Ethiopia',
-    image: '/ethio.jpg',
+    name: "Ethiopia",
+    image: "/ethio.jpg",
     hostingInfo: {
-      price: '4.0ct / kWh',
-      minOrder: '1 piece',
-      setupFee: '$150',
+      price: "4.0ct / kWh",
+      minOrder: "1 piece",
+      setupFee: "$150",
     },
     generalInfo: {
-      source: 'Hydro Power',
-      minerType: 'ASIC Miner',
-      capacity: '30 MW',
-      innovation: 'Heat Recovery System',
-      surveillance: '24/7',
-      uptime: '99.9%',
+      source: "Hydro Power",
+      minerType: "ASIC Miner",
+      capacity: "30 MW",
+      innovation: "Heat Recovery System",
+      surveillance: "24/7",
+      uptime: "99.9%",
       ecoFriendly: true,
     },
   },
   {
-    name: 'Dubai',
-    image: '/ethio.jpg',
+    name: "Dubai",
+    image: "/ethio.jpg",
     hostingInfo: {
-      price: '8.0ct / kWh',
-      minOrder: '2 pieces',
-      setupFee: '$50',
+      price: "8.0ct / kWh",
+      minOrder: "2 pieces",
+      setupFee: "$50",
     },
     generalInfo: {
-      source: 'Solar/Grid',
-      minerType: 'ASIC Miner',
-      capacity: '15 MW',
-      innovation: 'Smart Grid Integration',
-      surveillance: '24/7',
-      uptime: '99.8%',
+      source: "Solar/Grid",
+      minerType: "ASIC Miner",
+      capacity: "15 MW",
+      innovation: "Smart Grid Integration",
+      surveillance: "24/7",
+      uptime: "99.8%",
       ecoFriendly: true,
     },
   },
   {
-    name: 'Texas, Fort Worth',
-    image: '/Texas.jpg',
+    name: "Texas, Fort Worth",
+    image: "/Texas.jpg",
     hostingInfo: {
-      price: '7.8ct / kWh',
-      minOrder: '1 piece',
-      setupFee: '$1050',
+      price: "7.8ct / kWh",
+      minOrder: "1 piece",
+      setupFee: "$1050",
     },
     generalInfo: {
-      source: 'Mains Power',
-      minerType: 'Warehouse Miner',
-      capacity: '25 MW',
-      innovation: 'Advanced Cooling',
-      surveillance: '24/7',
-      uptime: '99.7%',
+      source: "Mains Power",
+      minerType: "Warehouse Miner",
+      capacity: "25 MW",
+      innovation: "Advanced Cooling",
+      surveillance: "24/7",
+      uptime: "99.7%",
       ecoFriendly: true,
     },
   },
   {
-    name: 'Paraguay, Villarica',
-    image: '/para.jpg',
-    hostingInfo: { price: '7.8ct / kWh', minOrder: '1 piece', setupFee: '$50' },
+    name: "Paraguay, Villarica",
+    image: "/para.jpg",
+    hostingInfo: { price: "7.8ct / kWh", minOrder: "1 piece", setupFee: "$50" },
     generalInfo: {
-      source: 'Hydro Power',
-      minerType: 'Warehouse Miner',
-      capacity: '10 MW',
-      innovation: 'Smart Grid Integration',
-      surveillance: '24/7',
-      uptime: '99.9%',
+      source: "Hydro Power",
+      minerType: "Warehouse Miner",
+      capacity: "10 MW",
+      innovation: "Smart Grid Integration",
+      surveillance: "24/7",
+      uptime: "99.9%",
       ecoFriendly: true,
     },
   },
   {
-    name: 'Georgia, Tbilisi',
-    image: '/geo.jpg',
-    hostingInfo: { price: '10.5ct / kWh', minOrder: '1 piece', setupFee: '-' },
+    name: "Georgia, Tbilisi",
+    image: "/geo.jpg",
+    hostingInfo: { price: "10.5ct / kWh", minOrder: "1 piece", setupFee: "-" },
     generalInfo: {
-      source: 'Hydro Power',
-      minerType: 'Warehouse/Container',
-      capacity: '5 MW',
-      innovation: 'Modular Design',
-      surveillance: '24/7',
-      uptime: '99.6%',
+      source: "Hydro Power",
+      minerType: "Warehouse/Container",
+      capacity: "5 MW",
+      innovation: "Modular Design",
+      surveillance: "24/7",
+      uptime: "99.6%",
       ecoFriendly: true,
     },
   },
   {
-    name: 'Finland, Heat Recovery',
-    image: '/ethio.jpg',
-    hostingInfo: { price: '8.0ct / kWh', minOrder: '1 piece', setupFee: '-' },
+    name: "Finland, Heat Recovery",
+    image: "/ethio.jpg",
+    hostingInfo: { price: "8.0ct / kWh", minOrder: "1 piece", setupFee: "-" },
     generalInfo: {
-      source: 'Mixed',
-      minerType: 'Hydro Miner',
-      capacity: '10 MW',
-      innovation: 'District Heating Integration',
-      surveillance: '24/7',
-      uptime: '99.8%',
+      source: "Mixed",
+      minerType: "Hydro Miner",
+      capacity: "10 MW",
+      innovation: "District Heating Integration",
+      surveillance: "24/7",
+      uptime: "99.8%",
       ecoFriendly: true,
     },
   },
@@ -133,33 +132,35 @@ const facilities = [
 
 // Pricing data
 const planBasePrices: Record<Plan, number> = {
-  '3 Months': 300,
-  '4 Months': 400,
-  '5 Months': 500,
-  '6 Months': 600,
+  "3 Months": 300,
+  "4 Months": 400,
+  "5 Months": 500,
+  "6 Months": 600,
   Monthly: 150,
 };
 
+// Updated hashRateCosts
 const hashRateCosts: Record<HashRate, number> = {
-  '100 TH': 5,
-  '300 TH': 15,
-  '500 TH': 25,
-  '1000 TH': 50,
-  '1500 TH': 75,
-  '2000 TH': 100,
-  '2500 TH': 125,
-  '3000 TH': 150,
+  "100 TH": 5,
+  "300 TH": 15,
+  "500 TH": 25,
+  "1000 TH": 50,
+  "1500 TH": 75,
+  "2000 TH": 100,
+  "2500 TH": 125,
+  "3000 TH": 150,
 };
 
+// Updated hashRateToGPUs
 const hashRateToGPUs: Record<HashRate, number> = {
-  '100 TH': 1,
-  '300 TH': 2,
-  '500 TH': 3,
-  '1000 TH': 5,
-  '1500 TH': 7,
-  '2000 TH': 10,
-  '2500 TH': 12,
-  '3000 TH': 15,
+  "100 TH": 1,
+  "300 TH": 2,
+  "500 TH": 3,
+  "1000 TH": 5,
+  "1500 TH": 7,
+  "2000 TH": 10,
+  "2500 TH": 12,
+  "3000 TH": 15,
 };
 
 // Icons
@@ -182,7 +183,7 @@ const CheckmarkIcon = () => (
 
 const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
   <svg
-    className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+    className={`w-5 h-5 transition-transform ${isOpen ? "rotate-180" : ""}`}
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -207,18 +208,21 @@ const HostingTab = () => {
   const router = useRouter();
   const [selectedCrypto, setSelectedCrypto] = useState<Crypto | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const [selectedHashRate, setSelectedHashRate] = useState<HashRate | null>(null);
+  const [selectedHashRate, setSelectedHashRate] = useState<HashRate | null>(
+    null
+  );
   const [selectedFacility, setSelectedFacility] = useState<string | null>(null);
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [animatedPrice, setAnimatedPrice] = useState(0);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   const totalPrice =
     selectedPlan && selectedHashRate
       ? planBasePrices[selectedPlan] + hashRateCosts[selectedHashRate]
       : 0;
-  const unlockedGPUs = selectedHashRate ? hashRateToGPUs[selectedHashRate] || 0 : 0;
+  const unlockedGPUs = selectedHashRate
+    ? hashRateToGPUs[selectedHashRate] || 0
+    : 0;
 
   // Animate price counter
   useEffect(() => {
@@ -250,13 +254,14 @@ const HostingTab = () => {
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.4, delay: i * 0.1 }}
       >
-        <Image
-          src={i < unlockedGPUs ? '/gpuunlocked.png' : '/gpulocked.png'}
-          alt={i < unlockedGPUs ? 'GPU Unlocked' : 'GPU Locked'}
+        <img
+          src={i < unlockedGPUs ? "/gpuunlocked.png" : "/gpulocked.png"}
+          alt={i < unlockedGPUs ? "GPU Unlocked" : "GPU Locked"}
           className="w-full h-full object-cover rounded-md"
-          width={100}
-          height={100}
         />
+        <span className="absolute bottom-2 right-2 text-xs text-white bg-black bg-opacity-50 px-1 rounded">
+          {i < unlockedGPUs ? "Unlocked" : "Locked"}
+        </span>
       </motion.li>
     ));
   };
@@ -269,7 +274,7 @@ const HostingTab = () => {
     if (selectedPlan && selectedHashRate && selectedFacility) {
       router.push(
         `/details?crypto=${encodeURIComponent(
-          selectedCrypto || ''
+          selectedCrypto || ""
         )}&duration=${encodeURIComponent(
           selectedPlan
         )}&hashRate=${encodeURIComponent(
@@ -284,48 +289,36 @@ const HostingTab = () => {
     setOpenFAQ(openFAQ === index ? null : index);
   };
 
-  const scrollLeft = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: -300, behavior: 'smooth' });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
-    }
-  };
-
   const faqs = [
     {
-      question: 'What is cloud mining and how does it work?',
+      question: "What is cloud mining and how does it work?",
       answer:
-        'Cloud mining lets you mine cryptocurrencies like Bitcoin without managing hardware. At Potentia, you rent hash power from our advanced data centers, where we handle setup, maintenance, and power. Choose a cryptocurrency, plan, hash rate, and facility, and we allocate resources to your account. Rewards are based on your hash rate and network difficulty, paid directly to your wallet. It’s simple and ideal for all experience levels.',
+        "Cloud mining lets you mine cryptocurrencies like Bitcoin without managing hardware. At Potentia, you rent hash power from our advanced data centers, where we handle setup, maintenance, and power. Choose a cryptocurrency, plan, hash rate, and facility, and we allocate resources to your account. Rewards are based on your hash rate and network difficulty, paid directly to your wallet. It’s simple and ideal for all experience levels.",
     },
     {
-      question: 'How do I choose the best facility for my needs?',
+      question: "How do I choose the best facility for my needs?",
       answer:
-        'Pick a facility based on electricity cost, capacity, or location benefits. Ethiopia offers 4.0ct/kWh with hydro power, great for savings. Dubai uses solar/grid with smart tech for reliability. Texas supports larger operations with 25 MW capacity. Check each facility’s price, setup fees, and power source via the "View Facility" button to match your mining goals.',
+        "Pick a facility based on electricity cost, capacity, or location benefits. Ethiopia offers 4.0ct/kWh with hydro power, great for savings. Dubai uses solar/grid with smart tech for reliability. Texas supports larger operations with 25 MW capacity. Check each facility’s price, setup fees, and power source via the 'View Facility' button to match your mining goals.",
     },
     {
-      question: 'What are the payment options and refund policies?',
+      question: "What are the payment options and refund policies?",
       answer:
-        'We accept Bitcoin, Ethereum, Litecoin, credit/debit cards (Visa, MasterCard, Amex) via Stripe, and bank transfers. Crypto and card payments are instant; bank transfers may take longer. Refunds are available within 7 days if mining hasn’t started, with a 5% fee. Reach our 24/7 support for payment or refund help.',
+        "We accept Bitcoin, Ethereum, Litecoin, credit/debit cards (Visa, MasterCard, Amex) via Stripe, and bank transfers. Crypto and card payments are instant; bank transfers may take longer. Refunds are available within 7 days if mining hasn’t started, with a 5% fee. Reach our 24/7 support for payment or refund help.",
     },
     {
-      question: 'How profitable is cloud mining with Potentia?',
+      question: "How profitable is cloud mining with Potentia?",
       answer:
-        'Profits vary by hash rate, plan, facility, and market conditions. A 500 TH hash rate in Ethiopia might yield ~0.001 BTC/month, depending on Bitcoin’s price and difficulty. Our low-cost facilities maximize returns. We’re adding a profitability calculator soon to help estimate earnings.',
+        "Profits vary by hash rate, plan, facility, and market conditions. A 500 TH hash rate in Ethiopia might yield ~0.001 BTC/month, depending on Bitcoin’s price and difficulty. Our low-cost facilities maximize returns. We’re adding a profitability calculator soon to help estimate earnings.",
     },
     {
-      question: 'How secure are your hosting facilities?',
+      question: "How secure are your hosting facilities?",
       answer:
-        'Our facilities have 24/7 surveillance, biometric access, and backup power for up to 99.9% uptime. Your data is encrypted end-to-end, and rewards are securely transferred. Regular audits ensure compliance, so you can mine with confidence.',
+        "Our facilities have 24/7 surveillance, biometric access, and backup power for up to 99.9% uptime. Your data is encrypted end-to-end, and rewards are securely transferred. Regular audits ensure compliance, so you can mine with confidence.",
     },
     {
-      question: 'Can I scale my mining operation over time?',
+      question: "Can I scale my mining operation over time?",
       answer:
-        'Yes! Start small and scale up by adding hash power, extending plans, or switching facilities. Our Texas and Ethiopia sites support large-scale mining with up to 30 MW capacity. Contact us to tailor a plan that grows with you.',
+        "Yes! Start small and scale up by adding hash power, extending plans, or switching facilities. Our Texas and Ethiopia sites support large-scale mining with up to 30 MW capacity. Contact us to tailor a plan that grows with you.",
     },
   ];
 
@@ -335,7 +328,30 @@ const HostingTab = () => {
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       transition={{ duration: 1 }}
+      style={{
+        background: `
+          radial-gradient(circle at 20% 30%, rgba(255,255,255,0.05), #000000),
+          linear-gradient(135deg, 
+            #000000,
+            #000000 45%,
+            rgba(255,255,255,0.1) 50%,
+            #000000 55%,
+            #000000
+          )`,
+        backgroundBlendMode: 'overlay',
+        backgroundSize: '200% 200%',
+        animation: 'flowAnimation 20s linear infinite'
+      }}
     >
+      <style>
+        {`
+          @keyframes flowAnimation {
+            0% { background-position: 0% 50% }
+            50% { background-position: 100% 50% }
+            100% { background-position: 0% 50% }
+          }
+        `}
+      </style>
       <div className="max-w-6xl mx-auto w-full">
         {/* Full-Width Facility Section */}
         <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
@@ -421,8 +437,8 @@ const HostingTab = () => {
                     onClick={() => setSelectedCrypto(crypto)}
                     className={`px-4 py-2 rounded-md transition border border-neutral-600 ${
                       selectedCrypto === crypto
-                        ? 'bg-black text-white opacity-80'
-                        : 'bg-black text-white hover:opacity-80'
+                        ? "bg-black text-white opacity-80"
+                        : "bg-black text-white hover:opacity-80"
                     }`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -446,10 +462,10 @@ const HostingTab = () => {
                   <motion.button
                     key={plan}
                     onClick={() => setSelectedPlan(plan)}
-                    className={`w-full p-4 text-left rounded-md transition-all flex justify-between items-center ${
+                    className={`w-full p-4 text-left rounded-md transition-all border border-neutral-600 flex justify-between items-center ${
                       selectedPlan === plan
-                        ? 'bg-black text-white opacity-80'
-                        : 'bg-black text-white hover:opacity-80'
+                        ? "bg-black text-white opacity-80"
+                        : "bg-black text-white hover:opacity-80"
                     }`}
                     whileHover={{ scale: 1.02 }}
                   >
@@ -473,10 +489,10 @@ const HostingTab = () => {
                   <div key={rate} className="group relative">
                     <motion.button
                       onClick={() => setSelectedHashRate(rate)}
-                      className={`w-full p-4 text-left rounded-md transition-all flex justify-between items-center ${
+                      className={`w-full p-4 text-left rounded-md transition-all border border-neutral-300 flex justify-between items-center ${
                         selectedHashRate === rate
-                          ? 'bg-black text-white opacity-80'
-                          : 'bg-black text-white hover:opacity-80'
+                          ? "bg-black text-white opacity-80"
+                          : "bg-black text-white hover:opacity-80"
                       }`}
                       whileHover={{ scale: 1.02 }}
                     >
@@ -506,40 +522,49 @@ const HostingTab = () => {
               <div className="flex justify-between">
                 <span className="text-white">Cryptocurrency:</span>
                 <span className="font-medium text-white">
-                  {selectedCrypto || 'Not selected'}
+                  {selectedCrypto || "Not selected"}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-white">Plan:</span>
                 <span className="font-medium text-white">
-                  {selectedPlan || 'Not selected'}
+                  {selectedPlan || "Not selected"}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-white">Hash Rate:</span>
                 <span className="font-medium text-white">
-                  {selectedHashRate || 'Not selected'}
+                  {selectedHashRate || "Not selected"}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-white">Facility:</span>
                 <span className="font-medium text-white">
-                  {selectedFacility || 'Not selected'}
+                  {selectedFacility || "Not selected"}
                 </span>
               </div>
               {selectedFacility && (
                 <div className="text-sm text-white">
                   <p>
-                    Price per kWh:{' '}
-                    {facilities.find((f) => f.name === selectedFacility)?.hostingInfo.price}
+                    Price per kWh:{" "}
+                    {
+                      facilities.find((f) => f.name === selectedFacility)
+                        ?.hostingInfo.price
+                    }
                   </p>
                   <p>
-                    Setup Fee:{' '}
-                    {facilities.find((f) => f.name === selectedFacility)?.hostingInfo.setupFee}
+                    Setup Fee:{" "}
+                    {
+                      facilities.find((f) => f.name === selectedFacility)
+                        ?.hostingInfo.setupFee
+                    }
                   </p>
                   <p>
-                    Uptime:{' '}
-                    {facilities.find((f) => f.name === selectedFacility)?.generalInfo.uptime}
+                    Uptime:{" "}
+                    {
+                      facilities.find((f) => f.name === selectedFacility)
+                        ?.generalInfo.uptime
+                    }
                   </p>
                 </div>
               )}
@@ -554,11 +579,11 @@ const HostingTab = () => {
                 {selectedPlan && selectedHashRate && selectedFacility && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
+                    animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    {selectedPlan === 'Monthly' ? (
+                    {selectedPlan === "Monthly" ? (
                       <>
                         <div className="flex justify-between">
                           <span className="text-white">Monthly Price:</span>
@@ -597,7 +622,7 @@ const HostingTab = () => {
                         Estimated Output: ~0.001 BTC/month (varies with market)
                       </p>
                     </div>
-                    {selectedPlan === '6 Months' && (
+                    {selectedPlan === "6 Months" && (
                       <motion.div
                         className="mt-2 inline-block bg-neutral-800 text-white px-3 py-1 rounded-full text-sm border border-neutral-300"
                         initial={{ scale: 0 }}
@@ -636,7 +661,7 @@ const HostingTab = () => {
               }
             >
               <Button
-                className="w-full bg-black text-white hover:opacity-80 disabled:opacity-50 disabled:text-neutral-400 rounded-full py-4 text-lg"
+                className="w-full bg-black text-white hover:opacity-80 disabled:opacity-50 disabled:text-neutral-400 rounded-full py-4 text-lg border border-neutral-300"
                 disabled={
                   !selectedPlan || !selectedHashRate || !selectedFacility
                 }
@@ -667,7 +692,7 @@ const HostingTab = () => {
                   Confirm Your Selection
                 </h3>
                 <p className="text-white mb-6">
-                  You’ve selected {selectedCrypto}, {selectedPlan},{' '}
+                  You’ve selected {selectedCrypto}, {selectedPlan},{" "}
                   {selectedHashRate}, and {selectedFacility}. Proceed to view
                   details?
                 </p>
@@ -692,7 +717,7 @@ const HostingTab = () => {
 
         {/* Info Section */}
         <motion.div
-          className="mt-12 bg-gradient-to-b from-zinc-700/60 via-zinc-900/40 to-black p-6 rounded-lg shadow-md border border-neutral-600"
+          className="mt-12 bg-black p-6 rounded-lg shadow-md border border-neutral-600"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
@@ -750,7 +775,7 @@ const HostingTab = () => {
 
         {/* FAQ Section */}
         <motion.div
-          className="mt-12 bg-neutral-900 p-6 rounded-lg shadow-md border border-neutral-600"
+          className="mt-12 bg-black p-6 rounded-lg shadow-md border border-neutral-600"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
@@ -778,7 +803,7 @@ const HostingTab = () => {
                   {openFAQ === index && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
+                      animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.3 }}
                       className="overflow-hidden"

@@ -254,10 +254,9 @@ const HostingTab = () => {
           src={i < unlockedGPUs ? '/gpuunlocked.png' : '/gpulocked.png'}
           alt={i < unlockedGPUs ? 'GPU Unlocked' : 'GPU Locked'}
           className="w-full h-full object-cover rounded-md"
+          width={100}
+          height={100}
         />
-        <span className="absolute bottom-2 right-2 text-xs text-white bg-black bg-opacity-50 px-1 rounded">
-          {i < unlockedGPUs ? 'Unlocked' : 'Locked'}
-        </span>
       </motion.li>
     ));
   };
@@ -391,7 +390,7 @@ const HostingTab = () => {
                     href={`/facilities/${encodeURIComponent(facility.name)}`}
                     className="mt-auto"
                   >
-                    <Button className="w-full bg-black text-white hover:bg-neutral-800 rounded-full py-2 text-sm border border-neutral-300">
+                    <Button className="w-full bg-black text-white hover:bg-neutral-800 rounded-full py-2 text-sm">
                       View Facility
                     </Button>
                   </Link>
@@ -457,7 +456,7 @@ const HostingTab = () => {
                   <motion.button
                     key={plan}
                     onClick={() => setSelectedPlan(plan)}
-                    className={`w-full p-4 text-left rounded-md transition-all border border-neutral-600 flex justify-between items-center ${
+                    className={`w-full p-4 text-left rounded-md transition-all flex justify-between items-center ${
                       selectedPlan === plan
                         ? 'bg-black text-white opacity-80'
                         : 'bg-black text-white hover:opacity-80'
@@ -484,7 +483,7 @@ const HostingTab = () => {
                   <div key={rate} className="group relative">
                     <motion.button
                       onClick={() => setSelectedHashRate(rate)}
-                      className={`w-full p-4 text-left rounded-md transition-all border border-neutral-300 flex justify-between items-center ${
+                      className={`w-full p-4 text-left rounded-md transition-all flex justify-between items-center ${
                         selectedHashRate === rate
                           ? 'bg-black text-white opacity-80'
                           : 'bg-black text-white hover:opacity-80'
@@ -647,7 +646,7 @@ const HostingTab = () => {
               }
             >
               <Button
-                className="w-full bg-black text-white hover:opacity-80 disabled:opacity-50 disabled:text-neutral-400 rounded-full py-4 text-lg border border-neutral-300"
+                className="w-full bg-black text-white hover:opacity-80 disabled:opacity-50 disabled:text-neutral-400 rounded-full py-4 text-lg"
                 disabled={
                   !selectedPlan || !selectedHashRate || !selectedFacility
                 }
@@ -703,7 +702,7 @@ const HostingTab = () => {
 
         {/* Info Section */}
         <motion.div
-          className="mt-12 bg-black p-6 rounded-lg shadow-md border border-neutral-600"
+          className="mt-12 bg-gradient-to-b from-zinc-700/60 via-zinc-900/40 to-black p-6 rounded-lg shadow-md border border-neutral-600"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
@@ -761,7 +760,7 @@ const HostingTab = () => {
 
         {/* FAQ Section */}
         <motion.div
-          className="mt-12 bg-black p-6 rounded-lg shadow-md border border-neutral-600"
+          className="mt-12 bg-neutral-900 p-6 rounded-lg shadow-md border border-neutral-600"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.8 }}

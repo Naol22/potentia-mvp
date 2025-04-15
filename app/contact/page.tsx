@@ -81,7 +81,7 @@ const ContactUs: React.FC = () => {
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-40 bg-zinc-900/20 backdrop-blur-xl overflow-hidden">
       {/* Gradient Overlay with Subtle Noise */}
-      <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/60 via-zinc-900/40 to-zinc-800/80 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-zinc-700/60 via-zinc-900/40 to-black pointer-events-none" />
       <div className="absolute inset-0 opacity-10" style={{ background: "url('/noise.png') repeat" }} />
 
       {/* Main Content */}
@@ -180,26 +180,11 @@ const ContactUs: React.FC = () => {
             <div className="bg-zinc-900 rounded-xl p-6 md:p-8 shadow-lg border border-zinc-800">
               <h2 className="text-2xl font-semibold text-white mb-4">Contact Information</h2>
               <p className="text-zinc-300 text-base leading-relaxed">
-                <strong>Address:</strong> 123 Innovation Drive, Dallas, TX 75201, USA<br />
-                <strong>Phone:</strong> +1 (555) 123-4567<br />
-                <strong>Email:</strong> contact@potentia.com<br />
-                <strong>Hours:</strong> Monday–Friday, 9 AM–6 PM (UTC-5)
+                <strong>Address:</strong> *Coming Soon*<br />
+                <strong>Phone:</strong> *Coming Soon*<br />
+                <strong>Email:</strong> info@potentia.digital<br />
               </p>
             </div>
-            {/* <div className="bg-zinc-900 rounded-xl p-2 md:p-4 shadow-lg border border-zinc-800 h-64">
-              <MapContainer
-                center={[32.7767, -96.7970]} // Dallas, TX coordinates
-                zoom={13}
-                style={{ height: "100%", width: "100%", borderRadius: "0.75rem" }}
-                className="rounded-lg"
-              >
-                <TileLayer
-                  url="https://stamen-tiles.a.ssl.fastly.net/toner-background/{z}/{x}/{y}.png"
-                  className="invert"
-                />
-                <Marker position={[32.7767, -96.7970]} />
-              </MapContainer>
-            </div> */}
           </motion.div>
         </div>
       </motion.div>

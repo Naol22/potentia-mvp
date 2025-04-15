@@ -19,7 +19,8 @@ export default function AboutComponent() {
       initial="hidden"
       whileInView="visible"
       viewport={{ once: false, amount: 0.2 }}
-      className="w-full py-24 lg:py-32 p-20 bg-white text-black"
+      className="w-full py-24 lg:py-32 p-20 text-white"
+      style={{ background: 'linear-gradient(135deg, #000000 0%, #111111 100%)' }}
     >
       <motion.div
         className="grid md:grid-cols-2 gap-12"
@@ -29,14 +30,14 @@ export default function AboutComponent() {
           <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0">
             Mission
           </h2>
-          <p className="mt-3 text-muted-foreground">
+          <p className="mt-3 text-gray-300">
             Leverage Bitcoin Mining as a catalsyt for economics empowerment,
             infrastructure growth and energy innovation on a global scale.
           </p>
           <p className="mt-5">
             <Link
               href="/about"
-              className="inline-flex items-center gap-x-1 group font-medium hover:underline underline-offset-4"
+              className="inline-flex items-center gap-x-1 group font-medium hover:underline underline-offset-4 text-white"
             >
               Read More
               <ChevronRightIcon className="flex-shrink-0 w-4 h-4 transition ease-in-out group-hover:translate-x-1" />

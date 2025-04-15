@@ -51,7 +51,32 @@ const cardVariants = {
 
 export default function HashrateAdSection() {
   return (
-    <section className="bg-white py-16">
+    <section 
+      className="py-16" 
+      style={{ 
+        background: `
+          radial-gradient(circle at 20% 30%, rgba(255,255,255,0.05), #000000),
+          linear-gradient(135deg, 
+            #000000,
+            #000000 45%,
+            rgba(255,255,255,0.1) 50%,
+            #000000 55%,
+            #000000
+          )`,
+        backgroundBlendMode: 'overlay',
+        backgroundSize: '200% 200%',
+        animation: 'flowAnimation 20s linear infinite'
+      }}
+    >
+      <style>
+        {`
+          @keyframes flowAnimation {
+            0% { background-position: 0% 50% }
+            50% { background-position: 100% 50% }
+            100% { background-position: 0% 50% }
+          }
+        `}
+      </style>
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -59,10 +84,10 @@ export default function HashrateAdSection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-12"
         >
-          <h2 className="text-4xl font-bold text-black mb-4">
+          <h2 className="text-4xl font-bold text-white mb-4">
             Power Up Your Mining Journey
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-300 max-w-2xl mx-auto">
             Choose from our curated hashrate plans to start earning Bitcoin today. 
             Scalable, efficient, and designed for every miner.
           </p>

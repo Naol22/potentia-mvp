@@ -11,17 +11,26 @@ import FacebookIcon from "@mui/icons-material/Facebook";
 import TwitterIcon from "@mui/icons-material/X";
 import MusicVideoIcon from "@mui/icons-material/MusicVideo";
 import EmailIcon from "@mui/icons-material/Email";
-// import PhoneIcon from "@mui/icons-material/Phone";
 import ContactPageIcon from "@mui/icons-material/ContactPage";
+
+// Import modern font (e.g., Inter from Google Fonts)
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/600.css";
 
 export default function FooterSection() {
   return (
-    <footer className="w-full bg-black text-white px-4 py-12">
+    <footer
+      className="w-full text-white px-6 py-16"
+      style={{
+        background: "linear-gradient(135deg, #000000 0%, #111111 100%)",
+        fontFamily: "'Inter', sans-serif",
+      }}
+    >
       <div className="mx-auto max-w-6xl">
         <Footer className="bg-transparent border-t border-zinc-800">
           <FooterContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 py-10">
             {/* Logo Section */}
-            <FooterColumn className="flex items-center justify-center md:items-start md:justify-start">
+            <FooterColumn className="flex items-center justify-center md:items-start md:justify-start md:border-r md:border-white md:border-opacity-20">
               <Link href="/" className="flex items-center gap-2">
                 <Image
                   src="/Artboardw.png"
@@ -34,8 +43,11 @@ export default function FooterSection() {
             </FooterColumn>
 
             {/* About Us Section */}
-            <FooterColumn>
-              <h3 className="text-lg font-semibold text-white mb-4">About Us</h3>
+            <FooterColumn className="md:border-r md:border-white md:border-opacity-20">
+              <h3 className="text-lg font-semibold text-white mb-4 relative group inline-block">
+                About Us
+                <span className="absolute bottom-0 left-0 h-0.5 bg-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ width: '40%' }}></span>
+              </h3>
               <div className="flex flex-col gap-3">
                 <Link
                   href="/about"
@@ -59,14 +71,14 @@ export default function FooterSection() {
             </FooterColumn>
 
             {/* Contact Section */}
-            <FooterColumn>
-              <h3 className="text-lg font-semibold text-white mb-4">
+            <FooterColumn className="md:border-r md:border-white md:border-opacity-20">
+              <h3 className="text-lg font-semibold text-white mb-4 relative group inline-block">
                 Contact
+                <span className="absolute bottom-0 left-0 h-0.5 bg-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ width: '35%' }}></span>
               </h3>
               <div className="flex flex-col gap-3 items-start">
-                {/* Email Us */}
                 <Link
-                  href="info@potentia.digital"
+                  href="mailto:info@potentia.digital"
                   className="relative flex items-center text-sm text-zinc-400 hover:text-white transition-colors duration-200 group w-full"
                 >
                   <span className="transition-opacity duration-300 opacity-100 group-hover:opacity-0">
@@ -76,21 +88,6 @@ export default function FooterSection() {
                     <EmailIcon className="w-5 h-5" />
                   </span>
                 </Link>
-
-                {/* Call Us */}
-                {/* <Link
-                  href="tel:+1234567890"
-                  className="relative flex items-center text-sm text-zinc-400 hover:text-white transition-colors duration-200 group w-full"
-                >
-                  <span className="transition-opacity duration-300 opacity-100 group-hover:opacity-0">
-                    Call Us
-                  </span>
-                  <span className="absolute left-0 flex items-center transition-opacity duration-300 opacity-0 group-hover:opacity-100">
-                    <PhoneIcon className="w-5 h-5" />
-                  </span>
-                </Link> */}
-
-                {/* Contact Form */}
                 <Link
                   href="/contact"
                   className="relative flex items-center text-sm text-zinc-400 hover:text-white transition-colors duration-200 group w-full"
@@ -107,9 +104,11 @@ export default function FooterSection() {
 
             {/* Social Media Section */}
             <FooterColumn>
-              <h3 className="text-lg font-semibold text-white mb-4">Social Media</h3>
+              <h3 className="text-lg font-semibold text-white mb-4 relative group inline-block">
+                Social Media
+                <span className="absolute bottom-0 left-0 h-0.5 bg-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ width: '55%' }}></span>
+              </h3>
               <div className="grid grid-cols-2 gap-4">
-                {/* VK */}
                 <Link
                   href="https://vk.com/potentiadigital"
                   className="flex items-center space-x-2 text-sm text-zinc-400 hover:text-white transition-colors duration-200"
@@ -117,8 +116,6 @@ export default function FooterSection() {
                   <PublicIcon className="w-5 h-5" />
                   <span>VK</span>
                 </Link>
-
-                {/* YouTube */}
                 <Link
                   href="https://www.youtube.com/@potentiadigital"
                   className="flex items-center space-x-2 text-sm text-zinc-400 hover:text-white transition-colors duration-200"
@@ -126,8 +123,6 @@ export default function FooterSection() {
                   <YouTubeIcon className="w-5 h-5" />
                   <span>YouTube</span>
                 </Link>
-
-                {/* Telegram Channel */}
                 <Link
                   href="https://t.me/potentia_digital"
                   className="flex items-center space-x-2 text-sm text-zinc-400 hover:text-white transition-colors duration-200"
@@ -135,8 +130,6 @@ export default function FooterSection() {
                   <TelegramIcon className="w-5 h-5" />
                   <span>Telegram Channel</span>
                 </Link>
-
-                {/* Telegram User */}
                 <Link
                   href="https://t.me/potentiadigital"
                   className="flex items-center space-x-2 text-sm text-zinc-400 hover:text-white transition-colors duration-200"
@@ -144,8 +137,6 @@ export default function FooterSection() {
                   <TelegramIcon className="w-5 h-5" />
                   <span>Telegram User</span>
                 </Link>
-
-                {/* Instagram */}
                 <Link
                   href="https://www.instagram.com/potentia.digital?igsh=ZGEyYnFhajdiZjUz&utm_source=qr"
                   className="flex items-center space-x-2 text-sm text-zinc-400 hover:text-white transition-colors duration-200"
@@ -153,8 +144,6 @@ export default function FooterSection() {
                   <InstagramIcon className="w-5 h-5" />
                   <span>Instagram</span>
                 </Link>
-
-                {/* Facebook */}
                 <Link
                   href="https://www.facebook.com/share/1YeRxGYzCj/?mibextid=wwXIfr"
                   className="flex items-center space-x-2 text-sm text-zinc-400 hover:text-white transition-colors duration-200"
@@ -162,8 +151,6 @@ export default function FooterSection() {
                   <FacebookIcon className="w-5 h-5" />
                   <span>Facebook</span>
                 </Link>
-
-                {/* X (Twitter) */}
                 <Link
                   href="https://x.com/potentiapower"
                   className="flex items-center space-x-2 text-sm text-zinc-400 hover:text-white transition-colors duration-200"
@@ -171,8 +158,6 @@ export default function FooterSection() {
                   <TwitterIcon className="w-5 h-5" />
                   <span>X</span>
                 </Link>
-
-                {/* TikTok */}
                 <Link
                   href="https://www.tiktok.com/@potentiadigital?_t=ZM-8uBQuhs3MSl&_r=1"
                   className="flex items-center space-x-2 text-sm text-zinc-400 hover:text-white transition-colors duration-200"

@@ -324,11 +324,34 @@ const HostingTab = () => {
 
   return (
     <motion.section
-      className="py-24 px-6 bg-black text-white"
+      className="py-24 px-6 text-white"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       transition={{ duration: 1 }}
+      style={{
+        background: `
+          radial-gradient(circle at 20% 30%, rgba(255,255,255,0.05), #000000),
+          linear-gradient(135deg, 
+            #000000,
+            #000000 45%,
+            rgba(255,255,255,0.1) 50%,
+            #000000 55%,
+            #000000
+          )`,
+        backgroundBlendMode: 'overlay',
+        backgroundSize: '200% 200%',
+        animation: 'flowAnimation 20s linear infinite'
+      }}
     >
+      <style>
+        {`
+          @keyframes flowAnimation {
+            0% { background-position: 0% 50% }
+            50% { background-position: 100% 50% }
+            100% { background-position: 0% 50% }
+          }
+        `}
+      </style>
       <div className="max-w-6xl mx-auto w-full">
         {/* Full-Width Facility Section */}
         <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">

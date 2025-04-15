@@ -1,11 +1,12 @@
 "use client";
-import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import React, { useState, useEffect, ChangeEvent, FormEvent, Suspense } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 
-export default function Page() {
+// Component that uses useSearchParams
+function CheckoutContent() {
   const searchParams = useSearchParams();
 
   // Safely parse query parameters with type checking
@@ -230,5 +231,14 @@ export default function Page() {
         </motion.div>
       </motion.section>
     </div>
+  );
+}
+
+// Main page component
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CheckoutContent />
+    </Suspense>
   );
 }

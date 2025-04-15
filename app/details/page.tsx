@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { useState, useEffect, ChangeEvent, Suspense } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -19,7 +19,8 @@ const hashrateOptions = [
   { value: 3000, price: 150, machinesLit: 15 },
 ] as const;
 
-export default function DetailsPage() {
+// Component that uses useSearchParams
+function DetailsContent() {
   const searchParams = useSearchParams();
 
   // Safely parse query parameters with type checking
@@ -30,7 +31,6 @@ export default function DetailsPage() {
 
   const initialHashrate = parseNumberParam(searchParams.get("hashrate"), 100);
   const initialPrice = parseNumberParam(searchParams.get("price"), 5);
-  // const initialMachines = parseNumberParam(searchParams.get("machines"), 1);
   const model = searchParams.get("model") || "antminer-s21";
 
   // State for dynamic hashrate selection
@@ -111,28 +111,13 @@ export default function DetailsPage() {
           <div className="p-6">
             <h2 className="text-2xl font-bold mb-4">Antminer S21</h2>
             <div className="space-y-2 text-sm">
-              <motion.p
-                variants={statVariants}
-                initial="hidden"
-                animate="visible"
-                custom={0}
-              >
+              <motion.p variants={statVariants} initial="hidden" animate="visible" custom={0}>
                 <span className="mr-2">📊</span> Hash Rate Fee: ${hashRateFee}
               </motion.p>
-              <motion.p
-                variants={statVariants}
-                initial="hidden"
-                animate="visible"
-                custom={1}
-              >
+              <motion.p variants={statVariants} initial="hidden" animate="visible" custom={1}>
                 <span className="mr-2">⚡</span> Electricity Fee: ${electricityFee}
               </motion.p>
-              <motion.p
-                variants={statVariants}
-                initial="hidden"
-                animate="visible"
-                custom={2}
-              >
+              <motion.p variants={statVariants} initial="hidden" animate="visible" custom={2}>
                 <span className="mr-2">⏰</span> Static Output: {animatedOutput.toFixed(4)} BTC/month
               </motion.p>
             </div>
@@ -164,9 +149,7 @@ export default function DetailsPage() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <h2 className="text-2xl font-bold mb-6">
-            Hashrate Plan: {selectedHashrate} TH/s
-          </h2>
+          <h2 className="text-2xl font-bold mb-6">Hashrate Plan: {selectedHashrate} TH/s</h2>
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium mb-2">Currency</label>
@@ -263,9 +246,7 @@ export default function DetailsPage() {
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
       >
-        <h2 className="text-3xl font-bold mb-6 text-center">
-          Antminer S21 Specifications
-        </h2>
+        <h2 className="text-3xl font-bold mb-6 text-center">Antminer S21 Specifications</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-black p-6 rounded-lg">
             <h3 className="text-lg font-semibold mb-2">Performance</h3>
@@ -299,9 +280,7 @@ export default function DetailsPage() {
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
       >
-        <h2 className="text-3xl font-bold mb-6 text-center">
-          Performance Metrics
-        </h2>
+        <h2 className="text-3xl font-bold mb-6 text-center">Performance Metrics</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <motion.div
             className="bg-black p-6 rounded-lg text-center"
@@ -354,9 +333,7 @@ export default function DetailsPage() {
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
       >
-        <h2 className="text-3xl font-bold mb-6 text-center">
-          Why Choose Potentia?
-        </h2>
+        <h2 className="text-3xl font-bold mb-6 text-center">Why Choose Potentia?</h2>
         <ul className="list-disc list-inside space-y-3 text-sm text-gray-300">
           <li>Scalable hashrate from 100 TH/s to 3000 TH/s to suit your needs.</li>
           <li>Powered by Antminer S21, one of the most efficient miners available.</li>
@@ -376,9 +353,7 @@ export default function DetailsPage() {
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
       >
-        <h2 className="text-3xl font-bold mb-6 text-center">
-          Frequently Asked Questions
-        </h2>
+        <h2 className="text-3xl font-bold mb-6 text-center">Frequently Asked Questions</h2>
         <div className="space-y-6">
           <div>
             <h3 className="text-lg font-semibold mb-2">What is cloud mining?</h3>
@@ -401,5 +376,14 @@ export default function DetailsPage() {
         </div>
       </motion.section>
     </div>
+  );
+}
+
+// Main page component
+export default function DetailsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <DetailsContent />
+    </Suspense>
   );
 }

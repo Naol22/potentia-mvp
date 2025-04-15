@@ -1,12 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { motion} from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 
 const hashrateOptions = [
-  { value: 100, price: 5, machinesLit: 1 },
+  { value: 100, price: 150, machinesLit: 1 },
   { value: 300, price: 15, machinesLit: 2 },
   { value: 500, price: 25, machinesLit: 3 },
   { value: 1000, price: 50, machinesLit: 5 },
@@ -16,9 +16,7 @@ const hashrateOptions = [
   { value: 3000, price: 150, machinesLit: 15 },
 ] as const;
 
-const minerModels = [
-  { name: "Antminer S21", value: "antminer-s21" },
-];
+const minerModels = [{ name: "Antminer S21", value: "antminer-s21" }];
 
 const HashrateTab = () => {
   const [selectedHashrate, setSelectedHashrate] = useState<number>(100);
@@ -26,7 +24,9 @@ const HashrateTab = () => {
   const [animatedPrice, setAnimatedPrice] = useState<number>(5);
   const [animatedOutput, setAnimatedOutput] = useState<number>(0.05);
 
-  const selectedOption = hashrateOptions.find((opt) => opt.value === selectedHashrate);
+  const selectedOption = hashrateOptions.find(
+    (opt) => opt.value === selectedHashrate
+  );
   const totalPrice = selectedOption ? selectedOption.price : 5;
   const machinesLit = selectedOption ? selectedOption.machinesLit : 1;
   const estimatedOutput = selectedHashrate * 0.0005;
@@ -34,7 +34,10 @@ const HashrateTab = () => {
   // Animate price and output transitions
   useEffect(() => {
     const priceTimeout = setTimeout(() => setAnimatedPrice(totalPrice), 100);
-    const outputTimeout = setTimeout(() => setAnimatedOutput(estimatedOutput), 100);
+    const outputTimeout = setTimeout(
+      () => setAnimatedOutput(estimatedOutput),
+      100
+    );
     return () => {
       clearTimeout(priceTimeout);
       clearTimeout(outputTimeout);
@@ -95,7 +98,8 @@ const HashrateTab = () => {
                     What is TH/s?
                   </span>
                   <div className="absolute hidden group-hover:block bg-black text-white text-xs p-2 rounded-lg -top-10 left-0 w-48 z-10">
-                    Terahashes per second (TH/s) measures mining power. Higher TH/s means more Bitcoin earned.
+                    Terahashes per second (TH/s) measures mining power. Higher
+                    TH/s means more Bitcoin earned.
                   </div>
                 </label>
                 <motion.select
@@ -120,7 +124,8 @@ const HashrateTab = () => {
                     About Antminer S21
                   </span>
                   <div className="absolute hidden group-hover:block bg-black text-white text-xs p-2 rounded-lg -top-10 left-0 w-48 z-10">
-                    The Antminer S21 offers 200 TH/s with 17.5 J/TH efficiency, ideal for high-performance mining.
+                    The Antminer S21 offers 200 TH/s with 17.5 J/TH efficiency,
+                    ideal for high-performance mining.
                   </div>
                 </label>
                 <motion.select
@@ -139,7 +144,9 @@ const HashrateTab = () => {
 
               {/* Enhanced Plan Details */}
               <div className="bg-black p-6 rounded-lg shadow-md">
-                <h3 className="text-lg font-semibold mb-4">Plan Specifications</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  Plan Specifications
+                </h3>
                 <div className="grid grid-cols-1 gap-4 text-sm">
                   <motion.div
                     className="flex items-center space-x-3"
@@ -151,7 +158,9 @@ const HashrateTab = () => {
                     <span className="text-lg">⚡</span>
                     <div>
                       <p className="font-medium">Power Efficiency</p>
-                      <p className="text-gray-300">17.5 J/TH - Industry-leading performance</p>
+                      <p className="text-gray-300">
+                        17.5 J/TH - Industry-leading performance
+                      </p>
                     </div>
                   </motion.div>
                   <motion.div
@@ -164,7 +173,9 @@ const HashrateTab = () => {
                     <span className="text-lg">🔌</span>
                     <div>
                       <p className="font-medium">Power Consumption</p>
-                      <p className="text-gray-300">~3500W per unit, optimized for cost</p>
+                      <p className="text-gray-300">
+                        ~3500W per unit, optimized for cost
+                      </p>
                     </div>
                   </motion.div>
                   <motion.div
@@ -177,7 +188,9 @@ const HashrateTab = () => {
                     <span className="text-lg">⏰</span>
                     <div>
                       <p className="font-medium">Uptime Guarantee</p>
-                      <p className="text-gray-300">99.9% with 24/7 monitoring</p>
+                      <p className="text-gray-300">
+                        99.9% with 24/7 monitoring
+                      </p>
                     </div>
                   </motion.div>
                   <motion.div
@@ -190,7 +203,9 @@ const HashrateTab = () => {
                     <span className="text-lg">❄️</span>
                     <div>
                       <p className="font-medium">Cooling System</p>
-                      <p className="text-gray-300">Advanced air-cooling for reliability</p>
+                      <p className="text-gray-300">
+                        Advanced air-cooling for reliability
+                      </p>
                     </div>
                   </motion.div>
                   <motion.div
@@ -203,7 +218,9 @@ const HashrateTab = () => {
                     <span className="text-lg">🌐</span>
                     <div>
                       <p className="font-medium">Network Stability</p>
-                      <p className="text-gray-300">Optimized for low-latency mining</p>
+                      <p className="text-gray-300">
+                        Optimized for low-latency mining
+                      </p>
                     </div>
                   </motion.div>
                 </div>
@@ -218,7 +235,9 @@ const HashrateTab = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
-            <h3 className="text-xl font-bold mb-4 text-center">Your Mining Setup</h3>
+            <h3 className="text-xl font-bold mb-4 text-center">
+              Your Mining Setup
+            </h3>
             <div className="space-y-6">
               {/* Dynamic Stats */}
               <div className="text-center">
@@ -272,7 +291,11 @@ const HashrateTab = () => {
                       animate={i < machinesLit ? "unlocked" : "locked"}
                     >
                       <Image
-                        src={i < machinesLit ? "/gpuunlocked.png" : "/gpulocked.png"}
+                        src={
+                          i < machinesLit
+                            ? "/gpuunlocked.png"
+                            : "/gpulocked.png"
+                        }
                         alt={i < machinesLit ? "Active GPU" : "Inactive GPU"}
                         width={50}
                         height={50}
@@ -308,7 +331,9 @@ const HashrateTab = () => {
                       strokeDashoffset={251.2 * (1 - machinesLit / 15)}
                       strokeLinecap="round"
                       initial={{ strokeDashoffset: 251.2 }}
-                      animate={{ strokeDashoffset: 251.2 * (1 - machinesLit / 15) }}
+                      animate={{
+                        strokeDashoffset: 251.2 * (1 - machinesLit / 15),
+                      }}
                       transition={{ duration: 0.5 }}
                     />
                   </svg>
@@ -394,19 +419,27 @@ const HashrateTab = () => {
         </h2>
         <div className="space-y-6">
           <div>
-            <h3 className="text-lg font-semibold mb-2">How does cloud mining work?</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              How does cloud mining work?
+            </h3>
             <p className="text-sm text-gray-300">
-              You rent hashrate from our data centers, and we handle the hardware, maintenance, and power. You earn Bitcoin daily.
+              You rent hashrate from our data centers, and we handle the
+              hardware, maintenance, and power. You earn Bitcoin daily.
             </p>
           </div>
           <div>
-            <h3 className="text-lg font-semibold mb-2">What is the Antminer S21?</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              What is the Antminer S21?
+            </h3>
             <p className="text-sm text-gray-300">
-              The Antminer S21 is a top-tier Bitcoin miner with 200 TH/s per unit and 17.5 J/TH efficiency.
+              The Antminer S21 is a top-tier Bitcoin miner with 200 TH/s per
+              unit and 17.5 J/TH efficiency.
             </p>
           </div>
           <div>
-            <h3 className="text-lg font-semibold mb-2">Can I change my hashrate later?</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              Can I change my hashrate later?
+            </h3>
             <p className="text-sm text-gray-300">
               Yes, our monthly plans allow you to scale up or down anytime.
             </p>

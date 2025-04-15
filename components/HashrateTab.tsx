@@ -1,313 +1,417 @@
 "use client";
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 
-// Simple Icons (replace with SVGs or a library like react-icons if preferred)
-const LightningIcon = () => <span className="mr-2">⚡</span>;
-const ClockIcon = () => <span className="mr-2">⏰</span>;
-const ChartIcon = () => <span className="mr-2">📊</span>;
-const EfficiencyIcon = () => <span className="mr-2">⚙️</span>;
-const CoolingIcon = () => <span className="mr-2">❄️</span>;
-const NetworkIcon = () => <span className="mr-2">🌐</span>;
-const DowntimeIcon = () => <span className="mr-2">⚠️</span>;
-const SupportIcon = () => <span className="mr-2">🛠️</span>;
-const MinerIcon = () => <span className="mr-2">⛏️</span>;
+const hashrateOptions = [
+  { value: 100, price: 5, machinesLit: 1 },
+  { value: 300, price: 15, machinesLit: 2 },
+  { value: 500, price: 25, machinesLit: 3 },
+  { value: 1000, price: 50, machinesLit: 5 },
+  { value: 1500, price: 75, machinesLit: 7 },
+  { value: 2000, price: 100, machinesLit: 10 },
+  { value: 2500, price: 125, machinesLit: 12 },
+  { value: 3000, price: 150, machinesLit: 15 },
+] as const;
+
+const minerModels = [
+  { name: "Antminer S21", value: "antminer-s21" },
+];
 
 const HashrateTab = () => {
-  // State management
-  const [selectedCrypto, setSelectedCrypto] = useState("BTC");
-  const [planMode, setPlanMode] = useState("Standard");
-  const [minerModel, setMinerModel] = useState("Antminer S19Pro");
-  const [planDurationFilter, setPlanDurationFilter] = useState("All");
-  const [plans, setPlans] = useState([
-    { name: "Starter", duration: 30, hashRate: 50, sold: 100, minerModel: "Antminer S19Pro" },
-    { name: "Advanced", duration: 90, hashRate: 50, sold: 80, minerModel: "Antminer S19Pro" },
-    { name: "Pro", duration: 180, hashRate: 50, sold: 60, minerModel: "Antminer S19Pro" },
-    { name: "Custom", duration: 30, hashRate: 50, sold: 40, minerModel: "Antminer S19Pro" },
-  ]);
-  const [customDuration, setCustomDuration] = useState(30);
+  const [selectedHashrate, setSelectedHashrate] = useState<number>(100);
+  const [selectedModel, setSelectedModel] = useState<string>("antminer-s21");
+  const [animatedPrice, setAnimatedPrice] = useState<number>(5);
+  const [animatedOutput, setAnimatedOutput] = useState<number>(0.05);
 
-  // Filter options
-  const planModes = ["Standard", "Eco", "Performance"];
-  const minerModels = ["Antminer S19Pro", "Whatsminer M30S", "AvalonMiner 1246"];
-  const planDurations = ["All", "Short (30-90 days)", "Medium (90-180 days)", "Long (180+ days)"];
-  const hashRates = [50, 100, 150, 200];
-  const cryptocurrencies = [
-    { name: "BTC", icon: "₿" },
-    { name: "ETH", icon: "Ξ" },
-    { name: "DOGE", icon: "Ð" },
-    { name: "LTC", icon: "Ł" },
-  ];
+  const selectedOption = hashrateOptions.find((opt) => opt.value === selectedHashrate);
+  const totalPrice = selectedOption ? selectedOption.price : 5;
+  const machinesLit = selectedOption ? selectedOption.machinesLit : 1;
+  const estimatedOutput = selectedHashrate * 0.0005;
 
-  // Update hash rate, custom duration, and miner model
-  const updateHashRate = (planName: string, newHashRate: number) =>
-    setPlans(plans.map((p) => (p.name === planName ? { ...p, hashRate: newHashRate } : p)));
-  const updateCustomDuration = (newDuration: number) => {
-    setCustomDuration(newDuration);
-    setPlans(plans.map((p) => (p.name === "Custom" ? { ...p, duration: newDuration } : p)));
-  };
-  const updateMinerModel = (newMinerModel: string) => {
-    setMinerModel(newMinerModel);
-    setPlans(plans.map((p) => ({ ...p, minerModel: newMinerModel })));
+  // Animate price and output transitions
+  useEffect(() => {
+    const priceTimeout = setTimeout(() => setAnimatedPrice(totalPrice), 100);
+    const outputTimeout = setTimeout(() => setAnimatedOutput(estimatedOutput), 100);
+    return () => {
+      clearTimeout(priceTimeout);
+      clearTimeout(outputTimeout);
+    };
+  }, [totalPrice, estimatedOutput]);
+
+  const queryParams = new URLSearchParams({
+    hashrate: selectedHashrate.toString(),
+    model: selectedModel,
+    price: totalPrice.toString(),
+    machines: machinesLit.toString(),
+  }).toString();
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
-  // Fee calculations
-  const getFeeMultiplier = () => (planMode === "Eco" ? 0.9 : planMode === "Performance" ? 1.1 : 1);
-  const getModelFeeAdjustment = () =>
-    minerModel === "Antminer S19Pro" ? 0 : minerModel === "Whatsminer M30S" ? 0.001 : 0.002;
-  const baseHashRateFee = 0.00317; // $/T/D
-  const baseElectricityFee = 0.0059; // $/T/D
-  const hashRateFee = (baseHashRateFee + getModelFeeAdjustment()) * getFeeMultiplier();
-  const electricityFee = baseElectricityFee * getFeeMultiplier();
-
-  // Calculations
-  const calculateTotal = (hashRate: number, duration: number) =>
-    ((hashRateFee + electricityFee) * hashRate * duration).toFixed(2);
-  const calculateDailyOutput = (hashRate: number) => (hashRate * 0.00001).toFixed(5);
-  const calculateROI = (hashRate: number, duration: number) => {
-    const totalCost = parseFloat(calculateTotal(hashRate, duration));
-    const totalOutput = parseFloat(calculateDailyOutput(hashRate)) * duration * 30000; // 1 BTC = $30,000
-    return ((totalOutput / totalCost) * 100).toFixed(1);
+  const gpuVariants = {
+    locked: { scale: 0.8, opacity: 0.5 },
+    unlocked: { scale: 1, opacity: 1, transition: { duration: 0.3 } },
   };
 
-  // Filter plans
-  const filteredPlans = plans.filter((plan) => {
-    if (planDurationFilter === "All") return true;
-    if (planDurationFilter === "Short (30-90 days)") return plan.duration <= 90;
-    if (planDurationFilter === "Medium (90-180 days)") return plan.duration > 90 && plan.duration <= 180;
-    return plan.duration > 180;
-  });
+  const infoItemVariants = {
+    hidden: { opacity: 0, x: -10 },
+    visible: (i: number) => ({
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.3, delay: i * 0.1 },
+    }),
+  };
 
   return (
-    <div className="bg-black text-white min-h-screen p-8">
-      {/* Filter Tabs */}
-      <div className="flex flex-wrap gap-4 mb-6 justify-center">
-        <div>
-          <label className="block text-sm mb-2">Plan Mode</label>
-          <motion.select
-            value={planMode}
-            onChange={(e) => setPlanMode(e.target.value)}
-            className="bg-neutral-800 p-3 rounded-lg w-48"
-            whileHover={{ scale: 1.05 }}
+    <div className="bg-black text-white py-12 px-4 overflow-x-hidden font-['Inter']">
+      {/* Main Content */}
+      <motion.div
+        className="max-w-5xl mx-auto mt-12"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Selection Panel */}
+          <motion.div
+            className="md:col-span-2 bg-neutral-800 p-8 rounded-xl shadow-lg"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
           >
-            {planModes.map((mode) => (
-              <option key={mode} value={mode}>{mode}</option>
-            ))}
-          </motion.select>
-        </div>
-        <div>
-          <label className="block text-sm mb-2">Miner Model</label>
-          <motion.select
-            value={minerModel}
-            onChange={(e) => updateMinerModel(e.target.value)}
-            className="bg-neutral-800 p-3 rounded-lg w-48"
-            whileHover={{ scale: 1.05 }}
-          >
-            {minerModels.map((model) => (
-              <option key={model} value={model}>{model}</option>
-            ))}
-          </motion.select>
-        </div>
-        <div>
-          <label className="block text-sm mb-2">Plan Duration</label>
-          <motion.select
-            value={planDurationFilter}
-            onChange={(e) => setPlanDurationFilter(e.target.value)}
-            className="bg-neutral-800 p-3 rounded-lg w-48"
-            whileHover={{ scale: 1.05 }}
-          >
-            {planDurations.map((duration) => (
-              <option key={duration} value={duration}>{duration}</option>
-            ))}
-          </motion.select>
-        </div>
-      </div>
-
-      {/* Cryptocurrency Selector */}
-      <div className="flex justify-center space-x-4 mb-8">
-        {cryptocurrencies.map((crypto) => (
-          <motion.button
-            key={crypto.name}
-            className={`px-6 py-3 rounded-lg text-lg font-medium flex items-center space-x-2 ${
-              selectedCrypto === crypto.name ? "bg-white text-black" : "bg-neutral-800 text-white"
-            }`}
-            onClick={() => setSelectedCrypto(crypto.name)}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span>{crypto.icon}</span>
-            <span>{crypto.name}</span>
-          </motion.button>
-        ))}
-      </div>
-
-      {/* Plan Cards (2x2 Grid, Reduced Height) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {filteredPlans.map((plan, index) => {
-          // Calculate values to pass to the Details page
-          const total = calculateTotal(plan.hashRate, plan.duration);
-          const queryParams = new URLSearchParams({
-            plan: plan.name,
-            crypto: selectedCrypto,
-            hashRate: plan.hashRate.toString(),
-            duration: plan.duration.toString(),
-            total: total,
-            minerModel: plan.minerModel,
-            hashRateFee: hashRateFee.toFixed(5),
-            electricityFee: electricityFee.toFixed(5),
-          }).toString();
-
-          return (
-            <motion.div
-              key={plan.name}
-              className="relative bg-neutral-800 p-6 rounded-lg shadow-lg"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ scale: 1.05 }}
-            >
-              {/* Badges */}
-              {plan.name === "Pro" && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-white text-black px-3 py-1 rounded-full text-sm">
-                  Best Value
-                </div>
-              )}
-              {plan.name === "Advanced" && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-white text-black px-3 py-1 rounded-full text-sm">
-                  Recommended
-                </div>
-              )}
-
-              <h3 className="text-2xl font-bold mb-4">{plan.name} - {plan.duration} Days</h3>
-              <div className="mb-4">
-                <label className="block mb-1 text-sm font-medium">Hash Rate (TH/s)</label>
-                <select
-                  value={plan.hashRate}
-                  onChange={(e) => updateHashRate(plan.name, Number(e.target.value))}
-                  className="w-full p-2 bg-black rounded border border-neutral-800 text-sm"
+            <h2 className="text-2xl font-bold mb-6">Choose Your Plan</h2>
+            <div className="space-y-6">
+              {/* Hashrate Selection */}
+              <div className="relative group">
+                <label className="block text-sm font-medium mb-2">
+                  Hashrate (TH/s)
+                  <span className="ml-2 text-xs text-gray-400 cursor-help group-hover:underline">
+                    What is TH/s?
+                  </span>
+                  <div className="absolute hidden group-hover:block bg-black text-white text-xs p-2 rounded-lg -top-10 left-0 w-48 z-10">
+                    Terahashes per second (TH/s) measures mining power. Higher TH/s means more Bitcoin earned.
+                  </div>
+                </label>
+                <motion.select
+                  value={selectedHashrate}
+                  onChange={(e) => setSelectedHashrate(Number(e.target.value))}
+                  className="w-full p-3 bg-black border border-neutral-700 rounded-lg text-white focus:ring-2 focus:ring-white/20"
+                  whileHover={{ scale: 1.02 }}
                 >
-                  {hashRates.map((rate) => (
-                    <option key={rate} value={rate}>{rate} TH/s</option>
+                  {hashrateOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.value} TH/s - ${option.price}/month
+                    </option>
                   ))}
-                </select>
+                </motion.select>
               </div>
-              <div className="mb-4 text-sm space-y-2">
-                <p><ChartIcon /> Est. Daily Output: {calculateDailyOutput(plan.hashRate)} BTC</p>
-                <p><ChartIcon /> Est. ROI: {calculateROI(plan.hashRate, plan.duration)}%</p>
-                <p><LightningIcon /> Power: 3250W</p>
-                <p><ClockIcon /> Uptime: 99.9%</p>
-                <p><EfficiencyIcon /> Efficiency: 29 J/TH</p>
-                <p><CoolingIcon /> Cooling: Air-cooled</p>
-                <p><NetworkIcon /> Network Difficulty: 5.5T</p>
-                <p><DowntimeIcon /> Expected Downtime: 0.1%</p>
-                <p><SupportIcon /> Support Level: {plan.name === "Pro" || plan.name === "Custom" ? "Priority" : "Standard"}</p>
-                <p><MinerIcon /> Miner: {plan.minerModel}</p>
-                <p>Hash Rate Fee: ${hashRateFee.toFixed(5)}/T/D</p>
-                <p>Electricity Fee: ${electricityFee.toFixed(5)}/T/D</p>
-                <p className="text-2xl font-bold mt-2">Total: ${total}</p>
+
+              {/* Miner Model Selection */}
+              <div className="relative group">
+                <label className="block text-sm font-medium mb-2">
+                  Miner Model
+                  <span className="ml-2 text-xs text-gray-400 cursor-help group-hover:underline">
+                    About Antminer S21
+                  </span>
+                  <div className="absolute hidden group-hover:block bg-black text-white text-xs p-2 rounded-lg -top-10 left-0 w-48 z-10">
+                    The Antminer S21 offers 200 TH/s with 17.5 J/TH efficiency, ideal for high-performance mining.
+                  </div>
+                </label>
+                <motion.select
+                  value={selectedModel}
+                  onChange={(e) => setSelectedModel(e.target.value)}
+                  className="w-full p-3 bg-black border border-neutral-700 rounded-lg text-white focus:ring-2 focus:ring-white/20"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  {minerModels.map((model) => (
+                    <option key={model.value} value={model.value}>
+                      {model.name}
+                    </option>
+                  ))}
+                </motion.select>
               </div>
-              {plan.name === "Custom" && (
-                <div className="mb-4">
-                  <label className="block mb-1 text-sm font-medium">Duration (Days)</label>
-                  <input
-                    type="number"
-                    value={customDuration}
-                    onChange={(e) => updateCustomDuration(Number(e.target.value))}
-                    className="w-full p-2 bg-black rounded border border-neutral-800 text-sm"
-                  />
-                </div>
-              )}
-              <div className="mb-4">
-                <div className="flex justify-between mb-1">
-                  <span className="text-xs">Total Sold:</span>
-                  <span className="text-xs">{plan.sold}%</span>
-                </div>
-                <div className="bg-black h-2 w-full rounded-full">
+
+              {/* Enhanced Plan Details */}
+              <div className="bg-black p-6 rounded-lg shadow-md">
+                <h3 className="text-lg font-semibold mb-4">Plan Specifications</h3>
+                <div className="grid grid-cols-1 gap-4 text-sm">
                   <motion.div
-                    className="bg-white h-full"
-                    initial={{ width: "0%" }}
-                    animate={{ width: `${plan.sold}%` }}
-                    transition={{ duration: 1 }}
-                  />
+                    className="flex items-center space-x-3"
+                    variants={infoItemVariants}
+                    initial="hidden"
+                    animate="visible"
+                    custom={0}
+                  >
+                    <span className="text-lg">⚡</span>
+                    <div>
+                      <p className="font-medium">Power Efficiency</p>
+                      <p className="text-gray-300">17.5 J/TH - Industry-leading performance</p>
+                    </div>
+                  </motion.div>
+                  <motion.div
+                    className="flex items-center space-x-3"
+                    variants={infoItemVariants}
+                    initial="hidden"
+                    animate="visible"
+                    custom={1}
+                  >
+                    <span className="text-lg">🔌</span>
+                    <div>
+                      <p className="font-medium">Power Consumption</p>
+                      <p className="text-gray-300">~3500W per unit, optimized for cost</p>
+                    </div>
+                  </motion.div>
+                  <motion.div
+                    className="flex items-center space-x-3"
+                    variants={infoItemVariants}
+                    initial="hidden"
+                    animate="visible"
+                    custom={2}
+                  >
+                    <span className="text-lg">⏰</span>
+                    <div>
+                      <p className="font-medium">Uptime Guarantee</p>
+                      <p className="text-gray-300">99.9% with 24/7 monitoring</p>
+                    </div>
+                  </motion.div>
+                  <motion.div
+                    className="flex items-center space-x-3"
+                    variants={infoItemVariants}
+                    initial="hidden"
+                    animate="visible"
+                    custom={3}
+                  >
+                    <span className="text-lg">❄️</span>
+                    <div>
+                      <p className="font-medium">Cooling System</p>
+                      <p className="text-gray-300">Advanced air-cooling for reliability</p>
+                    </div>
+                  </motion.div>
+                  <motion.div
+                    className="flex items-center space-x-3"
+                    variants={infoItemVariants}
+                    initial="hidden"
+                    animate="visible"
+                    custom={4}
+                  >
+                    <span className="text-lg">🌐</span>
+                    <div>
+                      <p className="font-medium">Network Stability</p>
+                      <p className="text-gray-300">Optimized for low-latency mining</p>
+                    </div>
+                  </motion.div>
                 </div>
               </div>
-              <div className="mb-4">
-                <h4 className="text-base font-semibold mb-1">Plan Features</h4>
-                <ul className="list-disc list-inside space-y-0.5 text-xs">
-                  <li>24/7 Monitoring</li>
-                  <li>Daily Payouts</li>
-                  <li>Real-Time Analytics</li>
-                  {plan.name === "Pro" || plan.name === "Custom" ? <li>Dedicated Account Manager</li> : null}
-                </ul>
+            </div>
+          </motion.div>
+
+          {/* Enhanced Summary Panel */}
+          <motion.div
+            className="bg-gradient-to-b from-neutral-900 to-black p-8 rounded-xl shadow-lg"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <h3 className="text-xl font-bold mb-4 text-center">Your Mining Setup</h3>
+            <div className="space-y-6">
+              {/* Dynamic Stats */}
+              <div className="text-center">
+                <p className="text-sm text-gray-400">Hashrate</p>
+                <motion.p
+                  className="text-2xl font-bold"
+                  key={selectedHashrate}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {selectedHashrate} TH/s
+                </motion.p>
               </div>
-              <div className="flex space-x-4">
+              <div className="text-center">
+                <p className="text-sm text-gray-400">Monthly Price</p>
+                <motion.p
+                  className="text-2xl font-bold"
+                  key={animatedPrice}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  ${animatedPrice.toFixed(0)}
+                </motion.p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-gray-400">Est. Output</p>
+                <motion.p
+                  className="text-2xl font-bold"
+                  key={animatedOutput}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {animatedOutput.toFixed(4)} BTC
+                </motion.p>
+              </div>
+
+              {/* GPU Visualization */}
+              <div>
+                <p className="text-sm font-medium text-center mb-4">
+                  Active Machines ({machinesLit}/15)
+                </p>
+                <div className="grid grid-cols-5 gap-2">
+                  {Array.from({ length: 15 }).map((_, i) => (
+                    <motion.div
+                      key={i}
+                      variants={gpuVariants}
+                      initial="locked"
+                      animate={i < machinesLit ? "unlocked" : "locked"}
+                    >
+                      <Image
+                        src={i < machinesLit ? "/gpuunlocked.png" : "/gpulocked.png"}
+                        alt={i < machinesLit ? "Active GPU" : "Inactive GPU"}
+                        width={50}
+                        height={50}
+                        className="object-contain"
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Radial Progress */}
+              <div className="flex justify-center">
+                <div className="relative w-24 h-24">
+                  <svg className="w-full h-full" viewBox="0 0 100 100">
+                    <circle
+                      className="text-gray-700"
+                      strokeWidth="10"
+                      stroke="currentColor"
+                      fill="transparent"
+                      r="40"
+                      cx="50"
+                      cy="50"
+                    />
+                    <motion.circle
+                      className="text-white"
+                      strokeWidth="10"
+                      stroke="currentColor"
+                      fill="transparent"
+                      r="40"
+                      cx="50"
+                      cy="50"
+                      strokeDasharray="251.2"
+                      strokeDashoffset={251.2 * (1 - machinesLit / 15)}
+                      strokeLinecap="round"
+                      initial={{ strokeDashoffset: 251.2 }}
+                      animate={{ strokeDashoffset: 251.2 * (1 - machinesLit / 15) }}
+                      transition={{ duration: 0.5 }}
+                    />
+                  </svg>
+                  <p className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-sm font-bold">
+                    {Math.round((machinesLit / 15) * 100)}%
+                  </p>
+                </div>
+              </div>
+
+              {/* Check Details Button */}
+              <motion.div
+                className="flex justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+              >
                 <Link href={`/details?${queryParams}`}>
-                  <Button className="w-full bg-white text-black hover:bg-black hover:text-white rounded-full py-2 text-base">
+                  <Button className="bg-white text-black hover:bg-black hover:text-white rounded-full px-10 py-4 text-lg font-semibold transition-all duration-300">
                     Check Details
                   </Button>
                 </Link>
-                {plan.name === "Starter" && (
-                  <Button className="w-full bg-neutral-800 text-white hover:bg-white hover:text-black rounded-full py-2 text-base">
-                    Quick Start
-                  </Button>
-                )}
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
+      </motion.div>
 
       {/* Info Section */}
-      <section className="mt-16 bg-neutral-800 p-8 rounded-lg">
-        <h2 className="text-3xl font-bold mb-6 text-center">Discover Cloud Mining with Potentia</h2>
-        <p className="text-lg mb-6">
-          Cloud mining made simple. Mine Bitcoin, Ethereum, and more without hardware or expertise. Potentia offers flexible plans and top-tier facilities worldwide.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-black p-6 rounded-lg">
-            <h3 className="text-xl font-semibold mb-2">Global Reach</h3>
-            <p className="text-sm">Facilities in Ethiopia, Dubai, and Texas with over 100 MW capacity.</p>
-          </div>
-          <div className="bg-black p-6 rounded-lg">
-            <h3 className="text-xl font-semibold mb-2">Sustainable Mining</h3>
-            <p className="text-sm">Powered by hydro and solar energy, starting at 4.0ct/kWh.</p>
-          </div>
-          <div className="bg-black p-6 rounded-lg">
-            <h3 className="text-xl font-semibold mb-2">Reliable Performance</h3>
-            <p className="text-sm">99.9% uptime with advanced hardware like Antminer S19Pro.</p>
-          </div>
-        </div>
-        <div className="mt-8">
-          <h3 className="text-2xl font-bold mb-4">Why Choose Potentia?</h3>
-          <ul className="list-disc list-inside space-y-2 text-lg">
-            <li>Lowest fees starting at $0.00317/T/D</li>
-            <li>Eco-friendly mining with renewable energy</li>
-            <li>High uptime guarantee of 99.9%</li>
-            <li>Advanced hardware for maximum efficiency</li>
-            <li>Plans for beginners and experts alike</li>
-          </ul>
-        </div>
-      </section>
-
-      {/* Contact Us Component */}
       <motion.section
-        className="mt-16 bg-neutral-800 p-8 rounded-lg border border-neutral-800 text-center"
-        initial={{ opacity: 0, y: 50 }}
+        className="max-w-5xl mx-auto mt-16 bg-neutral-800 p-8 rounded-xl shadow-lg"
+        initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
         viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
       >
-        <h2 className="text-4xl font-bold mb-4">Need Assistance? Contact Us!</h2>
-        <p className="text-lg mb-6 max-w-2xl mx-auto">
-          Our team is here to help with any questions about your cloud mining journey. Reach out to us for personalized support and guidance.
-        </p>
-        <Link href="/contact">
-          <Button className="bg-white text-black hover:bg-black hover:text-white rounded-full px-12 py-4 text-xl font-semibold transition-all duration-300">
-            Contact Us Now
-          </Button>
-        </Link>
+        <h2 className="text-3xl font-bold mb-6 text-center">
+          Why Mine with Potentia?
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <motion.div
+            className="bg-black p-6 rounded-lg"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.3 }}
+          >
+            <h3 className="text-xl font-semibold mb-2">Sustainable Power</h3>
+            <p className="text-sm text-gray-300">
+              Powered by hydro and solar energy at 4.0¢/kWh.
+            </p>
+          </motion.div>
+          <motion.div
+            className="bg-black p-6 rounded-lg"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.3 }}
+          >
+            <h3 className="text-xl font-semibold mb-2">High Uptime</h3>
+            <p className="text-sm text-gray-300">
+              99.9% uptime with advanced Antminer S21 hardware.
+            </p>
+          </motion.div>
+          <motion.div
+            className="bg-black p-6 rounded-lg"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.3 }}
+          >
+            <h3 className="text-xl font-semibold mb-2">Global Facilities</h3>
+            <p className="text-sm text-gray-300">
+              Data centers in Ethiopia, Dubai, and Texas.
+            </p>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* FAQ Section */}
+      <motion.section
+        className="max-w-5xl mx-auto mt-16 bg-neutral-800 p-8 rounded-xl shadow-lg"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+      >
+        <h2 className="text-3xl font-bold mb-6 text-center">
+          Frequently Asked Questions
+        </h2>
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg font-semibold mb-2">How does cloud mining work?</h3>
+            <p className="text-sm text-gray-300">
+              You rent hashrate from our data centers, and we handle the hardware, maintenance, and power. You earn Bitcoin daily.
+            </p>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-2">What is the Antminer S21?</h3>
+            <p className="text-sm text-gray-300">
+              The Antminer S21 is a top-tier Bitcoin miner with 200 TH/s per unit and 17.5 J/TH efficiency.
+            </p>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Can I change my hashrate later?</h3>
+            <p className="text-sm text-gray-300">
+              Yes, our monthly plans allow you to scale up or down anytime.
+            </p>
+          </div>
+        </div>
       </motion.section>
     </div>
   );

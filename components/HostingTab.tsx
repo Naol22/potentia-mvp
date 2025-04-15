@@ -14,7 +14,6 @@ const plans = [
   "4 Months",
   "5 Months",
   "6 Months",
-  "One-Time",
   "Monthly",
 ] as const;
 type Plan = (typeof plans)[number];
@@ -137,7 +136,6 @@ const planBasePrices: Record<Plan, number> = {
   "4 Months": 400,
   "5 Months": 500,
   "6 Months": 600,
-  "One-Time": 1000,
   Monthly: 150,
 };
 

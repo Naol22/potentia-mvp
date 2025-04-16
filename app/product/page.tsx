@@ -1,21 +1,34 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import HostingTab from "@/components/HostingTab";
 import HashrateTab from "@/components/HashrateTab";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { useUser } from "@clerk/nextjs";
 
-// Child component for search params logic
 function ProductsContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const initialTab = tabParam === "hashrate" ? "hashrate" : "hosting";
-  const [activeTab, setActiveTab] = useState<"hosting" | "hashrate">(initialTab);
+  const [activeTab, setActiveTab] = useState<"hosting" | "hashrate">(
+    initialTab
+  );
+
+  const { user, isLoaded } = useUser();
+
+  useEffect(() => {
+    console.log("Clerk isLoaded:", isLoaded);
+    console.log("Clerk user:", user);
+    if (isLoaded && user) {
+      console.log("Clerk User ID:", user.id);
+    } else if (isLoaded && !user) {
+      console.log("Clerk: User is not signed in.");
+    }
+  }, [isLoaded, user]);
 
   return (
     <section className="bg-black text-white min-h-screen mt-[80px] font-['Inter'] overflow-x-hidden">
-    
       {/* Tab Selector */}
       <div className="bg-black p-10 overflow-x-hidden">
         <div className="max-w-2xl mx-auto">
@@ -34,7 +47,11 @@ function ProductsContent() {
                   className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-black via-white to-black"
                   layoutId="underline"
                   initial={false}
-                  transition={{ duration: 0.4, ease: "easeInOut", scale: { duration: 0.4 } }}
+                  transition={{
+                    duration: 0.4,
+                    ease: "easeInOut",
+                    scale: { duration: 0.4 },
+                  }}
                   animate={{ scaleX: [1, 1.1, 1] }}
                 />
               )}
@@ -53,7 +70,11 @@ function ProductsContent() {
                   className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-black via-white to-black"
                   layoutId="underline"
                   initial={false}
-                  transition={{ duration: 0.4, ease: "easeInOut", scale: { duration: 0.4 } }}
+                  transition={{
+                    duration: 0.4,
+                    ease: "easeInOut",
+                    scale: { duration: 0.4 },
+                  }}
                   animate={{ scaleX: [1, 1.1, 1] }}
                 />
               )}
@@ -83,7 +104,13 @@ function ProductsContent() {
 // Main page component
 export default function ProductsPage() {
   return (
-    <Suspense fallback={<div className="bg-black text-white min-h-screen p-8">Loading products...</div>}>
+    <Suspense
+      fallback={
+        <div className="bg-black text-white min-h-screen p-8">
+          Loading products...
+        </div>
+      }
+    >
       <ProductsContent />
     </Suspense>
   );

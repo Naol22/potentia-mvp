@@ -4,13 +4,11 @@ import { auth } from '@clerk/nextjs/server';
 
 export async function POST(request: Request) {
   try {
-    // Get the authenticated user from Clerk
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Parse the request body
     const body = await request.json();
     const {
       plan_id,
@@ -25,12 +23,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Check if the user exists in the users table, or create them
-    let { data: user, error: userError } = await supabase
+    const { data: fetchedUser, error: userError } = await supabase
       .from('users')
       .select('id')
       .eq('clerk_user_id', userId)
       .single();
+
+    let user = fetchedUser;
 
     if (userError || !user) {
       const { data: newUser, error: insertError } = await supabase
@@ -42,6 +41,7 @@ export async function POST(request: Request) {
       if (insertError) {
         return NextResponse.json({ error: insertError.message }, { status: 500 });
       }
+
       user = newUser;
     }
 

@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
   let event: ClerkWebhookEvent;
   try {
-    event = webhook.verify(payload, headers) as ClerkWebhookEvent; // Use custom type
+    event = webhook.verify(payload, headers) as ClerkWebhookEvent; 
   } catch (err) {
     console.error('Webhook signature verification failed:', err);
     return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 400 });

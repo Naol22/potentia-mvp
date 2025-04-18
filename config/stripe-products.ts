@@ -9,4 +9,4 @@ export const STRIPE_PRODUCTS = {
     "2500 TH": "prod_S8OM0XvGnKiQuk",
     "3000 TH": "prod_S8ONfMdiQxyMMz",
   }
-};
+}; 

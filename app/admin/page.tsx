@@ -1,12 +1,4 @@
-import React from 'react'
-
-const page = () => {
-  return (
-    <div>page</div>
-  )
-}
-
-export default page// "use client";
+// "use client";
 // import { useUser } from "@clerk/nextjs";
 // import { createClient } from "@supabase/supabase-js";
 // import { useEffect, useState } from "react";
@@ -53,3 +45,50 @@ export default page// "use client";
 //     </div>
 //   );
 // }
+
+
+"use client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import UsersAdmin from "@/components/admin/UsersAdmin";
+import FacilitiesAdmin from "@/components/admin/FacilitiesAdmin";
+import MinersAdmin from "@/components/admin/MinersAdmin";
+import PlansAdmin from "@/components/admin/PlansAdmin";
+import OrdersAdmin from "@/components/admin/OrdersAdmin";
+
+export default function AdminDashboard() {
+  return (
+    <div className="container mx-auto py-10">
+      <h1 className="text-3xl font-bold mb-6">Mining Platform Admin</h1>
+      
+      <Tabs defaultValue="users">
+        <TabsList className="mb-6">
+          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="facilities">Facilities</TabsTrigger>
+          <TabsTrigger value="miners">Miners</TabsTrigger>
+          <TabsTrigger value="plans">Plans</TabsTrigger>
+          <TabsTrigger value="orders">Orders</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="users">
+          <UsersAdmin />
+        </TabsContent>
+        
+        <TabsContent value="facilities">
+          <FacilitiesAdmin />
+        </TabsContent>
+        
+        <TabsContent value="miners">
+          <MinersAdmin />
+        </TabsContent>
+        
+        <TabsContent value="plans">
+          <PlansAdmin />
+        </TabsContent>
+        
+        <TabsContent value="orders">
+          <OrdersAdmin />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

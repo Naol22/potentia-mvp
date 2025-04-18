@@ -40,12 +40,16 @@ export async function POST(request: Request) {
     case 'user.updated':
       const { id: clerk_user_id, email_addresses, first_name, last_name } = data;
       const email = email_addresses?.[0]?.email_address;
-      const full_name = `${first_name || ''} ${last_name || ''}`.trim();
 
       const { error } = await supabase
         .from('users')
         .upsert(
-          { clerk_user_id, email, full_name },
+          {
+            clerk_user_id,
+            first_name: first_name || null,
+            last_name: last_name || null,
+            email: email || null,
+          },
           { onConflict: 'clerk_user_id' }
         );
 

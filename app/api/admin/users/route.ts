@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { supabase } from "@/utilis/supaBaseClient";
+import { supabase } from "@/utils/supaBaseClient";
 
 // Check if user is admin using Clerk
 async function isAdmin(userId: string | null) {

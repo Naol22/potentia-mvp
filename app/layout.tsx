@@ -45,7 +45,7 @@ export default function RootLayout({
         },
       }}
     >
-      <html lang="en">
+      <html lang="en" className="dark">
         <head>
           <link rel="icon" href="/O.png" />
         </head>

@@ -21,9 +21,12 @@ export default function UsersAdmin() {
   const [editingUser, setEditingUser] = useState<Partial<User> | null>(null);
 
   // Fetch users
+  // Update fetchUsers
   const fetchUsers = async () => {
     try {
-      const response = await fetch("/api/admin/users");
+      const response = await fetch("/api/admin/users", {
+        credentials: 'include'
+      });
       const data = await response.json();
       setUsers(data);
     } catch (error) {
@@ -38,11 +41,13 @@ export default function UsersAdmin() {
   }, []);
 
   // Update user
+  // Update updateUser
   const updateUser = async () => {
     try {
       const response = await fetch(`/api/admin/users/${editingUser?.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include',
         body: JSON.stringify(editingUser),
       });
       
@@ -60,12 +65,14 @@ export default function UsersAdmin() {
   };
 
   // Delete user
+  // Update deleteUser
   const deleteUser = async (id: string) => {
     if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
     
     try {
       const response = await fetch(`/api/admin/users/${id}`, {
         method: "DELETE",
+        credentials: 'include'
       });
       
       if (response.ok) {

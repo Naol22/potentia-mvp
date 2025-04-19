@@ -20,9 +20,12 @@ export default function FacilitiesAdmin() {
   const [isCreating, setIsCreating] = useState(false);
 
   // Fetch facilities
+  // Update fetchFacilities
   const fetchFacilities = async () => {
     try {
-      const response = await fetch("/api/admin/facilities");
+      const response = await fetch("/api/admin/facilities", {
+        credentials: 'include'
+      });
       const data = await response.json();
       setFacilities(data);
     } catch (error) {
@@ -47,6 +50,7 @@ export default function FacilitiesAdmin() {
       const response = await fetch("/api/admin/facilities", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include',
         body: JSON.stringify(newFacility),
       });
       
@@ -75,6 +79,7 @@ export default function FacilitiesAdmin() {
       const response = await fetch(`/api/admin/facilities/${editingFacility.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include',
         body: JSON.stringify(editingFacility),
       });
       
@@ -98,6 +103,7 @@ export default function FacilitiesAdmin() {
     try {
       const response = await fetch(`/api/admin/facilities/${id}`, {
         method: "DELETE",
+        credentials: 'include'
       });
       
       if (response.ok) {

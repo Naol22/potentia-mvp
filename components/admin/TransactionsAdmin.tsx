@@ -47,11 +47,13 @@ export default function TransactionsAdmin() {
   const [users, setUsers] = useState<any[]>([]);
   const [plans, setPlans] = useState<any[]>([]);
 
-  // Fetch transactions
+  // Update fetchTransactions
   const fetchTransactions = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/transactions');
+      const response = await fetch('/api/admin/transactions', {
+        credentials: 'include'
+      });
       if (!response.ok) throw new Error('Failed to fetch transactions');
       const data = await response.json();
       setTransactions(data);
@@ -63,12 +65,12 @@ export default function TransactionsAdmin() {
     }
   };
 
-  // Fetch users and plans for dropdowns
+  // Update fetchRelatedData
   const fetchRelatedData = async () => {
     try {
       const [usersResponse, plansResponse] = await Promise.all([
-        fetch('/api/admin/users'),
-        fetch('/api/admin/plans')
+        fetch('/api/admin/users', { credentials: 'include' }),
+        fetch('/api/admin/plans', { credentials: 'include' })
       ]);
       
       if (!usersResponse.ok || !plansResponse.ok) 
@@ -137,6 +139,7 @@ export default function TransactionsAdmin() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(currentTransaction),
       });
       
@@ -162,6 +165,7 @@ export default function TransactionsAdmin() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(currentTransaction),
       });
       

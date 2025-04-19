@@ -40,11 +40,13 @@ export default function HostingAdmin() {
   const [miners, setMiners] = useState<any[]>([]);
   const [facilities, setFacilities] = useState<any[]>([]);
 
-  // Fetch hosting plans
+  // Update fetchHostingPlans
   const fetchHostingPlans = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/hosting');
+      const response = await fetch('/api/admin/hosting', {
+        credentials: 'include'
+      });
       if (!response.ok) throw new Error('Failed to fetch hosting plans');
       const data = await response.json();
       setHostingPlans(data);
@@ -56,12 +58,12 @@ export default function HostingAdmin() {
     }
   };
 
-  // Fetch miners and facilities for dropdowns
+  // Update fetchRelatedData
   const fetchRelatedData = async () => {
     try {
       const [minersResponse, facilitiesResponse] = await Promise.all([
-        fetch('/api/miners'),
-        fetch('/api/facilities')
+        fetch('/api/miners', { credentials: 'include' }),
+        fetch('/api/facilities', { credentials: 'include' })
       ]);
       
       if (!minersResponse.ok || !facilitiesResponse.ok) 
@@ -128,6 +130,7 @@ export default function HostingAdmin() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(currentHosting),
       });
       
@@ -153,6 +156,7 @@ export default function HostingAdmin() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(currentHosting),
       });
       

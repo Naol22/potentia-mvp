@@ -21,10 +21,12 @@ export default function PlansAdmin() {
   const [editingPlan, setEditingPlan] = useState<Partial<Plan> | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
-  // Fetch plans
+  // Update fetchPlans
   const fetchPlans = async () => {
     try {
-      const response = await fetch("/api/admin/plans");
+      const response = await fetch("/api/admin/plans", {
+        credentials: 'include'
+      });
       const data = await response.json();
       setPlans(data);
     } catch (error) {
@@ -38,13 +40,14 @@ export default function PlansAdmin() {
     fetchPlans();
   }, []);
 
-  // Create plan
+  // Update createPlan
   const createPlan = async () => {
     try {
       const response = await fetch("/api/admin/plans", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editingPlan),
+        credentials: 'include',
+        body: JSON.stringify(editingPlan), // Changed from newPlan to editingPlan
       });
       
       if (response.ok) {
@@ -62,10 +65,13 @@ export default function PlansAdmin() {
 
   // Update plan
   const updatePlan = async () => {
+    if (!editingPlan || !editingPlan.id) return; // Add null check
+    
     try {
-      const response = await fetch(`/api/admin/plans/${editingPlan?.id}`, {
+      const response = await fetch(`/api/admin/plans/${editingPlan.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include',
         body: JSON.stringify(editingPlan),
       });
       
@@ -88,6 +94,7 @@ export default function PlansAdmin() {
     try {
       const response = await fetch(`/api/admin/plans/${id}`, {
         method: "DELETE",
+        credentials: 'include'
       });
       
       if (response.ok) {

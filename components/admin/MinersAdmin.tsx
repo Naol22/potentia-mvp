@@ -19,10 +19,12 @@ export default function MinersAdmin() {
   const [newMiner, setNewMiner] = useState<Partial<Miner>>({ name: "" });
   const [isCreating, setIsCreating] = useState(false);
 
-  // Fetch miners
+  // Update fetchMiners
   const fetchMiners = async () => {
     try {
-      const response = await fetch("/api/admin/miners");
+      const response = await fetch("/api/admin/miners", {
+        credentials: 'include'
+      });
       const data = await response.json();
       setMiners(data);
     } catch (error) {
@@ -36,7 +38,7 @@ export default function MinersAdmin() {
     fetchMiners();
   }, []);
 
-  // Create miner
+  // Update createMiner
   const createMiner = async () => {
     try {
       if (!newMiner.name) {
@@ -47,6 +49,7 @@ export default function MinersAdmin() {
       const response = await fetch("/api/admin/miners", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include',
         body: JSON.stringify(newMiner),
       });
       
@@ -75,6 +78,7 @@ export default function MinersAdmin() {
       const response = await fetch(`/api/admin/miners/${editingMiner.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include',
         body: JSON.stringify(editingMiner),
       });
       
@@ -98,6 +102,7 @@ export default function MinersAdmin() {
     try {
       const response = await fetch(`/api/admin/miners/${id}`, {
         method: "DELETE",
+        credentials: 'include'
       });
       
       if (response.ok) {

@@ -62,9 +62,12 @@ export default function OrdersAdmin() {
   const [selectedPlanType, setSelectedPlanType] = useState<string | null>(null);
 
   // Fetch orders and related data
+  // Update fetchOrders
   const fetchOrders = async () => {
     try {
-      const response = await fetch("/api/admin/orders");
+      const response = await fetch("/api/admin/orders", {
+        credentials: 'include'
+      });
       const data = await response.json();
       setOrders(data);
     } catch (error) {
@@ -74,9 +77,12 @@ export default function OrdersAdmin() {
     }
   };
 
+  // Update fetchUsers
   const fetchUsers = async () => {
     try {
-      const response = await fetch("/api/admin/users");
+      const response = await fetch("/api/admin/users", {
+        credentials: 'include'
+      });
       const data = await response.json();
       setUsers(data);
     } catch (error) {
@@ -84,9 +90,12 @@ export default function OrdersAdmin() {
     }
   };
 
+  // Update fetchPlans
   const fetchPlans = async () => {
     try {
-      const response = await fetch("/api/admin/plans");
+      const response = await fetch("/api/admin/plans", {
+        credentials: 'include'
+      });
       const data = await response.json();
       setPlans(data);
     } catch (error) {
@@ -94,9 +103,12 @@ export default function OrdersAdmin() {
     }
   };
 
+  // Update fetchFacilities
   const fetchFacilities = async () => {
     try {
-      const response = await fetch("/api/admin/facilities");
+      const response = await fetch("/api/admin/facilities", {
+        credentials: 'include'
+      });
       const data = await response.json();
       setFacilities(data);
     } catch (error) {
@@ -104,9 +116,12 @@ export default function OrdersAdmin() {
     }
   };
 
+  // Update fetchMiners
   const fetchMiners = async () => {
     try {
-      const response = await fetch("/api/admin/miners");
+      const response = await fetch("/api/admin/miners", {
+        credentials: 'include'
+      });
       const data = await response.json();
       setMiners(data);
     } catch (error) {
@@ -258,6 +273,7 @@ export default function OrdersAdmin() {
     try {
       const response = await fetch(`/api/admin/orders/${id}`, {
         method: "DELETE",
+        credentials: 'include'
       });
       
       if (response.ok) {

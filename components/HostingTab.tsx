@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Globe, DollarSign, Box, Wrench, Power, Cpu, Gauge, Lightbulb, Camera } from 'lucide-react';
+import { Span } from 'next/dist/trace';
 
 // Facility data
 const facilities = [
@@ -255,8 +256,9 @@ const HostingTab = () => {
                   <div
                     onClick={() => setSelectedFacility(facility.name)}
                     className={`w-full h-full flex flex-col text-left rounded-lg shadow-sm transition-all bg-neutral-800 text-white hover:bg-neutral-800 snap-center p-4 cursor-pointer ${
-                      selectedFacility === facility.name ? 'opacity-80' : ''
+                      selectedFacility === facility.name ? 'bg-zinc opacity-40 h-1 bg-gradient-to-r from-black to-gray-600 group-hover:opacity-100 transition-opacity' : ''
                     }`}
+
                   >
                     <Image
                       src={facility.image}
@@ -282,7 +284,7 @@ const HostingTab = () => {
                     style={{ pointerEvents: 'none' }} // Prevent blocking hover
                   >
                     <h2 className="text-lg font-bold mb-2 flex items-center">
-                      <DollarSign className="w-5 h-5 mr-2" />
+                      {/* <DollarSign className="w-5 h-5 mr-2" /> */}
                       Hosting Information
                     </h2>
                     <p className="flex items-center">
@@ -298,7 +300,7 @@ const HostingTab = () => {
                       Setup Fee: {facility.hostingInfo.setupFee}
                     </p>
                     <h2 className="text-lg font-bold mb-2 flex items-center">
-                      <Power className="w-5 h-5 mr-2" />
+                      {/* <Power className="w-5 h-5 mr-2" /> */}
                       General Information
                     </h2>
                     <p className="flex items-center">

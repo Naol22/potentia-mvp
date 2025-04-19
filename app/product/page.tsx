@@ -35,7 +35,7 @@ function ProductsContent() {
                 activeTab === "hashrate"
                   ? "text-white"
                   : "text-white opacity-50 hover:opacity-75 hover:scale-105 hover:tracking-wider"
-              } focus:outline-none focus:ring-2 focus:ring-white rounded-full`}
+              } rounded-full`}
               onClick={() => setActiveTab("hashrate")}
             >
               Hashrate
@@ -59,7 +59,7 @@ function ProductsContent() {
                 activeTab === "hosting"
                   ? "text-white"
                   : "text-white opacity-50 hover:opacity-75 hover:scale-105 hover:tracking-wider"
-              } focus:outline-none focus:ring-2 focus:ring-white rounded-full`}
+              } rounded-full`}
               onClick={() => setActiveTab("hosting")}
             >
               Hosting

@@ -6,29 +6,21 @@ const hashrateOptions = [
   {
     title: '100 TH/s',
     description: 'Perfect for beginners dipping into Bitcoin mining with reliable output.',
-    price: '$0.05/TH/s',
-    estimatedOutput: '~0.005 BTC/month',
     image: '/gpuunlocked.png',
   },
   {
     title: '300 TH/s',
     description: 'Balanced power for enthusiasts seeking steady returns.',
-    price: '$0.04/TH/s',
-    estimatedOutput: '~0.015 BTC/month',
     image: '/gpuunlocked.png',
   },
   {
     title: '500 TH/s',
     description: 'High-efficiency plan for serious miners maximizing profits.',
-    price: '$0.035/TH/s',
-    estimatedOutput: '~0.025 BTC/month',
     image: '/gpuunlocked.png',
   },
   {
     title: '1000 TH/s',
     description: 'Ultimate performance for top-tier mining dominance.',
-    price: '$0.03/TH/s',
-    estimatedOutput: '~0.050 BTC/month',
     image: '/gpuunlocked.png',
   },
 ];
@@ -125,14 +117,6 @@ export default function HashrateAdSection() {
                 <p className="text-gray-600 text-sm mb-4 min-h-[40px]">
                   {option.description}
                 </p>
-                <div className="space-y-2 mb-4">
-                  <p className="text-xl font-semibold text-black">
-                    {option.price}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Est. {option.estimatedOutput}
-                  </p>
-                </div>
                 <motion.div
                   className="inline-block text-sm font-medium text-white bg-neutral-900 px-4 py-2 rounded-full group-hover:bg-black group-hover:text-white transition-all"
                   whileHover={{ scale: 1.1 }}

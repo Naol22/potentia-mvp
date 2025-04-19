@@ -14,7 +14,7 @@ CREATE TABLE facilities (
 
 CREATE TABLE miners (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name TEXT NOT NULL, -- e.g., 'Antminer S21'
+  name TEXT NOT NULL, -- e.g., 'Antminer S21' 
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

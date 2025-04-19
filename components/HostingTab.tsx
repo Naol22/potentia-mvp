@@ -3,7 +3,7 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight, Globe } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Globe, DollarSign, Box, Wrench, Power, Cpu, Gauge, Lightbulb, Camera } from 'lucide-react';
 
 // Facility data
 const facilities = [
@@ -223,7 +223,7 @@ const HostingTab = () => {
         transition={{ duration: 1 }}
       >
         <div className="max-w-6xl mx-auto">
-          <div className="relative mb-12">
+          <motion.div className="relative mb-12">
             <h2 className="text-2xl font-bold mb-4 text-center text-white">
               Choose Your Mining Facility
             </h2>
@@ -246,11 +246,12 @@ const HostingTab = () => {
               {facilities.map((facility, index) => (
                 <motion.div
                   key={facility.name}
-                  className="flex-none w-80"
+                  className="flex-none w-80 mt-12 bg-gradient-to-b from-zinc-700/60 via-zinc-900/40 to-black p-6 rounded-lg shadow-md relative group"
                   initial={{ opacity: 0, x: -50 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
+                  {/* Main content */}
                   <div
                     onClick={() => setSelectedFacility(facility.name)}
                     className={`w-full h-full flex flex-col text-left rounded-lg shadow-sm transition-all bg-neutral-800 text-white hover:bg-neutral-800 snap-center p-4 cursor-pointer ${
@@ -272,6 +273,54 @@ const HostingTab = () => {
                     </p>
                     <p className="text-sm my-2">{facility.hostingInfo.price}</p>
                     {facility.generalInfo.ecoFriendly && <EcoBadge />}
+                    
+                  </div>
+                
+                  {/* Modified hover content */}
+                  <motion.div
+                    className="absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100 text-white text-sm z-20 space-y-2 bg-black bg-opacity-80 p-4 rounded-lg"
+                    style={{ pointerEvents: 'none' }} // Prevent blocking hover
+                  >
+                    <h2 className="text-lg font-bold mb-2 flex items-center">
+                      <DollarSign className="w-5 h-5 mr-2" />
+                      Hosting Information
+                    </h2>
+                    <p className="flex items-center">
+                      <DollarSign className="w-4 h-4 mr-2" />
+                      Price: {facility.hostingInfo.price}
+                    </p>
+                    <p className="flex items-center">
+                      <Box className="w-4 h-4 mr-2" />
+                      Minimum Order: {facility.hostingInfo.minOrder}
+                    </p>
+                    <p className="flex items-center">
+                      <Wrench className="w-4 h-4 mr-2" />
+                      Setup Fee: {facility.hostingInfo.setupFee}
+                    </p>
+                    <h2 className="text-lg font-bold mb-2 flex items-center">
+                      <Power className="w-5 h-5 mr-2" />
+                      General Information
+                    </h2>
+                    <p className="flex items-center">
+                      <Power className="w-4 h-4 mr-2" />
+                      Source: {facility.generalInfo.source}
+                    </p>
+                    <p className="flex items-center">
+                      <Cpu className="w-4 h-4 mr-2" />
+                      Miner Type: {facility.generalInfo.minerType}
+                    </p>
+                    <p className="flex items-center">
+                      <Gauge className="w-4 h-4 mr-2" />
+                      Capacity: {facility.generalInfo.capacity}
+                    </p>
+                    <p className="flex items-center">
+                      <Lightbulb className="w-4 h-4 mr-2" />
+                      Innovation: {facility.generalInfo.innovation}
+                    </p>
+                    <p className="flex items-center">
+                      <Camera className="w-4 h-4 mr-2" />
+                      Surveillance: {facility.generalInfo.surveillance}
+                    </p>
                     <Link
                       href={`/facilities/${encodeURIComponent(facility.name)}`}
                       className="mt-auto relative flex justify-center items-center bg-black text-white rounded-full py-2 px-4 min-w-[120px] group"
@@ -283,7 +332,7 @@ const HostingTab = () => {
                         <Globe className="w-5 h-5 text-white" />
                       </span>
                     </Link>
-                  </div>
+                  </motion.div>
                 </motion.div>
               ))}
             </div>
@@ -293,7 +342,7 @@ const HostingTab = () => {
             >
               <ChevronRight size={24} />
             </button>
-          </div>
+          </motion.div>
 
           <motion.div
             className="mt-12 bg-gradient-to-b from-zinc-700/60 via-zinc-900/40 to-black p-6 rounded-lg shadow-md border border-neutral-600"
@@ -353,7 +402,7 @@ const HostingTab = () => {
           </motion.div>
 
           <motion.div
-            className="mt-12 bg-neutral-900 p-6 rounded-lg shadow-md border border-neutral-600"
+            className="mt-12 bg-gradient-to-b from-zinc-700/60 via-zinc-900/40 to-black p-6 rounded-lg shadow-md border border-neutral-600"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.8 }}

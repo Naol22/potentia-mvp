@@ -20,7 +20,7 @@ export default clerkMiddleware(async (authFn, req: NextRequest) => {
   const { userId, sessionClaims } = await authFn();
   const path = req.nextUrl.pathname;
 
-  const publicPaths = ["/", "/api/webhook"];
+  const publicPaths = ["/", "/api/webhooks"];
   if (publicPaths.some((pp) => path === pp || path.startsWith(pp + "/"))) {
     return NextResponse.next();
   }

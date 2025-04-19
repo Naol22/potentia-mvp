@@ -1,46 +1,45 @@
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { clerkMiddleware, createRouteMatcher, getAuth } from "@clerk/nextjs/server";
+import type { NextRequest } from "next/server";
 
-// Define type for sessionClaims
-interface SessionClaims {
+interface CustomSessionClaims {
   role?: string;
-  [key: string]: unknown;
+  metadata?: {
+    role?: string;
+  };
 }
 
-const isProtectedRoute = createRouteMatcher(["/product(.*)", "/details(.*)", "/cart(.*)", "/checkout(.*)"]);
+const isProtectedRoute = createRouteMatcher([
+  "/product(.*)",
+  "/details(.*)",
+  "/cart(.*)",
+  "/checkout(.*)",
+]);
 
-export default clerkMiddleware(async (auth, req) => {
-  console.log("Middleware triggered for:", req.nextUrl.pathname);
-  const { userId, sessionClaims } = getAuth(req);
-  console.log("User ID:", userId, "Session Claims:", sessionClaims);
+export default clerkMiddleware(async (authFn, req: NextRequest) => {
+  const { userId, sessionClaims } = await authFn();
   const path = req.nextUrl.pathname;
 
-  // Allow public routes
   const publicPaths = ["/", "/api/webhook"];
   if (publicPaths.some((pp) => path === pp || path.startsWith(pp + "/"))) {
     return NextResponse.next();
   }
 
-  // Check if trying to access admin routes
-  if (path.startsWith("/admin")) {
-    if (!userId) {
-      const signInUrl = new URL("/sign-in", req.url);
-      return NextResponse.redirect(signInUrl);
-    }
-
-    const userRole = sessionClaims && (sessionClaims as SessionClaims).role;
-    const isAdmin = userRole === "admin";
-
-    if (!isAdmin) {
-      const homeUrl = new URL("/", req.url);
-      return NextResponse.redirect(homeUrl);
-    }
+  if (isProtectedRoute(req) && !userId) {
+    return NextResponse.redirect(new URL("/sign-in", req.url));
   }
 
-  // Protect specified routes
-  if (isProtectedRoute(req)) {
-    console.log("Protecting route:", path);
-    await auth.protect();
+  if (path.startsWith("/admin")) {
+    if (!userId) {
+      return NextResponse.redirect(new URL("/sign-in", req.url));
+    }
+
+    const claims = sessionClaims as CustomSessionClaims;
+    const userRole = claims?.metadata?.role ?? claims?.role;
+
+    if (userRole !== "admin") {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
   }
 
   return NextResponse.next();
@@ -48,7 +47,13 @@ export default clerkMiddleware(async (auth, req) => {
 
 export const config = {
   matcher: [
-    "/((?!_next|.*\\..*).*)", // Match all routes except _next and static files
-    "/(api|trpc)(.*)", // Match API and TRPC routes
+    "/((?!.*\\..*|_next).*)", 
+    "/",
+    "/(api|trpc)(.*)",
+    "/product(.*)",
+    "/details(.*)",
+    "/cart(.*)",
+    "/checkout(.*)",
+    "/admin(.*)",
   ],
 };

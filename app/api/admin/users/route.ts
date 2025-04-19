@@ -33,3 +33,30 @@ export async function GET(req: NextRequest) {
   
   return NextResponse.json(data);
 }
+
+// Create a new user (admin only)
+export async function POST(req: NextRequest) {
+  const { userId } = await auth();
+  
+  if (!await isAdmin(userId)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  
+  try {
+    const userData = await req.json();
+    
+    const { data, error } = await supabase
+      .from('users')
+      .insert(userData)
+      .select()
+      .single();
+    
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    
+    return NextResponse.json(data);
+  } catch (error) {
+    return NextResponse.json({ error: "Invalid request data" }, { status: 400 });
+  }
+}

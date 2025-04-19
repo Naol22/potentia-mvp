@@ -14,8 +14,11 @@ async function isAdmin(userId: string | null) {
   return userRole === "admin";
 }
 
-// Get all orders
-export async function GET(req: NextRequest) {
+// Get a specific hosting plan
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const { userId } = await auth();
   
   if (!await isAdmin(userId)) {
@@ -23,16 +26,14 @@ export async function GET(req: NextRequest) {
   }
   
   const { data, error } = await supabase
-    .from('orders')
+    .from('hosting')
     .select(`
       *,
-      users (id, first_name, last_name, email),
-      plans (id, type, hashrate, price, duration, miner_id, facility_id),
-      facilities (id, name),
       miners (id, name),
-      transactions (id, amount, status)
+      facilities (id, name)
     `)
-    .order('created_at', { ascending: false });
+    .eq('id', params.id)
+    .single();
   
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -41,8 +42,11 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(data);
 }
 
-// Create a new order
-export async function POST(req: NextRequest) {
+// Update a hosting plan
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const { userId } = await auth();
   
   if (!await isAdmin(userId)) {
@@ -50,11 +54,12 @@ export async function POST(req: NextRequest) {
   }
   
   try {
-    const orderData = await req.json();
+    const hostingData = await req.json();
     
     const { data, error } = await supabase
-      .from('orders')
-      .insert(orderData)
+      .from('hosting')
+      .update(hostingData)
+      .eq('id', params.id)
       .select()
       .single();
     
@@ -66,4 +71,27 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     return NextResponse.json({ error: "Invalid request data" }, { status: 400 });
   }
+}
+
+// Delete a hosting plan
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const { userId } = await auth();
+  
+  if (!await isAdmin(userId)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  
+  const { error } = await supabase
+    .from('hosting')
+    .delete()
+    .eq('id', params.id);
+  
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  
+  return NextResponse.json({ success: true });
 }

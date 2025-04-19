@@ -14,7 +14,7 @@ async function isAdmin(userId: string | null) {
   return userRole === "admin";
 }
 
-// Get a specific user
+// Get a specific transaction
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -26,26 +26,11 @@ export async function GET(
   }
   
   const { data, error } = await supabase
-    .from('users')
+    .from('transactions')
     .select(`
       *,
-      orders (
-        id, 
-        status, 
-        start_date, 
-        end_date, 
-        btc_address,
-        plans (id, type, hashrate, price),
-        miners (id, name),
-        facilities (id, name)
-      ),
-      transactions (
-        id,
-        amount,
-        status,
-        description,
-        created_at
-      )
+      users (id, first_name, last_name, email),
+      plans (id, type, hashrate, price, duration)
     `)
     .eq('id', params.id)
     .single();
@@ -57,7 +42,7 @@ export async function GET(
   return NextResponse.json(data);
 }
 
-// Update a user
+// Update a transaction
 export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -69,11 +54,11 @@ export async function PUT(
   }
   
   try {
-    const userData = await req.json();
+    const transactionData = await req.json();
     
     const { data, error } = await supabase
-      .from('users')
-      .update(userData)
+      .from('transactions')
+      .update(transactionData)
       .eq('id', params.id)
       .select()
       .single();
@@ -88,7 +73,7 @@ export async function PUT(
   }
 }
 
-// Delete a user
+// Delete a transaction
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -99,10 +84,25 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   
-  // Note: We don't need to check for related records since we have ON DELETE CASCADE
+  // Check if transaction is linked to any orders
+  const { data: orderData, error: checkError } = await supabase
+    .from('orders')
+    .select('id')
+    .eq('transaction_id', params.id)
+    .limit(1);
+  
+  if (checkError) {
+    return NextResponse.json({ error: checkError.message }, { status: 500 });
+  }
+  
+  if (orderData && orderData.length > 0) {
+    return NextResponse.json({ 
+      error: "Cannot delete transaction that is linked to orders" 
+    }, { status: 400 });
+  }
   
   const { error } = await supabase
-    .from('users')
+    .from('transactions')
     .delete()
     .eq('id', params.id);
   

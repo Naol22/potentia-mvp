@@ -14,7 +14,7 @@ async function isAdmin(userId: string | null) {
   return userRole === "admin";
 }
 
-// Get all orders
+// Get all hosting plans
 export async function GET(req: NextRequest) {
   const { userId } = await auth();
   
@@ -23,14 +23,11 @@ export async function GET(req: NextRequest) {
   }
   
   const { data, error } = await supabase
-    .from('orders')
+    .from('hosting')
     .select(`
       *,
-      users (id, first_name, last_name, email),
-      plans (id, type, hashrate, price, duration, miner_id, facility_id),
-      facilities (id, name),
       miners (id, name),
-      transactions (id, amount, status)
+      facilities (id, name)
     `)
     .order('created_at', { ascending: false });
   
@@ -41,7 +38,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(data);
 }
 
-// Create a new order
+// Create a new hosting plan
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   
@@ -50,11 +47,11 @@ export async function POST(req: NextRequest) {
   }
   
   try {
-    const orderData = await req.json();
+    const hostingData = await req.json();
     
     const { data, error } = await supabase
-      .from('orders')
-      .insert(orderData)
+      .from('hosting')
+      .insert(hostingData)
       .select()
       .single();
     

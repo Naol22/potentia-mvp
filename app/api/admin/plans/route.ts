@@ -24,7 +24,11 @@ export async function GET(req: NextRequest) {
   
   const { data, error } = await supabase
     .from('plans')
-    .select('*')
+    .select(`
+      *,
+      miners (id, name),
+      facilities (id, name)
+    `)
     .order('created_at', { ascending: false });
   
   if (error) {

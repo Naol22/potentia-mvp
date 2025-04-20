@@ -1,8 +1,7 @@
 import { Webhook } from 'svix';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
-// Define a type for Clerk webhook events
 interface ClerkWebhookEvent {
   type: string;
   data: {
@@ -14,6 +13,10 @@ interface ClerkWebhookEvent {
 }
 
 const webhookSecret = process.env.CLERK_WEBHOOK_SECRET || '';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(request: Request) {
   const payload = await request.text();
@@ -27,7 +30,7 @@ export async function POST(request: Request) {
 
   let event: ClerkWebhookEvent;
   try {
-    event = webhook.verify(payload, headers) as ClerkWebhookEvent; 
+    event = webhook.verify(payload, headers) as ClerkWebhookEvent;
   } catch (err) {
     console.error('Webhook signature verification failed:', err);
     return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 400 });
@@ -39,7 +42,7 @@ export async function POST(request: Request) {
     case 'user.created':
     case 'user.updated':
       const { id: clerk_user_id, email_addresses, first_name, last_name } = data;
-      const email = email_addresses?.[0]?.email_address;
+      const email = email_addresses?.[0]?.email_address || null;
 
       const { error } = await supabase
         .from('users')
@@ -48,7 +51,7 @@ export async function POST(request: Request) {
             clerk_user_id,
             first_name: first_name || null,
             last_name: last_name || null,
-            email: email || null,
+            email,
           },
           { onConflict: 'clerk_user_id' }
         );
@@ -61,6 +64,7 @@ export async function POST(request: Request) {
 
     case 'user.deleted':
       const { id: deletedUserId } = data;
+
       const { error: deleteError } = await supabase
         .from('users')
         .delete()

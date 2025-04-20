@@ -3,9 +3,10 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight, Globe, DollarSign, Box, Wrench, Power, Cpu, Gauge, Lightbulb, Camera } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Globe, DollarSign, Box, Wrench, Power, Cpu, Gauge, Lightbulb, Camera, Video } from 'lucide-react';
 import { Span } from 'next/dist/trace';
 import FlatMap3D from './FlatMap3D';
+import { IconAugmentedReality } from '@tabler/icons-react';
 
 // Facility data
 const facilities = [
@@ -135,6 +136,34 @@ const HostingTab = () => {
   const [selectedFacility, setSelectedFacility] = useState<string | null>(null);
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // Add these two state variables for the tour modal
+  const [showTourModal, setShowTourModal] = useState(false);
+  const [currentTourId, setCurrentTourId] = useState<string | null>(null);
+
+  // Add this function to open the virtual tour
+  const openVirtualTour = (facilityName: string) => {
+    // Map facility names to tour IDs
+    const tourMapping: Record<string, string> = {
+      'Ethiopia': 'ethiopia',
+      'Dubai': 'dubai',
+      'Texas, Fort Worth': 'texas',
+      'Paraguay, Villarica': 'paraguay',
+      'Georgia, Tbilisi': 'georgia',
+      'Finland, Heat Recovery': 'finland'
+    };
+    
+    const tourId = tourMapping[facilityName];
+    if (tourId) {
+      setCurrentTourId(tourId);
+      setShowTourModal(true);
+    }
+  };
+  
+  // Add this function to close the tour modal
+  const closeTourModal = () => {
+    setShowTourModal(false);
+    setCurrentTourId(null);
+  };
 
   const toggleFAQ = (index: number) => {
     setOpenFAQ(openFAQ === index ? null : index);
@@ -187,6 +216,7 @@ const HostingTab = () => {
 
   return (
     <>
+      {/* Existing styles */}
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -198,6 +228,39 @@ const HostingTab = () => {
           `,
         }}
       />
+      
+
+      {showTourModal && currentTourId && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90">
+          <div className="absolute top-4 right-4 z-[10000]">
+            <button 
+              onClick={closeTourModal}
+              className="bg-white text-black rounded-full p-2 hover:bg-gray-200 transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="w-screen h-screen relative">
+            <iframe
+              src={`/api/tours/${currentTourId}`}
+              title="Virtual Tour"
+              className="w-full h-full border-0"
+              allowFullScreen
+            />
+            {/* Overlay image */}
+            <div className="absolute bottom-4 right-4 z-[10000] pointer-events-none">
+              <Image 
+                src="/Artboardw.png" 
+                alt="Potentia" 
+                width={120} 
+                height={60}
+                className="opacity-80"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+      
       <motion.section
         className="py-4 px-6 text-white"
         style={{ 
@@ -325,14 +388,19 @@ const HostingTab = () => {
                       Surveillance: {facility.generalInfo.surveillance}
                     </p>
                     <Link
-                      href={`/facilities/${encodeURIComponent(facility.name)}`}
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        openVirtualTour(facility.name);
+                      }}
                       className="mt-auto relative flex justify-center items-center bg-black text-white rounded-full py-2 px-4 min-w-[120px] group"
+                      style={{ pointerEvents: 'auto' }} // Enable pointer events for the link
                     >
                       <span className="transition-opacity duration-300 opacity-100 group-hover:opacity-0">
-                        Visit Site Tour
+                        Virtual Tour
                       </span>
-                      <span className=" absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100 rounded-full bg-white">
-                        <Globe className="w-5 h-5 text-black" />
+                      <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100 rounded-full bg-white">
+                        <IconAugmentedReality className="w-5 h-5 text-black" />
                       </span>
                     </Link>
                   </motion.div>

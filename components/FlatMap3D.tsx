@@ -167,11 +167,11 @@ const MapboxMap: React.FC = () => {
     }
   };
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-black text-white">
+    <div className="flex flex-col md:flex-row h-screen bg-transparent text-white">
       {/* Left Side: Summary */}
-      <div className="md:w-1/4 p-6 md:border-r border-b md:border-b-0 border-gray-800 overflow-y-auto bg-black order-2 md:order-1 hidden lg:block">
+      <div className="md:w-1/4 p-6 md:border-r border-b md:border-b-0 border-gray-800 overflow-y-auto bg-transparent order-2 md:order-1 hidden lg:block">
         {/* Global Stats Box */}
-        <div className="mb-6 p-4 rounded-xl backdrop-blur-md bg-black border border-gray-700">
+        <div className="mb-6 p-4 rounded-xl backdrop-blur-md bg-black/60 border border-gray-700">
           <h2 className="text-xl font-bold mb-4 text-white">
             Global Statistics
           </h2>
@@ -238,11 +238,11 @@ const MapboxMap: React.FC = () => {
 
       {/* Center: Map */}
       <div className="h-screen md:h-screen md:flex-1 relative order-1 md:order-2">
-        <div className="absolute inset-0 m-4 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+        <div className="absolute inset-0 m-4 rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-transparent">
           <MapContainer
             center={[30, 0]}
             zoom={2}
-            style={{ height: "100%", width: "100%", backgroundColor: "#000" }}
+            style={{ height: "100%", width: "100%", backgroundColor: "transparent" }}
             minZoom={2}
             maxBounds={[
               [-90, -180],
@@ -299,11 +299,11 @@ const MapboxMap: React.FC = () => {
       </div>
 
       {/* Right Side: Selected Location */}
-      <div className="md:w-1/4 p-6 md:border-l border-t md:border-t-0 border-gray-800 overflow-y-auto bg-black order-3 ">
+      <div className="md:w-1/4 p-6 md:border-l border-t md:border-t-0 border-gray-800 overflow-y-auto bg-transparent order-3 ">
         <h2 className="text-2xl font-bold mb-6">Location Details</h2>
         {selectedLocation ? (
           <div className="space-y-6">
-            <div className="p-6 rounded-xl bg-black border border-gray-700">
+            <div className="p-6 rounded-xl bg-black/60 border border-gray-700">
               <h3 className="text-xl font-bold mb-4 text-white">
                 {selectedLocation.name}
               </h3>
@@ -335,7 +335,7 @@ const MapboxMap: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-6 rounded-xl bg-black border border-gray-700">
+            <div className="p-6 rounded-xl bg-black/60 border border-gray-700">
               <h3 className="text-xl font-bold mb-4 text-white">Build Now</h3>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>

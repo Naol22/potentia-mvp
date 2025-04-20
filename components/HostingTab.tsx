@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Globe, DollarSign, Box, Wrench, Power, Cpu, Gauge, Lightbulb, Camera } from 'lucide-react';
 import { Span } from 'next/dist/trace';
+import FlatMap3D from './FlatMap3D';
 
 // Facility data
 const facilities = [
@@ -344,6 +345,14 @@ const HostingTab = () => {
             >
               <ChevronRight size={24} />
             </button>
+          </motion.div>
+
+          <motion.div
+            className="mt-12 bg-gradient-to-b from-zinc-700/60 via-zinc-900/40 to-black p-6 rounded-lg shadow-md border border-neutral-600"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+          >
+            <FlatMap3D />
           </motion.div>
 
           <motion.div

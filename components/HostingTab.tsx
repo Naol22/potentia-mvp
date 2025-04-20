@@ -285,7 +285,7 @@ const HostingTab = () => {
                   >
                     <h2 className="text-lg font-bold mb-2 flex items-center">
                       {/* <DollarSign className="w-5 h-5 mr-2" /> */}
-                      Hosting Information
+                      <strong>Hosting Information</strong>
                     </h2>
                     <p className="flex items-center">
                       <DollarSign className="w-4 h-4 mr-2" />
@@ -301,7 +301,7 @@ const HostingTab = () => {
                     </p>
                     <h2 className="text-lg font-bold mb-2 flex items-center">
                       {/* <Power className="w-5 h-5 mr-2" /> */}
-                      General Information
+                      <strong>General Information</strong>
                     </h2>
                     <p className="flex items-center">
                       <Power className="w-4 h-4 mr-2" />
@@ -330,8 +330,8 @@ const HostingTab = () => {
                       <span className="transition-opacity duration-300 opacity-100 group-hover:opacity-0">
                         Visit Site Tour
                       </span>
-                      <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100">
-                        <Globe className="w-5 h-5 text-white" />
+                      <span className=" absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100 rounded-full bg-white">
+                        <Globe className="w-5 h-5 text-black" />
                       </span>
                     </Link>
                   </motion.div>

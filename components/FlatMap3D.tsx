@@ -66,50 +66,60 @@ const MapboxMap: React.FC = () => {
   // Mock dataset of Bitcoin mining locations
   const miningLocations: MiningLocation[] = [
     {
-      name: "Kazakhstan Mining Complex",
-      coordinates: [66.9237, 48.0196],
-      country: "Kazakhstan",
-      region: "Akmola Region",
+      name: "Ethiopia",
+      coordinates: [38.7578, 9.0301], // [lng, lat] for Addis Ababa
+      country: "Ethiopia",
+      region: "Adiss Ababa",
       hashRate: "164.79",
       facilitySize: "100",
       availability: "Open",
       networkPercentage: "14.8%",
     },
     {
-      name: "Brazil Mining Center",
-      coordinates: [-46.6333, -23.5505],
-      country: "Brazil",
-      region: "State of São Paulo",
+      name: "Dubai",
+      coordinates: [55.2708, 25.2048], // [lng, lat] for Dubai
+      country: "UAE",
+      region: "Dubai",
       hashRate: "3.01",
       facilitySize: "25",
       availability: "Open",
       networkPercentage: "0.33%",
     },
     {
-      name: "Ethiopia Mining Hub",
-      coordinates: [40.4897, 9.145],
-      country: "Ethiopia",
-      region: "Addis Ababa",
+      name: "Texas, Fort Worth",
+      coordinates: [-97.3308, 32.7555], // [lng, lat] for Fort Worth, Texas
+      country: "USA",
+      region: "Texas",
       hashRate: "22.78",
       facilitySize: "50",
       availability: "Open",
       networkPercentage: "2.5%",
     },
     {
-      name: "Indiana Mining Facility",
-      coordinates: [-86.1349, 39.7684],
-      country: "USA",
-      region: "Indiana",
+      name: "Paraguay, Villarica",
+      coordinates: [-56.2231, -25.7495], // [lng, lat] for Villarica, Paraguay
+      country: "Paraguay",
+      region: "Villarica",
       hashRate: "165.68",
       facilitySize: "75",
       availability: "Open",
       networkPercentage: "35.4%",
     },
     {
-      name: "Illinois Mining Complex",
-      coordinates: [-89.3985, 40.6331],
-      country: "USA",
-      region: "Illinois",
+      name: "Georgia, Tbilisi",
+      coordinates: [44.7930, 41.7151], // [lng, lat] for Tbilisi, Georgia
+      country: "Georgia",
+      region: "Tbilisi",
+      hashRate: "157",
+      facilitySize: "75",
+      availability: "Open",
+      networkPercentage: "35.4%",
+    },
+    {
+      name: "Finland, Heat Recovery",
+      coordinates: [24.9384, 60.1699], // [lng, lat] for Helsinki, Finland
+      country: "Finland",
+      region: "Finland",
       hashRate: "157",
       facilitySize: "75",
       availability: "Open",
@@ -299,7 +309,7 @@ const MapboxMap: React.FC = () => {
       </div>
 
       {/* Right Side: Selected Location */}
-      <div className="md:w-1/4 p-6 md:border-l border-t md:border-t-0 border-gray-800 overflow-y-auto bg-transparent order-3 ">
+      {/* <div className="md:w-1/6 p-6 md:border-l border-t md:border-t-0 border-gray-800 overflow-y-auto bg-transparent order-3 ">
         <h2 className="text-2xl font-bold mb-6">Location Details</h2>
         {selectedLocation ? (
           <div className="space-y-6">
@@ -414,7 +424,7 @@ const MapboxMap: React.FC = () => {
             </p>
           </div>
         )}
-      </div>
+      </div> */}
 
       <style jsx global>{`
         .inverted-map {

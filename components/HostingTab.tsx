@@ -280,7 +280,7 @@ const HostingTab = () => {
                 
                   {/* Modified hover content */}
                   <motion.div
-                    className="absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100 text-white text-sm z-20 space-y-2 bg-black bg-opacity-80 p-4 rounded-lg"
+                    className="absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100 text-white text-sm z-20 space-y-2 bg-black bg-opacity-90 p-4 rounded-lg"
                     style={{ pointerEvents: 'none' }} // Prevent blocking hover
                   >
                     <h2 className="text-lg font-bold mb-2 flex items-center">

@@ -208,6 +208,13 @@ SELECT
   END,
   'Monthly Recurring'
 FROM facilities f, miner;
+
+
+ALTER TABLE orders
+ADD COLUMN auto_renew BOOLEAN DEFAULT FALSE,          -- For future auto-renewal support
+ADD COLUMN is_active BOOLEAN DEFAULT FALSE,           -- Tracks if the order is currently active
+ADD COLUMN next_billing_date TIMESTAMP WITH TIME ZONE -- When the next renewal is due
+
 /*
 - **User-Specific Tables** (`users`, `orders`, `transactions`):
     - Secured with RLS policies to ensure users can only access their own data.

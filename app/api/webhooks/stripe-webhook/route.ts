@@ -1,95 +1,89 @@
-import { headers } from 'next/headers';
-import Stripe from 'stripe';
-import { supabase } from '@/utils/supaBaseClient'; 
 import { NextResponse } from 'next/server';
+import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-02-24.acacia', 
+  apiVersion: '2025-03-31.basil',
 });
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(request: Request) {
   const body = await request.text();
-  const headerList = await headers(); 
-  const signature = headerList.get('stripe-signature')!;
+  const signature = request.headers.get('stripe-signature') as string;
+
+  let event: Stripe.Event;
 
   try {
-    const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    );
+  } catch (err) {
+    console.error('Webhook signature verification failed:', err);
+    return NextResponse.json({ error: 'Webhook Error' }, { status: 400 });
+  }
 
-    if (event.type === 'checkout.session.completed') {
+  switch (event.type) {
+    case 'checkout.session.completed':
       const session = event.data.object as Stripe.Checkout.Session;
-      const { userId, planId, btcAddress, facilityId, minerId } = session.metadata || {};
+      const { user_id, plan_id, btc_address, transaction_id, start_date, end_date } = session.metadata || {};
 
-      if (!userId || !planId) {
-        return NextResponse.json({ error: 'Missing userId or planId in metadata' }, { status: 400 });
+      if (!user_id || !plan_id || !btc_address || !transaction_id || !start_date || !end_date) {
+        return NextResponse.json({ error: 'Missing metadata' }, { status: 400 });
       }
 
-      const { data: planData, error: planError } = await supabase
-        .from('plans')
-        .select('price, duration')
-        .eq('id', planId)
-        .single();
-
-      if (planError || !planData) {
-        console.error('Error fetching plan:', planError);
-        return NextResponse.json({ error: 'Plan not found' }, { status: 404 });
-      }
-
-      const { data: transactionData, error: transactionError } = await supabase
+      const { error: transactionError } = await supabase
         .from('transactions')
-        .insert({
-          user_id: userId,
-          plan_id: planId,
-          amount: planData.price,
-          status: 'completed',
-          description: `Payment for plan ${planId}`,
-          stripe_payment_id: session.payment_intent as string,
-        })
-        .select()
-        .single();
+        .update({ status: 'completed' })
+        .eq('id', transaction_id);
 
       if (transactionError) {
-        console.error('Error storing transaction:', transactionError);
-        return NextResponse.json({ error: 'Failed to store transaction' }, { status: 500 });
+        console.error('Error updating transaction:', transactionError);
+        return NextResponse.json({ error: 'Failed to update transaction' }, { status: 500 });
       }
-
-      const startDate = new Date();
-      const endDate = new Date(startDate);
-      const duration = planData.duration.toLowerCase(); 
-
-      if (duration.includes('month')) {
-        endDate.setMonth(startDate.getMonth() + 1);
-      } else if (duration.includes('year')) {
-        endDate.setFullYear(startDate.getFullYear() + 1);
-      } else {
-        endDate.setDate(startDate.getDate() + 30); 
-      }
-
       const { error: orderError } = await supabase
         .from('orders')
         .insert({
-          user_id: userId,
-          plan_id: planId,
-          facility_id: facilityId || null, 
-          miner_id: minerId || null, 
-          btc_address: btcAddress || 'default_btc_address', 
-          stripe_payment_id: session.payment_intent as string,
-          transaction_id: transactionData.id,
+          user_id,
+          plan_id,
+          btc_address,
+          stripe_payment_id: session.id,
+          transaction_id,
           status: 'active',
-          start_date: startDate.toISOString(),
-          end_date: endDate.toISOString(),
+          start_date: new Date(start_date),
+          end_date: new Date(end_date),
+          is_active: true,
+          next_billing_date: new Date(end_date),
+          auto_renew: false, 
         });
 
       if (orderError) {
         console.error('Error creating order:', orderError);
         return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
       }
-    }
 
-    return NextResponse.json({ message: 'Webhook processed successfully' }, { status: 200 });
-  } catch (err) {
-    console.error('Error processing webhook:', err);
-    return NextResponse.json({ error: 'Webhook error' }, { status: 400 });
+      break;
+
+    case 'checkout.session.expired':
+      const expiredSession = event.data.object as Stripe.Checkout.Session;
+      const expiredTransactionId = expiredSession.metadata?.transaction_id;
+
+      if (expiredTransactionId) {
+        await supabase
+          .from('transactions')
+          .update({ status: 'failed' })
+          .eq('id', expiredTransactionId);
+      }
+      break;
+
+    default:
+      console.log(`Unhandled event type ${event.type}`);
   }
+
+  return NextResponse.json({ received: true });
 }

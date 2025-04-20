@@ -1,95 +1,95 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/utils/supaBaseClient";
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function GET() {
   try {
-    const now = new Date().toISOString();
-    
-    // Update orders that have started but not yet marked as active
-    const { error: activeError } = await supabase
-      .from('orders')
-      .update({ status: 'active' })
-      .eq('status', 'completed')
-      .lt('start_date', now)
-      .gt('end_date', now);
-    
-    if (activeError) {
-      console.error('Error updating active orders:', activeError);
-      return NextResponse.json({ error: activeError.message }, { status: 500 });
-    }
+    const now = new Date();
+    const nowISOString = now.toISOString();
 
-    // Get orders that need status check
     const { data: ordersToCheck, error: fetchError } = await supabase
       .from('orders')
       .select(`
         id,
         user_id,
         plan_id,
-        end_date,
+        next_billing_date,
         transaction_id,
-        status
+        status,
+        is_active,
+        auto_renew
       `)
+      .eq('is_active', true)
       .neq('status', 'expired')
-      .lt('end_date', now);
+      .lte('next_billing_date', nowISOString);
 
     if (fetchError) {
       console.error('Error fetching orders:', fetchError);
       return NextResponse.json({ error: fetchError.message }, { status: 500 });
     }
 
-    // Process each order
-    for (const order of ordersToCheck || []) {
-      // Check for recent transaction after the current end_date
-      const { data: recentTransaction } = await supabase
-        .from('transactions')
-        .select('id')
-        .eq('user_id', order.user_id)
-        .eq('plan_id', order.plan_id)
-        .eq('status', 'completed')
-        .gt('created_at', order.end_date)
-        .order('created_at', { ascending: false })
-        .limit(1);
+    if (!ordersToCheck || ordersToCheck.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: "No orders to process",
+        timestamp: nowISOString,
+        ordersProcessed: 0,
+      });
+    }
 
-      if (recentTransaction && recentTransaction.length > 0) {
-        // New payment found, extend subscription
-        const newEndDate = new Date(order.end_date);
-        newEndDate.setMonth(newEndDate.getMonth() + 1);
+    const expiredOrderIds: string[] = [];
+    const errors: string[] = [];
 
-        const { error: updateError } = await supabase
-          .from('orders')
-          .update({
-            status: 'active',
-            end_date: newEndDate.toISOString(),
-            transaction_id: recentTransaction[0].id
-          })
-          .eq('id', order.id);
-
-        if (updateError) {
-          console.error(`Error updating order ${order.id}:`, updateError);
-        }
+    for (const order of ordersToCheck) {
+      if (order.auto_renew) {
+        // Future-proofing: If auto_renew is true, we could initiate a new payment here
+        // For now, since auto_renew is always false, we skip this
+        continue;
       } else {
-        // No new payment, mark as expired
-        const { error: expireError } = await supabase
-          .from('orders')
-          .update({ status: 'expired' })
-          .eq('id', order.id);
+        // No auto-renewal, mark as expired
+        expiredOrderIds.push(order.id);
 
-        if (expireError) {
-          console.error(`Error expiring order ${order.id}:`, expireError);
-        }
+        // Placeholder for user notification
+        // await notifyUser(order.user_id, order.id, 'Your subscription has expired. Please renew to continue mining.');
       }
     }
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    if (expiredOrderIds.length > 0) {
+      const { error: expireError } = await supabase
+        .from('orders')
+        .update({ status: 'expired', is_active: false })
+        .in('id', expiredOrderIds);
+
+      if (expireError) {
+        console.error('Error batch expiring orders:', expireError);
+        errors.push(`Failed to expire orders: ${expireError.message}`);
+      }
+    }
+
+    if (errors.length > 0) {
+      return NextResponse.json({
+        success: false,
+        message: "Order status updates completed with errors",
+        timestamp: nowISOString,
+        ordersProcessed: ordersToCheck.length,
+        errors,
+      }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
       message: "Order statuses updated successfully",
-      timestamp: now,
-      ordersProcessed: ordersToCheck?.length || 0
+      timestamp: nowISOString,
+      ordersProcessed: ordersToCheck.length,
     });
   } catch (error) {
     console.error('Unexpected error in CRON job:', error);
-    return NextResponse.json({ 
-      error: "An unexpected error occurred" 
+    return NextResponse.json({
+      error: "An unexpected error occurred",
     }, { status: 500 });
   }
 }

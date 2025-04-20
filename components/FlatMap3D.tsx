@@ -66,50 +66,60 @@ const MapboxMap: React.FC = () => {
   // Mock dataset of Bitcoin mining locations
   const miningLocations: MiningLocation[] = [
     {
-      name: "Kazakhstan Mining Complex",
-      coordinates: [66.9237, 48.0196],
-      country: "Kazakhstan",
-      region: "Akmola Region",
+      name: "Ethiopia",
+      coordinates: [38.7578, 9.0301], // [lng, lat] for Addis Ababa
+      country: "Ethiopia",
+      region: "Adiss Ababa",
       hashRate: "164.79",
       facilitySize: "100",
       availability: "Open",
       networkPercentage: "14.8%",
     },
     {
-      name: "Brazil Mining Center",
-      coordinates: [-46.6333, -23.5505],
-      country: "Brazil",
-      region: "State of São Paulo",
+      name: "Dubai",
+      coordinates: [55.2708, 25.2048], // [lng, lat] for Dubai
+      country: "UAE",
+      region: "Dubai",
       hashRate: "3.01",
       facilitySize: "25",
       availability: "Open",
       networkPercentage: "0.33%",
     },
     {
-      name: "Ethiopia Mining Hub",
-      coordinates: [40.4897, 9.145],
-      country: "Ethiopia",
-      region: "Addis Ababa",
+      name: "Texas, Fort Worth",
+      coordinates: [-97.3308, 32.7555], // [lng, lat] for Fort Worth, Texas
+      country: "USA",
+      region: "Texas",
       hashRate: "22.78",
       facilitySize: "50",
       availability: "Open",
       networkPercentage: "2.5%",
     },
     {
-      name: "Indiana Mining Facility",
-      coordinates: [-86.1349, 39.7684],
-      country: "USA",
-      region: "Indiana",
+      name: "Paraguay, Villarica",
+      coordinates: [-56.2231, -25.7495], // [lng, lat] for Villarica, Paraguay
+      country: "Paraguay",
+      region: "Villarica",
       hashRate: "165.68",
       facilitySize: "75",
       availability: "Open",
       networkPercentage: "35.4%",
     },
     {
-      name: "Illinois Mining Complex",
-      coordinates: [-89.3985, 40.6331],
-      country: "USA",
-      region: "Illinois",
+      name: "Georgia, Tbilisi",
+      coordinates: [44.7930, 41.7151], // [lng, lat] for Tbilisi, Georgia
+      country: "Georgia",
+      region: "Tbilisi",
+      hashRate: "157",
+      facilitySize: "75",
+      availability: "Open",
+      networkPercentage: "35.4%",
+    },
+    {
+      name: "Finland, Heat Recovery",
+      coordinates: [24.9384, 60.1699], // [lng, lat] for Helsinki, Finland
+      country: "Finland",
+      region: "Finland",
       hashRate: "157",
       facilitySize: "75",
       availability: "Open",
@@ -167,11 +177,11 @@ const MapboxMap: React.FC = () => {
     }
   };
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-black text-white">
+    <div className="flex flex-col md:flex-row h-screen bg-transparent text-white">
       {/* Left Side: Summary */}
-      <div className="md:w-1/4 p-6 md:border-r border-b md:border-b-0 border-gray-800 overflow-y-auto bg-black order-2 md:order-1 hidden lg:block">
+      <div className="md:w-1/4 p-6 md:border-r border-b md:border-b-0 border-gray-800 overflow-y-auto bg-transparent order-2 md:order-1 hidden lg:block">
         {/* Global Stats Box */}
-        <div className="mb-6 p-4 rounded-xl backdrop-blur-md bg-black border border-gray-700">
+        <div className="mb-6 p-4 rounded-xl backdrop-blur-md bg-black/60 border border-gray-700">
           <h2 className="text-xl font-bold mb-4 text-white">
             Global Statistics
           </h2>
@@ -238,11 +248,11 @@ const MapboxMap: React.FC = () => {
 
       {/* Center: Map */}
       <div className="h-screen md:h-screen md:flex-1 relative order-1 md:order-2">
-        <div className="absolute inset-0 m-4 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+        <div className="absolute inset-0 m-4 rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-transparent">
           <MapContainer
             center={[30, 0]}
             zoom={2}
-            style={{ height: "100%", width: "100%", backgroundColor: "#000" }}
+            style={{ height: "100%", width: "100%", backgroundColor: "transparent" }}
             minZoom={2}
             maxBounds={[
               [-90, -180],
@@ -299,11 +309,11 @@ const MapboxMap: React.FC = () => {
       </div>
 
       {/* Right Side: Selected Location */}
-      <div className="md:w-1/4 p-6 md:border-l border-t md:border-t-0 border-gray-800 overflow-y-auto bg-black order-3 ">
+      {/* <div className="md:w-1/6 p-6 md:border-l border-t md:border-t-0 border-gray-800 overflow-y-auto bg-transparent order-3 ">
         <h2 className="text-2xl font-bold mb-6">Location Details</h2>
         {selectedLocation ? (
           <div className="space-y-6">
-            <div className="p-6 rounded-xl bg-black border border-gray-700">
+            <div className="p-6 rounded-xl bg-black/60 border border-gray-700">
               <h3 className="text-xl font-bold mb-4 text-white">
                 {selectedLocation.name}
               </h3>
@@ -335,7 +345,7 @@ const MapboxMap: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-6 rounded-xl bg-black border border-gray-700">
+            <div className="p-6 rounded-xl bg-black/60 border border-gray-700">
               <h3 className="text-xl font-bold mb-4 text-white">Build Now</h3>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -414,7 +424,7 @@ const MapboxMap: React.FC = () => {
             </p>
           </div>
         )}
-      </div>
+      </div> */}
 
       <style jsx global>{`
         .inverted-map {

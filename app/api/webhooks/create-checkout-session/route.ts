@@ -51,6 +51,7 @@ export async function POST(request: Request) {
         plan_id: planId,
         amount: plan.price,
         status: "pending",
+        type: 'one-time', 
         description: `Payment for ${plan.type} plan - ${plan.hashrate} TH/s`,
       })
       .select()

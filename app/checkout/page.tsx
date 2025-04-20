@@ -2,11 +2,11 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, redirect } from 'next/navigation';
 import { useUser, SignedIn, SignedOut } from '@clerk/nextjs';
-import { createClient } from '@supabase/supabase-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import GlobalLoadingScreen from '@/components/GlobalLoadingScreen';
 
 interface Plan {
   id: string;
@@ -21,17 +21,6 @@ interface Plan {
     name: string;
   };
 }
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  {
-    async accessToken() {
-      const { getToken } = (await import('@clerk/nextjs')).useAuth();
-      return (await getToken()) ?? null;
-    },
-  }
-);
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -52,26 +41,31 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     async function fetchPlan() {
+      console.log('Fetching plan with planId:', planId);
       if (!planId) {
+        console.log('No planId provided in URL');
         setError('Plan ID is missing');
         setLoading(false);
         return;
       }
 
-      const { data, error } = await supabase
-        .from('plans')
-        .select('*, facility_id (name), miner_id (name)')
-        .eq('id', planId)
-        .single();
-
-      if (error || !data) {
+      try {
+        const planResponse = await fetch(`/api/plans/${planId}`);
+        console.log('Plan fetch response status:', planResponse.status);
+        if (!planResponse.ok) {
+          const errorText = await planResponse.text();
+          console.error('Failed to fetch plan, response:', errorText);
+          throw new Error('Failed to fetch plan');
+        }
+        const planData: Plan = await planResponse.json();
+        console.log('Fetched plan data:', planData);
+        setPlan(planData);
+      } catch (err) {
+        console.error('Error fetching plan:', err);
         setError('Plan not found');
+      } finally {
         setLoading(false);
-        return;
       }
-
-      setPlan(data as Plan);
-      setLoading(false);
     }
 
     fetchPlan();
@@ -87,17 +81,22 @@ export default function CheckoutPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/stripe/create-checkout-session', {
+      console.log('Initiating checkout with planId:', planId, 'BTC Address:', btcAddress, 'Auto Renew:', autoRenew);
+      const response = await fetch('/api/webhooks/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ planId, btcAddress, autoRenew }),
       });
 
+      console.log('Checkout session response status:', response.status);
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Failed to create checkout session, response:', errorText);
         throw new Error('Failed to create checkout session');
       }
 
       const { sessionId }: { sessionId: string } = await response.json();
+      console.log('Checkout session created, sessionId:', sessionId);
       const stripe = await stripePromise;
 
       if (!stripe) {
@@ -106,18 +105,19 @@ export default function CheckoutPage() {
 
       const { error: stripeError } = await stripe.redirectToCheckout({ sessionId });
       if (stripeError) {
+        console.error('Stripe redirect error:', stripeError.message);
         throw new Error(stripeError.message);
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-      console.error('Error initiating checkout:', errorMessage);
+      console.error('Error initiating - initiating checkout:', errorMessage);
       setError('Failed to initiate checkout. Please try again.');
       setLoading(false);
     }
   };
 
   if (loading) {
-    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;
+    return <GlobalLoadingScreen />;
   }
 
   if (error) {
@@ -133,14 +133,13 @@ export default function CheckoutPage() {
   const electricityFee = (0.0059 * plan.hashrate).toFixed(2);
 
   return (
-    <div className="bg-black text-white py-12 px-4 overflow-x-hidden font-['Inter']">
+    <div className="bg-black text-white py-12 mt-[100px] px-4 overflow-x-hidden font-['Inter']">
       <motion.section
         className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
       >
-        {/* Left: Order Summary */}
         <motion.div
           className="bg-neutral-800 rounded-xl overflow-hidden shadow-lg"
           whileHover={{ scale: 1.02 }}
@@ -183,7 +182,6 @@ export default function CheckoutPage() {
           </div>
         </motion.div>
 
-        {/* Right: Checkout Form */}
         <motion.div
           className="bg-neutral-800 p-8 rounded-xl shadow-lg"
           initial={{ opacity: 0, x: 20 }}

@@ -2,10 +2,10 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, redirect } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
-import { createClient } from '@supabase/supabase-js';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import GlobalLoadingScreen from '@/components/GlobalLoadingScreen';
 
 interface Order {
   id: string;
@@ -27,24 +27,10 @@ interface Order {
   };
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Supabase URL and anon key must be defined in environment variables');
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey, {
-  async accessToken() {
-    const { getToken } = (await import('@clerk/nextjs')).useAuth();
-    return (await getToken()) ?? null;
-  },
-});
-
 export default function CheckoutSuccessPage() {
-  const { isSignedIn } = useUser(); 
+  const { isSignedIn } = useUser();
   const searchParams = useSearchParams();
-  const [order, setOrder] = useState<Order | null>(null); 
+  const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,33 +42,38 @@ export default function CheckoutSuccessPage() {
 
   useEffect(() => {
     async function fetchOrder() {
+      console.log('Fetching order with sessionId:', sessionId);
       if (!sessionId) {
+        console.log('No sessionId provided in URL');
         setError('Session ID is missing');
         setLoading(false);
         return;
       }
 
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*, plan_id (hashrate, price, type, facility_id (name), miner_id (name))')
-        .eq('stripe_payment_id', sessionId)
-        .single();
-
-      if (error || !data) {
+      try {
+        const orderResponse = await fetch(`/api/orders/${sessionId}`);
+        console.log('Order fetch response status:', orderResponse.status);
+        if (!orderResponse.ok) {
+          const errorText = await orderResponse.text();
+          console.error('Failed to fetch order, response:', errorText);
+          throw new Error('Failed to fetch order');
+        }
+        const orderData: Order = await orderResponse.json();
+        console.log('Fetched order data:', orderData);
+        setOrder(orderData);
+      } catch (err) {
+        console.error('Error fetching order:', err);
         setError('Order not found');
+      } finally {
         setLoading(false);
-        return;
       }
-
-      setOrder(data as Order);
-      setLoading(false);
     }
 
     fetchOrder();
   }, [sessionId]);
 
   if (loading) {
-    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;
+    return <GlobalLoadingScreen />;
   }
 
   if (error) {
@@ -94,7 +85,7 @@ export default function CheckoutSuccessPage() {
   }
 
   return (
-    <div className="bg-black text-white py-12 px-4 font-['Inter']">
+    <div className="bg-black text-white py-12 px-4 font-['Inter'] mt-[100px]">
       <motion.div
         className="max-w-3xl mx-auto text-center"
         initial={{ opacity: 0, y: 20 }}

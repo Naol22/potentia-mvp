@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-03-31.basil',
+  apiVersion: '2025-03-31.basil', 
 });
 
 const supabase = createClient(
@@ -46,6 +46,7 @@ export async function POST(request: Request) {
         console.error('Error updating transaction:', transactionError);
         return NextResponse.json({ error: 'Failed to update transaction' }, { status: 500 });
       }
+
       const { error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
           end_date: new Date(end_date),
           is_active: true,
           next_billing_date: new Date(end_date),
-          auto_renew: false, 
+          auto_renew: false,
         });
 
       if (orderError) {

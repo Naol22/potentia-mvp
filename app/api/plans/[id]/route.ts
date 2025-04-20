@@ -6,21 +6,24 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export async function GET() {
+export async function GET(request: Request, { params }: { params: { id: string } }) {
+  const { id } = params;
+
   try {
     const { data, error } = await supabase
       .from('plans')
       .select('*, facility_id (name), miner_id (name)')
-      .order('created_at', { ascending: false });
+      .eq('id', id)
+      .single();
 
-    if (error) {
-      console.error('Error fetching plans:', error);
-      return NextResponse.json({ error: 'Failed to fetch plans' }, { status: 500 });
+    if (error || !data) {
+      console.error('Error fetching plan:', error);
+      return NextResponse.json({ error: 'Plan not found' }, { status: 404 });
     }
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Unexpected error fetching plans:', error);
+    console.error('Unexpected error fetching plan:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

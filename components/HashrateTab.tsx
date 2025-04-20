@@ -1,57 +1,102 @@
-"use client";
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import Image from "next/image";
+'use client';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import Image from 'next/image';
+import GlobalLoadingScreen from '@/components/GlobalLoadingScreen';
 
-const hashrateOptions = [
-  { value: 100, price: 150, machinesLit: 1 },
-  { value: 300, price: 15, machinesLit: 2 },
-  { value: 500, price: 25, machinesLit: 3 },
-  { value: 1000, price: 50, machinesLit: 5 },
-  { value: 1500, price: 75, machinesLit: 7 },
-  { value: 2000, price: 100, machinesLit: 10 },
-  { value: 2500, price: 125, machinesLit: 12 },
-  { value: 3000, price: 150, machinesLit: 15 },
-] as const;
-
-const minerModels = [{ name: "Antminer S21", value: "antminer-s21" }];
+// Define the Plan interface to match the backend schema
+interface Plan {
+  id: string;
+  type: string;
+  hashrate: number;
+  price: number;
+  duration: string;
+  facility_id: { name: string };
+  miner_id: { name: string };
+}
 
 const HashrateTab = () => {
-  const [selectedHashrate, setSelectedHashrate] = useState<number>(100);
-  const [selectedModel, setSelectedModel] = useState<string>("antminer-s21");
-  const [animatedPrice, setAnimatedPrice] = useState<number>(5);
-  const [animatedOutput, setAnimatedOutput] = useState<number>(0.05);
+  const [plans, setPlans] = useState<Plan[]>([]); // Store fetched plans
+  const [selectedHashrate, setSelectedHashrate] = useState<number>(100); // Default to 100 TH/s
+  const [selectedModel, setSelectedModel] = useState<string>('Antminer S21'); // Default to Antminer S21
+  const [animatedPrice, setAnimatedPrice] = useState<number>(150); // Default price
+  const [animatedOutput, setAnimatedOutput] = useState<number>(0.05); // Default output
+  const [loading, setLoading] = useState(true); // Loading state for fetching plans
 
-  const selectedOption = hashrateOptions.find(
-    (opt) => opt.value === selectedHashrate
-  );
-  const totalPrice = selectedOption ? selectedOption.price : 5;
-  const machinesLit = selectedOption ? selectedOption.machinesLit : 1;
+  // Fetch plans from the backend on component mount
+  useEffect(() => {
+    async function fetchPlans() {
+      console.log('Starting to fetch plans...');
+      try {
+        const response = await fetch('/api/plans');
+        console.log('Fetch response status:', response.status);
+        if (!response.ok) {
+          throw new Error('Failed to fetch plans');
+        }
+        const data: Plan[] = await response.json();
+        console.log('Fetched plans:', data);
+        // Filter for hashrate plans
+        const hashratePlans = data.filter((plan) => plan.type === 'hashrate');
+        setPlans(hashratePlans);
+
+        // Set initial selected hashrate and model based on fetched plans
+        if (hashratePlans.length > 0) {
+          setSelectedHashrate(hashratePlans[0].hashrate);
+          setSelectedModel(hashratePlans[0].miner_id.name);
+          setAnimatedPrice(hashratePlans[0].price);
+          setAnimatedOutput(hashratePlans[0].hashrate * 0.0005);
+        }
+      } catch (error) {
+        console.error('Error fetching plans:', error);
+      } finally {
+        console.log('Fetch completed, setting loading to false');
+        setLoading(false);
+      }
+    }
+
+    fetchPlans();
+  }, []);
+
+  // Calculate machinesLit based on hashrate (same logic as hardcoded data)
+  const calculateMachinesLit = (hashrate: number): number => {
+    const maxHashrate = 3000; // From hardcoded data
+    const maxMachines = 15; // From hardcoded data
+    return Math.min(Math.round((hashrate / maxHashrate) * maxMachines), maxMachines);
+  };
+
+  // Filter plans based on the selected miner model
+  const filteredPlans = plans.filter((plan) => plan.miner_id.name === selectedModel);
+
+  // Get unique miners from plans
+  const uniqueMiners = Array.from(new Set(plans.map((plan) => plan.miner_id.name)));
+
+  // Find the selected plan based on hashrate
+  const selectedPlan = filteredPlans.find((plan) => plan.hashrate === selectedHashrate);
+
+  // Fallback to defaults if no plan is found
+  const totalPrice = selectedPlan ? selectedPlan.price : 150;
+  const machinesLit = selectedPlan ? calculateMachinesLit(selectedPlan.hashrate) : 1;
   const estimatedOutput = selectedHashrate * 0.0005;
 
   // Animate price and output transitions
   useEffect(() => {
     const priceTimeout = setTimeout(() => setAnimatedPrice(totalPrice), 100);
-    const outputTimeout = setTimeout(
-      () => setAnimatedOutput(estimatedOutput),
-      100
-    );
+    const outputTimeout = setTimeout(() => setAnimatedOutput(estimatedOutput), 100);
     return () => {
       clearTimeout(priceTimeout);
       clearTimeout(outputTimeout);
     };
   }, [totalPrice, estimatedOutput]);
 
+  // Prepare the query parameter for the details page (only pass planId)
+  const selectedPlanId = selectedPlan ? selectedPlan.id : '';
   const queryParams = new URLSearchParams({
-    hashrate: selectedHashrate.toString(),
-    model: selectedModel,
-    price: totalPrice.toString(),
-    machines: machinesLit.toString(),
+    planId: selectedPlanId,
   }).toString();
 
-  // Animation variants
+  // Animation variants (unchanged)
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
@@ -70,6 +115,14 @@ const HashrateTab = () => {
       transition: { duration: 0.3, delay: i * 0.1 },
     }),
   };
+
+  if (loading) {
+    return <GlobalLoadingScreen />;
+  }
+
+  if (plans.length === 0) {
+    return <div className="bg-black text-white min-h-screen flex items-center justify-center">No plans available</div>;
+  }
 
   return (
     <div className="bg-black text-white py-12 px-4 overflow-x-hidden font-['Inter']">
@@ -108,9 +161,9 @@ const HashrateTab = () => {
                   className="w-full p-3 bg-black border border-neutral-700 rounded-lg text-white focus:ring-2 focus:ring-white/20"
                   whileHover={{ scale: 1.02 }}
                 >
-                  {hashrateOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.value} TH/s - ${option.price}/month
+                  {filteredPlans.map((plan) => (
+                    <option key={plan.id} value={plan.hashrate}>
+                      {plan.hashrate} TH/s - ${plan.price}/month
                     </option>
                   ))}
                 </motion.select>
@@ -134,9 +187,9 @@ const HashrateTab = () => {
                   className="w-full p-3 bg-black border border-neutral-700 rounded-lg text-white focus:ring-2 focus:ring-white/20"
                   whileHover={{ scale: 1.02 }}
                 >
-                  {minerModels.map((model) => (
-                    <option key={model.value} value={model.value}>
-                      {model.name}
+                  {uniqueMiners.map((minerName) => (
+                    <option key={minerName} value={minerName}>
+                      {minerName}
                     </option>
                   ))}
                 </motion.select>
@@ -288,15 +341,15 @@ const HashrateTab = () => {
                       key={i}
                       variants={gpuVariants}
                       initial="locked"
-                      animate={i < machinesLit ? "unlocked" : "locked"}
+                      animate={i < machinesLit ? 'unlocked' : 'locked'}
                     >
                       <Image
                         src={
                           i < machinesLit
-                            ? "/gpuunlocked.png"
-                            : "/gpulocked.png"
+                            ? '/gpuunlocked.png'
+                            : '/gpulocked.png'
                         }
-                        alt={i < machinesLit ? "Active GPU" : "Inactive GPU"}
+                        alt={i < machinesLit ? 'Active GPU' : 'Inactive GPU'}
                         width={50}
                         height={50}
                         className="object-contain"

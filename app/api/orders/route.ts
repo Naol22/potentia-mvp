@@ -1,71 +1,43 @@
-import { supabase } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { createClient } from '@supabase/supabase-js';
+import { currentUser } from '@clerk/nextjs/server';
 
-export async function POST(request: Request) {
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+export async function GET() {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const user = await currentUser();
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const {
-      plan_id,
-      facility_id,
-      miner_id,
-      btc_address,
-      stripe_payment_id,
-      status = 'pending',
-    } = body;
-
-    if (!plan_id || !btc_address) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
-
-    const { data: fetchedUser, error: userError } = await supabase
+    const { data: supabaseUser, error: userError } = await supabase
       .from('users')
       .select('id')
-      .eq('clerk_user_id', userId)
+      .eq('clerk_user_id', user.id)
       .single();
 
-    let user = fetchedUser;
-
-    if (userError || !user) {
-      const { data: newUser, error: insertError } = await supabase
-        .from('users')
-        .insert({ clerk_user_id: userId })
-        .select('id')
-        .single();
-
-      if (insertError) {
-        return NextResponse.json({ error: insertError.message }, { status: 500 });
-      }
-
-      user = newUser;
+    if (userError || !supabaseUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const { data, error } = await supabase
       .from('orders')
-      .insert({
-        user_id: user.id,
-        plan_id,
-        facility_id: facility_id || null,
-        miner_id: miner_id || null,
-        btc_address,
-        stripe_payment_id: stripe_payment_id || null,
-        status,
-      })
-      .select()
-      .single();
+      .select('*, plan_id (hashrate, price, type, facility_id (name), miner_id (name))')
+      .eq('user_id', supabaseUser.id)
+      .order('created_at', { ascending: false });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('Error fetching orders:', error);
+      return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
     }
 
-    return NextResponse.json(data, { status: 201 });
-  } catch (err) {
-    console.error('Error in POST /api/orders:', err);
-    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('Unexpected error fetching orders:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

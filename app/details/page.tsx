@@ -1,48 +1,92 @@
-"use client";
-import React, { useState, useEffect, ChangeEvent, Suspense } from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import { useSearchParams } from "next/navigation";
-import Link from "next/link";
+'use client';
+import React, { useState, useEffect, ChangeEvent, Suspense } from 'react';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import GlobalLoadingScreen from '@/components/GlobalLoadingScreen';
 
-const currencies = ["BTC"] as const;
-const durations = ["Monthly Recurring"] as const;
-const hashrateOptions = [
-  { value: 100, price: 5, machinesLit: 1 },
-  { value: 300, price: 15, machinesLit: 2 },
-  { value: 500, price: 25, machinesLit: 3 },
-  { value: 1000, price: 50, machinesLit: 5 },
-  { value: 1500, price: 75, machinesLit: 7 },
-  { value: 2000, price: 100, machinesLit: 10 },
-  { value: 2500, price: 125, machinesLit: 12 },
-  { value: 3000, price: 150, machinesLit: 15 },
-] as const;
+interface Plan {
+  id: string;
+  type: string;
+  hashrate: number;
+  price: number;
+  duration: string;
+  facility_id: { name: string };
+  miner_id: { name: string };
+}
 
-// Component that uses useSearchParams
+const currencies = ['BTC'] as const;
+const durations = ['Monthly Recurring'] as const;
+
 function DetailsContent() {
   const searchParams = useSearchParams();
+  const planId = searchParams.get('planId');
 
-  // Safely parse query parameters with type checking
-  const parseNumberParam = (param: string | null, defaultValue: number): number => {
-    const value = param ? parseFloat(param) : NaN;
-    return isNaN(value) ? defaultValue : value;
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null); 
+  const [allPlans, setAllPlans] = useState<Plan[]>([]); 
+  const [selectedHashrate, setSelectedHashrate] = useState<number>(100); 
+  const [animatedPrice, setAnimatedPrice] = useState<number>(5); 
+  const [animatedOutput, setAnimatedOutput] = useState<number>(0); 
+  const [animatedTotalSold, setAnimatedTotalSold] = useState<number>(0); 
+  const [loading, setLoading] = useState(true); 
+  const [error, setError] = useState<string | null>(null); 
+
+  useEffect(() => {
+    async function fetchData() {
+      if (!planId) {
+        setError('Plan ID is missing');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const planResponse = await fetch(`/api/plans/${planId}`);
+        if (!planResponse.ok) {
+          throw new Error('Failed to fetch plan');
+        }
+        const planData: Plan = await planResponse.json();
+        setSelectedPlan(planData);
+
+        const allPlansResponse = await fetch('/api/plans');
+        if (!allPlansResponse.ok) {
+          throw new Error('Failed to fetch all plans');
+        }
+        const allPlansData: Plan[] = await allPlansResponse.json();
+        setAllPlans(allPlansData);
+
+        setSelectedHashrate(planData.hashrate);
+        setAnimatedPrice(planData.price);
+        setAnimatedOutput(planData.hashrate * 0.0005);
+      } catch (err) {
+        setError('Failed to load plan details');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [planId]);
+
+  const filteredPlans = allPlans.filter(
+    (plan) =>
+      plan.type === 'hashrate' &&
+      selectedPlan &&
+      plan.miner_id.name === selectedPlan.miner_id.name
+  );
+
+  const currentPlan = filteredPlans.find((plan) => plan.hashrate === selectedHashrate) || selectedPlan;
+
+  const calculateMachinesLit = (hashrate: number): number => {
+    const maxHashrate = 3000; 
+    const maxMachines = 15; 
+    return Math.min(Math.round((hashrate / maxHashrate) * maxMachines), maxMachines);
   };
 
-  const initialHashrate = parseNumberParam(searchParams.get("hashrate"), 100);
-  const initialPrice = parseNumberParam(searchParams.get("price"), 5);
-  const model = searchParams.get("model") || "antminer-s21";
-
-  // State for dynamic hashrate selection
-  const [selectedHashrate, setSelectedHashrate] = useState<number>(initialHashrate);
-  const [animatedPrice, setAnimatedPrice] = useState<number>(initialPrice);
-  const [animatedOutput, setAnimatedOutput] = useState<number>(0);
-  const [animatedTotalSold, setAnimatedTotalSold] = useState<number>(0);
-
-  // Update summary based on selected hashrate
-  const selectedOption = hashrateOptions.find((opt) => opt.value === selectedHashrate) || hashrateOptions[0];
-  const totalPrice: number = selectedOption.price;
-  const machinesLit: number = selectedOption.machinesLit;
+  const totalPrice: number = currentPlan ? currentPlan.price : 5;
+  const machinesLit: number = currentPlan ? calculateMachinesLit(currentPlan.hashrate) : 1;
   const estimatedOutput: number = selectedHashrate * 0.0005;
   const hashRateFee: string = (0.00317 * selectedHashrate).toFixed(2);
   const electricityFee: string = (0.0059 * selectedHashrate).toFixed(2);
@@ -60,15 +104,10 @@ function DetailsContent() {
     };
   }, [totalPrice, estimatedOutput, totalSold]);
 
-  // Update query parameters for checkout
   const queryParams = new URLSearchParams({
-    hashrate: selectedHashrate.toString(),
-    model: model,
-    price: totalPrice.toString(),
-    machines: machinesLit.toString(),
+    planId: currentPlan ? currentPlan.id : '',
   }).toString();
 
-  // Animation variants
   const statVariants = {
     hidden: { opacity: 0, y: 10 },
     visible: (i: number) => ({
@@ -78,10 +117,17 @@ function DetailsContent() {
     }),
   };
 
-  // Handle hashrate selection change
   const handleHashrateChange = (e: ChangeEvent<HTMLSelectElement>) => {
     setSelectedHashrate(Number(e.target.value));
   };
+
+  if (loading) {
+    return <GlobalLoadingScreen />;
+  }
+
+  if (error || !selectedPlan) {
+    return <div className="bg-black text-white min-h-screen flex items-center justify-center">{error || 'Plan not found'}</div>;
+  }
 
   return (
     <div className="bg-black text-white py-12 mt-[100px] px-4 overflow-x-hidden font-['Inter']">
@@ -172,9 +218,9 @@ function DetailsContent() {
                 className="w-full p-3 bg-black border border-neutral-700 rounded-lg text-white focus:ring-2 focus:ring-white/20"
                 whileHover={{ scale: 1.02 }}
               >
-                {hashrateOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.value} TH/s
+                {filteredPlans.map((plan) => (
+                  <option key={plan.id} value={plan.hashrate}>
+                    {plan.hashrate} TH/s
                   </option>
                 ))}
               </motion.select>
@@ -379,10 +425,9 @@ function DetailsContent() {
   );
 }
 
-// Main page component
 export default function DetailsPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<GlobalLoadingScreen />}>
       <DetailsContent />
     </Suspense>
   );

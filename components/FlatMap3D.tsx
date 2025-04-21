@@ -625,6 +625,28 @@ const MapboxMap: React.FC = () => {
         </MapContainer>
       </div>
 
+      {/* Add Tour Modal */}
+      {showTourModal && currentTourId && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90">
+          <div className="absolute top-4 right-4 z-[10000]">
+            <button 
+              onClick={closeTourModal}
+              className="bg-white text-black rounded-full p-2 hover:bg-gray-200 transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="w-screen h-screen relative">
+            <iframe
+              src={`/api/tours/${currentTourId}`}
+              title="Virtual Tour"
+              className="w-full h-full border-0"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
+
       <style jsx global>{`
         .inverted-map {
           filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.1)

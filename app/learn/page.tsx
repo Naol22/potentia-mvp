@@ -152,7 +152,7 @@ const Learn = () => {
 
   return (
     <section className='relative bg-zinc-900/20 backdrop-blur-xl pt-40 pb-24 lg:pt-48 lg:pb-32 text-white overflow-hidden'>
-      <div className='absolute inset-0 bg-gradient-to-b from-zinc-900/60 via-zinc-900/40 to-zinc-800/80 pointer-events-none' />
+      <div className='absolute inset-0 pointer-events-none' />
       <div
         className='absolute inset-0'
         style={{ background: 'url(\'/noise.png\') repeat' }}
@@ -193,7 +193,7 @@ const Learn = () => {
         ))}
       </div>
 
-      <section className='py-20 px-6 bg-zinc-900/20'>
+      <section className='py-20 px-6 bg-black'>
         <div className='max-w-6xl mx-auto text-center'>
           <h2 className='text-3xl md:text-4xl font-bold mb-12 text-white'>
             Advanced Bitcoin Education
@@ -207,7 +207,7 @@ const Learn = () => {
                 <h3 className='text-lg font-semibold text-white mb-2'>{topic.title}</h3>
                 <p className='text-zinc-300 text-sm leading-relaxed'>{topic.description}</p>
                 <a href={topic.link} target='_blank' rel='noopener noreferrer'>
-                  <Button variant='outline' className='mt-4 text-black' size='sm'>
+                  <Button variant='outline' className='mt-4 text-white' size='sm'>
                     Explore
                   </Button>
                 </a>

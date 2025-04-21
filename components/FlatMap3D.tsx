@@ -594,18 +594,18 @@ const MapboxMap: React.FC = () => {
                               <span className="font-medium">Eco-Friendly:</span> {facility.generalInfo.ecoFriendly ? 'Yes' : 'No'}
                             </li>
                           </ul>
-                          <div className="flex justify-end">
+                          <div className="flex justify-end ">
                             <button
                               type="button"
                               onClick={(e) => {
                                 e.preventDefault();
                                 openVirtualTour(facility.name);
                               }}
-                              className="mt-auto relative flex justify-center items-center bg-black text-white rounded-full py-2 px-4 min-w-[120px] group"
+                              className="mt-auto relative flex justify-center items-center bg-white text-black rounded-full py-2 px-4 min-w-[120px] group"
                               style={{ pointerEvents: 'auto' }}
                             >
-                              <span className="transition-opacity duration-300 opacity-100 group-hover:opacity-0 bg-white">
-                                Virtual Tour
+                              <span className="transition-opacity duration-300 opacity-100 group-hover:opacity-0">
+                                <strong>Virtual Tour</strong>
                               </span>
                               <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100 rounded-full bg-white">
                                 <Globe className="w-5 h-5 text-black" />

@@ -363,46 +363,7 @@ const HostingTab = () => {
                       <Wrench className="w-4 h-4 mr-2" />
                       Setup Fee: {facility.hostingInfo.setupFee}
                     </p>
-                    <h2 className="text-lg font-bold mb-2 flex items-center">
-                      {/* <Power className="w-5 h-5 mr-2" /> */}
-                      <strong>General Information</strong>
-                    </h2>
-                    <p className="flex items-center">
-                      <Power className="w-4 h-4 mr-2" />
-                      Source: {facility.generalInfo.source}
-                    </p>
-                    <p className="flex items-center">
-                      <Cpu className="w-4 h-4 mr-2" />
-                      Miner Type: {facility.generalInfo.minerType}
-                    </p>
-                    <p className="flex items-center">
-                      <Gauge className="w-4 h-4 mr-2" />
-                      Capacity: {facility.generalInfo.capacity}
-                    </p>
-                    <p className="flex items-center">
-                      <Lightbulb className="w-4 h-4 mr-2" />
-                      Innovation: {facility.generalInfo.innovation}
-                    </p>
-                    <p className="flex items-center">
-                      <Camera className="w-4 h-4 mr-2" />
-                      Surveillance: {facility.generalInfo.surveillance}
-                    </p>
-                    <Link
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        openVirtualTour(facility.name);
-                      }}
-                      className="mt-auto relative flex justify-center items-center bg-black text-white rounded-full py-2 px-4 min-w-[120px] group"
-                      style={{ pointerEvents: 'auto' }} // Enable pointer events for the link
-                    >
-                      <span className="transition-opacity duration-300 opacity-100 group-hover:opacity-0">
-                        Virtual Tour
-                      </span>
-                      <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100 rounded-full bg-white">
-                        <IconAugmentedReality className="w-5 h-5 text-black" />
-                      </span>
-                    </Link>
+                    
                   </motion.div>
                 </motion.div>
               ))}
@@ -416,7 +377,7 @@ const HostingTab = () => {
           </motion.div>
 
           <motion.div
-            className="mt-12 bg-gradient-to-b from-zinc-700/60 via-zinc-900/40 to-black p-6 rounded-lg shadow-md border border-neutral-600"
+            className="mt-12 bg-gradient-to-b from-zinc-700/60 via-zinc-900/40 to-black p-6 rounded-lg shadow-md "
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
           >

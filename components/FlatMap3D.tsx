@@ -643,6 +643,15 @@ const MapboxMap: React.FC = () => {
               className="w-full h-full border-0"
               allowFullScreen
             />
+            
+            {/* Overlay image positioned in the right bottom corner */}
+            <div className="absolute -bottom-8 right-8 z-[1000] w-48 h-48">
+              <img 
+                src="/Artboardw.png" 
+                alt="Potentia Mining Facility" 
+                className="object-contain w-full h-full"
+              />
+            </div>
           </div>
         </div>
       )}

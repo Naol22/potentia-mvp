@@ -5,8 +5,9 @@ import { Menu, X, User } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useNavbar } from "@/context/NavBarContext";
 import { usePathname } from "next/navigation";
-import { useUser, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { useUser, SignInButton, SignUpButton } from "@clerk/nextjs";
 import Image from "next/image";
+import { UserMenu } from "@/components/user-menu";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -188,7 +189,7 @@ const Header = () => {
       {/* Absolutely Positioned Profile Icon - Desktop Only */}
       <div className="hidden xl:block absolute right-6 top-4">
         {isSignedIn ? (
-          <UserButton />
+          <UserMenu />
         ) : (
           <div
             className="relative"
@@ -300,7 +301,7 @@ const Header = () => {
           <div className="relative w-full">
             {isSignedIn ? (
               <div className="flex items-center px-6 py-3">
-                <UserButton />
+                <UserMenu />
                 <span className={`${mobileLinkClassName} ml-2`}>Profile</span>
               </div>
             ) : (

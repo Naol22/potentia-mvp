@@ -6,7 +6,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import countriesGeoJSON from "../public/custom.geo.json";
 import emailjs from "@emailjs/browser";
-import { ChevronLeft, ChevronRight, Globe, DollarSign, Box, Wrench, Power, Cpu, Gauge, Lightbulb, Camera, Video } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Globe, DollarSign, Box, Wrench, Power, Cpu, Gauge, Lightbulb, Camera, Video, Minus, Plus } from 'lucide-react';
 import { motion } from 'framer-motion'; // <-- Add this import
 import Link from "next/link";
 
@@ -336,9 +336,17 @@ const MapboxMap: React.FC = () => {
       }}
     >
       {/* Left Side: Summary */}
-      <div
+      <motion.div
         className="md:w-1/4 p-6 md:border-r border-b md:border-b-0 border-gray-800 overflow-y-auto bg-transparent order-2 md:order-1 hidden lg:block"
         style={{ scrollbarWidth: "none" }}
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          type: "spring",
+          stiffness: 80,
+          damping: 18,
+          duration: 1.5 // <-- changed from 0.7 to 1.5
+        }}
       >
         <h2 className="text-2xl font-bold mb-6 text-white">
           Mining Facilities
@@ -466,121 +474,187 @@ const MapboxMap: React.FC = () => {
             </div>
           </div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Center: Map */}
-      <div className="h-[85vh] md:h-[85vh] md:flex-1 relative order-1 md:order-2">
-        <div className="absolute inset-0 m-4 rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-transparent">
-          <MapContainer
-            center={[30, 0]}
-            zoom={2}
-            style={{ height: "100%", width: "100%", backgroundColor: "transparent" }}
-            minZoom={2}
-            maxBounds={[
-              [-90, -180],
-              [90, 180],
-            ]}
-            zoomControl={false}
-            attributionControl={false}
+      <div className="relative flex-1 h-[85vh] order-1 md:order-2 w-full">
+        {/* Zoom Controls */}
+        <div className="absolute bottom-6 left-6 z-[1000] flex flex-row gap-3">
+          <button
+            className="bg-black/40 hover:bg-black/60 text-white rounded-full p-3 shadow-lg transition-all"
+            style={{ backdropFilter: "blur(4px)" }}
+            onClick={() => map?.zoomOut()}
+            aria-label="Zoom Out"
           >
-            <MapController setMap={setMap} />
-            <TileLayer
-              url="https://stamen-tiles.a.ssl.fastly.net/toner-background/{z}/{x}/{y}.png"
-              className="invert"
-            />
-            <GeoJSON
-              data={countriesGeoJSON as GeoJSON.GeoJsonObject}
-              onEachFeature={() => {}}
-              style={{
-                fillColor: "#fff",
-                fillOpacity: 1,
-                color: "#fff",
-                weight: 1,
-              }}
-            />
-            {miningLocations.map((location) => (
-              <Marker
-                key={location.name}
-                position={[location.coordinates[1], location.coordinates[0]]}
-                icon={customIcon}
-                ref={(ref) => {
-                  if (ref) markerRefs.current[location.name] = ref;
-                }}
-                eventHandlers={{
-                  click: () => setSelectedLocation(location),
-                }}
-              >
-                <Popup className="custom-popup">
-                  <div className="p-4 bg-black/95 backdrop-blur-md rounded-lg shadow-xl min-w-[300px]">
-                    <h3 className="text-lg font-bold text-white mb-2">{location.name}</h3>
-                    <p className="text-gray-300 mb-4">🌍 {location.country}</p>
-                    {(() => {
-                      const facility = facilities.find(f => f.name === location.name);
-                      if (facility) {
-                        return (
-                          <div>
-                            <h4 className="text-white font-bold mb-2">General Information</h4>
-                            <ul className="list-none space-y-1 text-gray-300">
-                              <li>
-                                <Power className="w-4 h-4 mr-2 inline" />
-                                <span className="font-medium">Source:</span> {facility.generalInfo.source}
-                              </li>
-                              <li>
-                                <Cpu className="w-4 h-4 mr-2 inline" />
-                                <span className="font-medium">Miner Type:</span> {facility.generalInfo.minerType}
-                              </li>
-                              <li>
-                                <Gauge className="w-4 h-4 mr-2 inline" />
-                                <span className="font-medium">Capacity:</span> {facility.generalInfo.capacity}
-                              </li>
-                              <li>
-                                <Lightbulb className="w-4 h-4 mr-2 inline" />
-                                <span className="font-medium">Innovation:</span> {facility.generalInfo.innovation}
-                              </li>
-                              <li>
-                                <Camera className="w-4 h-4 mr-2 inline" />
-                                <span className="font-medium">Surveillance:</span> {facility.generalInfo.surveillance}
-                              </li>
-                              <li>
-                                <ChevronRight className="w-4 h-4 mr-2 inline" />
-                                <span className="font-medium">Uptime:</span> {facility.generalInfo.uptime}
-                              </li>
-                              <li>
-                                <Box className="w-4 h-4 mr-2 inline" />
-                                <span className="font-medium">Eco-Friendly:</span> {facility.generalInfo.ecoFriendly ? 'Yes' : 'No'}
-                              </li>
-                            </ul>
-                            <div className="flex justify-end">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  openVirtualTour(facility.name);
-                                }}
-                                className="mt-auto relative flex justify-center items-center bg-black text-white rounded-full py-2 px-4 min-w-[120px] group"
-                                style={{ pointerEvents: 'auto' }}
-                              >
-                                <span className="transition-opacity duration-300 opacity-100 group-hover:opacity-0">
-                                  Virtual Tour
-                                </span>
-                                <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100 rounded-full bg-white">
-                                  <Globe className="w-5 h-5 text-black" />
-                                </span>
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      } else {
-                        return <p className="text-gray-300">No general info available.</p>;
-                      }
-                    })()}
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
+            <Minus className="w-5 h-5" />
+          </button>
+          <button
+            className="bg-black/40 hover:bg-black/60 text-white rounded-full p-3 shadow-lg transition-all"
+            style={{ backdropFilter: "blur(4px)" }}
+            onClick={() => map?.zoomIn()}
+            aria-label="Zoom In"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
         </div>
+        {/* Transparent gradient overlay */}
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            background: "linear-gradient(90deg, rgba(0,0,0,0.0) 0%, rgba(255,255,255,0.0) 100%)",
+            width: "100vw",
+            height: "100%",
+            pointerEvents: "none",
+          }}
+        />
+        <MapContainer
+          center={[30, 0]}
+          zoom={2}
+          style={{
+            height: "100%",
+            width: "100vw",
+            backgroundColor: "transparent",
+            position: "relative",
+            zIndex: 1,
+          }}
+          minZoom={2}
+          maxBounds={[
+            [-90, -180],
+            [90, 180],
+          ]}
+          zoomControl={false}
+          attributionControl={false}
+          doubleClickZoom={false}
+          scrollWheelZoom={false} // <-- Ensure this is set to false
+        >
+          <MapController setMap={setMap} />
+          <TileLayer
+            url="https://stamen-tiles.a.ssl.fastly.net/toner-background/{z}/{x}/{y}.png"
+            className="invert"
+          />
+          <GeoJSON
+            data={countriesGeoJSON as GeoJSON.GeoJsonObject}
+            onEachFeature={() => {}}
+            style={{
+              fillColor: "#fff",
+              fillOpacity: 1,
+              color: "#fff",
+              weight: 1,
+            }}
+          />
+          {miningLocations.map((location) => (
+            <Marker
+              key={location.name}
+              position={[location.coordinates[1], location.coordinates[0]]}
+              icon={customIcon}
+              ref={(ref) => {
+                if (ref) markerRefs.current[location.name] = ref;
+              }}
+              eventHandlers={{
+                click: () => setSelectedLocation(location),
+              }}
+            >
+              <Popup className="custom-popup">
+                <div className="p-4 bg-black/95 backdrop-blur-md rounded-lg shadow-xl min-w-[300px]">
+                  <h3 className="text-lg font-bold text-white mb-2">{location.name}</h3>
+                  <p className="text-gray-300 mb-4">🌍 {location.country}</p>
+                  {(() => {
+                    const facility = facilities.find(f => f.name === location.name);
+                    if (facility) {
+                      return (
+                        <div>
+                          <h4 className="text-white font-bold mb-2">General Information</h4>
+                          <ul className="list-none space-y-1 text-gray-300">
+                            <li>
+                              <Power className="w-4 h-4 mr-2 inline" />
+                              <span className="font-medium">Source:</span> {facility.generalInfo.source}
+                            </li>
+                            <li>
+                              <Cpu className="w-4 h-4 mr-2 inline" />
+                              <span className="font-medium">Miner Type:</span> {facility.generalInfo.minerType}
+                            </li>
+                            <li>
+                              <Gauge className="w-4 h-4 mr-2 inline" />
+                              <span className="font-medium">Capacity:</span> {facility.generalInfo.capacity}
+                            </li>
+                            <li>
+                              <Lightbulb className="w-4 h-4 mr-2 inline" />
+                              <span className="font-medium">Innovation:</span> {facility.generalInfo.innovation}
+                            </li>
+                            <li>
+                              <Camera className="w-4 h-4 mr-2 inline" />
+                              <span className="font-medium">Surveillance:</span> {facility.generalInfo.surveillance}
+                            </li>
+                            <li>
+                              <ChevronRight className="w-4 h-4 mr-2 inline" />
+                              <span className="font-medium">Uptime:</span> {facility.generalInfo.uptime}
+                            </li>
+                            <li>
+                              <Box className="w-4 h-4 mr-2 inline" />
+                              <span className="font-medium">Eco-Friendly:</span> {facility.generalInfo.ecoFriendly ? 'Yes' : 'No'}
+                            </li>
+                          </ul>
+                          <div className="flex justify-end ">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                openVirtualTour(facility.name);
+                              }}
+                              className="mt-auto relative flex justify-center items-center bg-white text-black rounded-full py-2 px-4 min-w-[120px] group"
+                              style={{ pointerEvents: 'auto' }}
+                            >
+                              <span className="transition-opacity duration-300 opacity-100 group-hover:opacity-0">
+                                <strong>Virtual Tour</strong>
+                              </span>
+                              <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100 rounded-full bg-white">
+                                <Globe className="w-5 h-5 text-black" />
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    } else {
+                      return <p className="text-gray-300">No general info available.</p>;
+                    }
+                  })()}
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+        </MapContainer>
       </div>
+
+      {/* Add Tour Modal */}
+      {showTourModal && currentTourId && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90">
+          <div className="absolute top-4 right-4 z-[10000]">
+            <button 
+              onClick={closeTourModal}
+              className="bg-white text-black rounded-full p-2 hover:bg-gray-200 transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="w-screen h-screen relative">
+            <iframe
+              src={`/api/tours/${currentTourId}`}
+              title="Virtual Tour"
+              className="w-full h-full border-0"
+              allowFullScreen
+            />
+            
+            {/* Overlay image positioned in the right bottom corner */}
+            <div className="absolute -bottom-8 right-8 z-[1000] w-48 h-48">
+              <img 
+                src="/Artboardw.png" 
+                alt="Potentia Mining Facility" 
+                className="object-contain w-full h-full"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx global>{`
         .inverted-map {

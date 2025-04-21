@@ -24,8 +24,11 @@ const Header = () => {
   // Track scroll progress
   const { scrollYProgress } = useScroll();
 
-  // Map scroll progress to logo scale and y-position
-  const logoScale = useTransform(scrollYProgress, [0, 1], [2.5, 1.3]);
+  // Detect mobile screen size (< 1280px, xl breakpoint)
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 1280;
+
+  // Map scroll progress to logo scale (smaller max scale for mobile)
+  const logoScale = useTransform(scrollYProgress, [0, 1], isMobile ? [2.0, 1.3] : [2.5, 1.3]);
   const logoY = useTransform(scrollYProgress, [0, 1], [10, 0]);
 
   useEffect(() => {
@@ -39,8 +42,8 @@ const Header = () => {
   const headerClassName = `${
     sticky ? "fixed top-0 w-full z-30" : "relative"
   } transition-all duration-300 ${
-    scrolled ? "bg-white shadow-md md:py-0 py-2" : "bg-transparent"
-  }`;
+    scrolled ? "bg-white shadow-md md:py-0 py-2" : "bg-transparent md:py-0 py-1"
+  } xl:pt-0 pt-3`;
 
   const linkClassName = `block px-6 py-2 transition-colors duration-300 ${
     scrolled ? "text-black" : "text-white"
@@ -78,10 +81,10 @@ const Header = () => {
 
   return (
     <motion.header className={headerClassName}>
-      {/* Main container with top padding for mobile */}
+      {/* Main container with reduced top padding for mobile */}
       <div
         className={`max-w-7xl mx-auto px-6 ${
-          scrolled ? "md:py-4 py-6 pt-8 md:pt-4" : "py-4 pt-8 md:pt-4"
+          scrolled ? "md:py-4 py-4 pt-5 md:pt-4" : "py-4 pt-5 md:pt-4"
         } flex justify-between items-center relative`}
       >
         {/* Left Navigation Links - Desktop Only */}

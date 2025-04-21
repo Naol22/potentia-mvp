@@ -377,7 +377,8 @@ const HostingTab = () => {
           </motion.div> */}
 
           <motion.div
-            className="mt-12 bg-gradient-to-b from-zinc-700/60 via-zinc-900/40 to-black p-6 rounded-lg shadow-md "
+            className="mt-2 bg-transparent"
+            style={{ width: "120vw", maxWidth: "1500px", marginLeft: "-8vw", marginRight: "-12vm" }}
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
           >

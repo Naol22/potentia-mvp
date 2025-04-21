@@ -288,7 +288,7 @@ const HostingTab = () => {
         transition={{ duration: 1 }}
       >
         <div className="max-w-6xl mx-auto">
-          <motion.div className="relative mb-12">
+          {/* <motion.div className="relative mb-12">
             <h2 className="text-2xl font-bold mb-4 text-center text-white">
               Choose Your Mining Facility
             </h2>
@@ -316,7 +316,7 @@ const HostingTab = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  {/* Main content */}
+                 
                   <div
                     onClick={() => setSelectedFacility(facility.name)}
                     className={`w-full h-full flex flex-col text-left rounded-lg shadow-sm transition-all bg-neutral-800 text-white hover:bg-neutral-800 snap-center p-4 cursor-pointer ${
@@ -342,13 +342,13 @@ const HostingTab = () => {
                     
                   </div>
                 
-                  {/* Modified hover content */}
+                  
                   <motion.div
                     className="absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100 text-white text-sm z-20 space-y-2 bg-black bg-opacity-90 p-4 rounded-lg"
                     style={{ pointerEvents: 'none' }} // Prevent blocking hover
                   >
                     <h2 className="text-lg font-bold mb-2 flex items-center">
-                      {/* <DollarSign className="w-5 h-5 mr-2" /> */}
+                      
                       <strong>Hosting Information</strong>
                     </h2>
                     <p className="flex items-center">
@@ -374,7 +374,7 @@ const HostingTab = () => {
             >
               <ChevronRight size={24} />
             </button>
-          </motion.div>
+          </motion.div> */}
 
           <motion.div
             className="mt-12 bg-gradient-to-b from-zinc-700/60 via-zinc-900/40 to-black p-6 rounded-lg shadow-md "

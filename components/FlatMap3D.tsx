@@ -7,6 +7,8 @@ import L from "leaflet";
 import countriesGeoJSON from "../public/custom.geo.json";
 import emailjs from "@emailjs/browser";
 import { ChevronLeft, ChevronRight, Globe, DollarSign, Box, Wrench, Power, Cpu, Gauge, Lightbulb, Camera, Video } from 'lucide-react';
+import { motion } from 'framer-motion'; // <-- Add this import
+import Link from "next/link";
 
 interface MiningLocation {
   name: string;
@@ -81,7 +83,7 @@ const MapboxMap: React.FC = () => {
     {
       name: "Dubai",
       coordinates: [55.2708, 25.2048],
-      country: "UAE",
+      country: "Dubai",
       region: "Dubai",
       hashRate: "3.01",
       facilitySize: "25",
@@ -91,7 +93,7 @@ const MapboxMap: React.FC = () => {
     {
       name: "Texas, Fort Worth",
       coordinates: [-97.3308, 32.7555],
-      country: "USA",
+      country: "Texas, Fort Worth",
       region: "Texas",
       hashRate: "22.78",
       facilitySize: "50",
@@ -101,7 +103,7 @@ const MapboxMap: React.FC = () => {
     {
       name: "Paraguay, Villarica",
       coordinates: [-56.2231, -25.7495],
-      country: "Paraguay",
+      country: "Paraguay, Villarica",
       region: "Villarica",
       hashRate: "165.68",
       facilitySize: "75",
@@ -111,7 +113,7 @@ const MapboxMap: React.FC = () => {
     {
       name: "Georgia, Tbilisi",
       coordinates: [44.7930, 41.7151],
-      country: "Georgia",
+      country: "Georgia, Tbilisi",
       region: "Tbilisi",
       hashRate: "157",
       facilitySize: "75",
@@ -121,7 +123,7 @@ const MapboxMap: React.FC = () => {
     {
       name: "Finland, Heat Recovery",
       coordinates: [24.9384, 60.1699],
-      country: "Finland",
+      country: "Finland, Heat Recovery",
       region: "Finland",
       hashRate: "157",
       facilitySize: "75",
@@ -143,6 +145,11 @@ const MapboxMap: React.FC = () => {
         uptime: '99.9%',
         ecoFriendly: true,
       },
+      hostingInfo: {
+        price: '4.0ct / kWh',
+        minOrder: '1 piece',
+        setupFee: '$150',
+      },
     },
     {
       name: 'Dubai',
@@ -154,6 +161,11 @@ const MapboxMap: React.FC = () => {
         surveillance: '24/7',
         uptime: '99.8%',
         ecoFriendly: true,
+      },
+      hostingInfo: {
+        price: '8.0ct / kWh',
+        minOrder: '2 pieces',
+        setupFee: '$50',
       },
     },
     {
@@ -167,6 +179,11 @@ const MapboxMap: React.FC = () => {
         uptime: '99.7%',
         ecoFriendly: true,
       },
+      hostingInfo: {
+        price: '7.8ct / kWh',
+        minOrder: '1 piece',
+        setupFee: '$1050',
+      },
     },
     {
       name: 'Paraguay, Villarica',
@@ -178,6 +195,11 @@ const MapboxMap: React.FC = () => {
         surveillance: '24/7',
         uptime: '99.9%',
         ecoFriendly: true,
+      },
+      hostingInfo: {
+        price: '7.8ct / kWh',
+        minOrder: '1 piece',
+        setupFee: '$50',
       },
     },
     {
@@ -191,6 +213,11 @@ const MapboxMap: React.FC = () => {
         uptime: '99.6%',
         ecoFriendly: true,
       },
+      hostingInfo: {
+        price: '10.5ct / kWh',
+        minOrder: '1 piece',
+        setupFee: '-',
+      },
     },
     {
       name: 'Finland, Heat Recovery',
@@ -202,6 +229,11 @@ const MapboxMap: React.FC = () => {
         surveillance: '24/7',
         uptime: '99.8%',
         ecoFriendly: true,
+      },
+      hostingInfo: {
+        price: '8.0ct / kWh',
+        minOrder: '1 piece',
+        setupFee: '-',
       },
     },
   ];
@@ -292,7 +324,17 @@ const MapboxMap: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-[82vh] bg-transparent text-white">
+    <motion.div
+      className="flex flex-col md:flex-row h-[82vh] bg-transparent text-white"
+      initial={{ opacity: 0, scale: 0.96, y: 40 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{
+        type: "spring",
+        stiffness: 80,
+        damping: 18,
+        duration: 0.7
+      }}
+    >
       {/* Left Side: Summary */}
       <div
         className="md:w-1/4 p-6 md:border-r border-b md:border-b-0 border-gray-800 overflow-y-auto bg-transparent order-2 md:order-1 hidden lg:block"
@@ -320,7 +362,7 @@ const MapboxMap: React.FC = () => {
         ).map(([country, data]) => (
           <div
             key={country}
-            className="mb-4 p-4 rounded-xl backdrop-blur-md bg-black hover:bg-gray-800 transition-all duration-300 border border-gray-700 cursor-pointer"
+            className="mb-4 p-4 rounded-xl backdrop-blur-md bg-black hover:bg-gray-800 transition-all duration-300 border border-gray-700 cursor-pointer relative"
             onClick={() => {
               const locationNames = countryToLocations[country];
               if (locationNames && locationNames.length > 0) {
@@ -344,36 +386,83 @@ const MapboxMap: React.FC = () => {
           >
             <h3 className="font-bold text-xl mb-2 text-white">{country}</h3>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400">Hash Rate</span>
-                <span className="font-mono text-gray-300">
-                  {data.hashRate} EH/s
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400">Network %</span>
-                <span className="font-mono text-gray-300">
-                  {data.networkPercentage}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400">Facility Size</span>
-                <span className="font-mono text-gray-300">
-                  {data.facilitySize} MW
-                </span>
-              </div>
+              {(() => {
+                const facility = facilities.find(f => f.name === country);
+                if (facility && facility.hostingInfo) {
+                  return (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400">Price</span>
+                        <span className="font-mono text-gray-300">
+                          {facility.hostingInfo.price}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400">Min Order</span>
+                        <span className="font-mono text-gray-300">
+                          {facility.hostingInfo.minOrder}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400">Setup Fee</span>
+                        <span className="font-mono text-gray-300">
+                          {facility.hostingInfo.setupFee}
+                        </span>
+                      </div>
+                    </>
+                  );
+                } else {
+                  return (
+                    <div className="text-gray-400">No hosting info available.</div>
+                  );
+                }
+              })()}
             </div>
             <div className="flex justify-end mt-4">
-              <button
-                className="buy-host-button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  console.log(`Buy Host for ${country}`);
-                  // TODO: Implement buy host logic here
-                }}
-              >
-                Buy Host
-              </button>
+              {country === "Ethiopia" ? (
+                <Link
+                  href={{
+                    pathname: "/details",
+                    query: { country: country }
+                  }}
+                  passHref
+                >
+                  <button
+                    className="buy-host-button cursor-pointer"
+                  >
+                    Buy Host
+                  </button>
+                </Link>
+              ) : (
+                <button
+                  className="buy-host-button cursor-not-allowed opacity-60 pointer-events-none"
+                  disabled
+                >
+                  Buy Host
+                </button>
+              )}
+            </div>
+            {/* Status flag at bottom left */}
+            <div
+              className={`absolute left-4 bottom-4 flex items-center px-3 py-1 rounded-full text-xs font-semibold shadow-md
+                ${country === "Ethiopia"
+                  ? "bg-green-600 text-white"
+                  : "bg-red-600 text-white"}
+              `}
+              style={{
+                minWidth: 30,
+                justifyContent: "center",
+                letterSpacing: "0.05em",
+                boxShadow: "0 2px 8px 0 rgba(0,0,0,0.15)",
+                border: "none",
+              }}
+            >
+              <span
+                className={`inline-block w-1/5 h-2 rounded-full mr-2
+                  ${country === "Ethiopia" ? "bg-green-300" : "bg-red-300"}
+                `}
+              ></span>
+              {country === "Ethiopia" ? "Active" : "Inactive"}
             </div>
           </div>
         ))}
@@ -610,7 +699,7 @@ const MapboxMap: React.FC = () => {
           }
         }
       `}</style>
-    </div>
+    </motion.div>
   );
 };
 

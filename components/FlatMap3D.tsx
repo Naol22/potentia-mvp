@@ -604,7 +604,7 @@ const MapboxMap: React.FC = () => {
                               className="mt-auto relative flex justify-center items-center bg-black text-white rounded-full py-2 px-4 min-w-[120px] group"
                               style={{ pointerEvents: 'auto' }}
                             >
-                              <span className="transition-opacity duration-300 opacity-100 group-hover:opacity-0">
+                              <span className="transition-opacity duration-300 opacity-100 group-hover:opacity-0 bg-white">
                                 Virtual Tour
                               </span>
                               <span className="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100 rounded-full bg-white">

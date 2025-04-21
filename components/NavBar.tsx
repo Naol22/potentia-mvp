@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Menu, X, User } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { useNavbar } from "@/context/NavBarContext";
 import { usePathname } from "next/navigation";
 import { useUser, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
@@ -19,6 +19,13 @@ const Header = () => {
   const [mobileProfileDropdownOpen, setMobileProfileDropdownOpen] = useState(false);
   const { isSignedIn } = useUser();
   const pathname = usePathname();
+
+  // Track scroll progress
+  const { scrollYProgress } = useScroll();
+
+  // Map scroll progress to logo scale and y-position
+  const logoScale = useTransform(scrollYProgress, [0, 1], [2.5, 1.3]);
+  const logoY = useTransform(scrollYProgress, [0, 1], [10, 0]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -70,10 +77,10 @@ const Header = () => {
 
   return (
     <motion.header className={headerClassName}>
-      {/* Main container */}
+      {/* Main container with top padding for mobile */}
       <div
         className={`max-w-7xl mx-auto px-6 ${
-          scrolled ? "md:py-4 py-6" : "py-4"
+          scrolled ? "md:py-4 py-6 pt-8 md:pt-4" : "py-4 pt-8 md:pt-4"
         } flex justify-between items-center relative`}
       >
         {/* Left Navigation Links - Desktop Only */}
@@ -98,25 +105,14 @@ const Header = () => {
               width={90}
               height={40}
               className="transition-opacity duration-300"
-              animate={{
-                opacity: 1,
-                y: scrolled ? 0 : 10,
-                scale: scrolled ? 1.3 : 2.5,
-              }}
-              whileHover={{
-                scale: scrolled ? 1.1 : 2.6,
-                y: scrolled ? -5 : 5,
-                transition: {
-                  duration: 0.7,
-                  ease: "easeInOut",
-                  type: "spring",
-                  stiffness: 300,
-                },
+              style={{
+                scale: logoScale,
+                y: logoY,
               }}
               transition={{
-                scale: { duration: 5, ease: "easeOut" },
-                duration: scrolled ? 4 : 7,
-                ease: "easeInOut",
+                type: "spring",
+                stiffness: 100,
+                damping: 20,
               }}
             />
           </Link>

@@ -35,6 +35,7 @@ import {
 import { UserButton } from "@clerk/nextjs"
 import { useTheme } from "next-themes"
 import Image from "next/image"
+import { UserMenu } from "./user-menu"
 
 const data = {
   user: {
@@ -176,7 +177,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarFooter>
         {/* <NavUser user={data.user} /> */}
-        <UserButton />
+        <UserMenu />
       </SidebarFooter>
     </Sidebar>
   )

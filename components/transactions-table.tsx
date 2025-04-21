@@ -84,7 +84,7 @@ export function TransactionsTable() {
         const status = row.getValue("status") as string
         return (
           <Badge
-            variant={status === "completed" ? "default" : status === "pending" ? "outline" : "destructive"}
+            variant={status === "active" ? "default" : "destructive"}
           >
             {status}
           </Badge>
@@ -143,22 +143,16 @@ export function TransactionsTable() {
                 All Status
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={(table.getColumn("status")?.getFilterValue() as string) === "completed"}
-                onCheckedChange={() => table.getColumn("status")?.setFilterValue("completed")}
+                checked={(table.getColumn("status")?.getFilterValue() as string) === "active"}
+                onCheckedChange={() => table.getColumn("status")?.setFilterValue("active")}
               >
-                Completed
+                Active
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={(table.getColumn("status")?.getFilterValue() as string) === "pending"}
-                onCheckedChange={() => table.getColumn("status")?.setFilterValue("pending")}
+                checked={(table.getColumn("status")?.getFilterValue() as string) === "inactive"}
+                onCheckedChange={() => table.getColumn("status")?.setFilterValue("inactive")}
               >
-                Pending
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem
-                checked={(table.getColumn("status")?.getFilterValue() as string) === "failed"}
-                onCheckedChange={() => table.getColumn("status")?.setFilterValue("failed")}
-              >
-                Failed
+                Inactive
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>

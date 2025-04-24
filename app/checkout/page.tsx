@@ -50,7 +50,6 @@ export default function CheckoutPage() {
         return;
       }
 
-      // Validate and set hashrate and duration from query parameters
       if (hashrate) {
         setSelectedHashrate(Number(hashrate));
       } else {

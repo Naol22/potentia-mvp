@@ -7,7 +7,6 @@ import Image from "next/image";
 import GlobalLoadingScreen from "@/components/GlobalLoadingScreen";
 import { Zap, Plug, Clock, Snowflake, Network } from "lucide-react";
 
-// Define the Plan interface to match the backend schema
 interface Plan {
   id: string;
   type: string;
@@ -18,19 +17,17 @@ interface Plan {
 }
 
 const HashrateTab = () => {
-  const [plans, setPlans] = useState<Plan[]>([]); // Store fetched plans
-  const [selectedHashrate, setSelectedHashrate] = useState<number>(100); // Default to 100 TH/s
+  const [plans, setPlans] = useState<Plan[]>([]); 
+  const [selectedHashrate, setSelectedHashrate] = useState<number>(100); 
   const [selectedDuration, setSelectedDuration] = useState<string>(
     "Monthly (Recurring)"
-  ); // Default to Monthly (Recurring)
-  const [animatedPrice, setAnimatedPrice] = useState<number>(150); // Default price
-  const [animatedOutput, setAnimatedOutput] = useState<number>(0.05); // Default output
-  const [loading, setLoading] = useState(true); // Loading state for fetching plans
+  ); 
+  const [animatedPrice, setAnimatedPrice] = useState<number>(150); 
+  const [animatedOutput, setAnimatedOutput] = useState<number>(0.05); 
+  const [loading, setLoading] = useState(true); 
 
-  // Available durations (for future scalability)
-  const durationOptions = ["Monthly (Recurring)"]; // Add more options like '3 Months', '6 Months' later
+  const durationOptions = ["Monthly (Recurring)"]; 
 
-  // Fetch plans from the backend on component mount
   useEffect(() => {
     async function fetchPlans() {
       console.log("Starting to fetch plans...");
@@ -42,11 +39,9 @@ const HashrateTab = () => {
         }
         const data: Plan[] = await response.json();
         console.log("Fetched plans:", data);
-        // Filter for hashrate plans
         const hashratePlans = data.filter((plan) => plan.type === "hashrate");
         setPlans(hashratePlans);
 
-        // Set initial selected hashrate based on fetched plans
         if (hashratePlans.length > 0) {
           setSelectedHashrate(hashratePlans[0].hashrate);
           setAnimatedPrice(hashratePlans[0].price);
@@ -63,27 +58,23 @@ const HashrateTab = () => {
     fetchPlans();
   }, []);
 
-  // Calculate machinesLit based on hashrate
   const calculateMachinesLit = (hashrate: number): number => {
-    const maxHashrate = 3000; // From hardcoded data
-    const maxMachines = 15; // From hardcoded data
+    const maxHashrate = 3000; 
+    const maxMachines = 15; 
     return Math.min(
       Math.round((hashrate / maxHashrate) * maxMachines),
       maxMachines
     );
   };
 
-  // Find the selected plan based on hashrate
   const selectedPlan = plans.find((plan) => plan.hashrate === selectedHashrate);
 
-  // Fallback to defaults if no plan is found
   const totalPrice = selectedPlan ? selectedPlan.price : 150;
   const machinesLit = selectedPlan
     ? calculateMachinesLit(selectedPlan.hashrate)
     : 1;
   const estimatedOutput = selectedHashrate * 0.0005;
 
-  // Animate price and output transitions
   useEffect(() => {
     const priceTimeout = setTimeout(() => setAnimatedPrice(totalPrice), 100);
     const outputTimeout = setTimeout(
@@ -96,7 +87,6 @@ const HashrateTab = () => {
     };
   }, [totalPrice, estimatedOutput]);
 
-  // Prepare the query parameters for the Checkout Page
   const selectedPlanId = selectedPlan ? selectedPlan.id : "";
   const queryParams = new URLSearchParams({
     planId: selectedPlanId,
@@ -104,7 +94,6 @@ const HashrateTab = () => {
     duration: selectedDuration,
   }).toString();
 
-  // Animation variants (unchanged)
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },

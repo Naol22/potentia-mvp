@@ -1,10 +1,11 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import Image from 'next/image';
-import GlobalLoadingScreen from '@/components/GlobalLoadingScreen';
+"use client";
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import Image from "next/image";
+import GlobalLoadingScreen from "@/components/GlobalLoadingScreen";
+import { Zap, Plug, Clock, Snowflake, Network } from "lucide-react";
 
 // Define the Plan interface to match the backend schema
 interface Plan {
@@ -19,28 +20,30 @@ interface Plan {
 const HashrateTab = () => {
   const [plans, setPlans] = useState<Plan[]>([]); // Store fetched plans
   const [selectedHashrate, setSelectedHashrate] = useState<number>(100); // Default to 100 TH/s
-  const [selectedDuration, setSelectedDuration] = useState<string>('Monthly (Recurring)'); // Default to Monthly (Recurring)
+  const [selectedDuration, setSelectedDuration] = useState<string>(
+    "Monthly (Recurring)"
+  ); // Default to Monthly (Recurring)
   const [animatedPrice, setAnimatedPrice] = useState<number>(150); // Default price
   const [animatedOutput, setAnimatedOutput] = useState<number>(0.05); // Default output
   const [loading, setLoading] = useState(true); // Loading state for fetching plans
 
   // Available durations (for future scalability)
-  const durationOptions = ['Monthly (Recurring)']; // Add more options like '3 Months', '6 Months' later
+  const durationOptions = ["Monthly (Recurring)"]; // Add more options like '3 Months', '6 Months' later
 
   // Fetch plans from the backend on component mount
   useEffect(() => {
     async function fetchPlans() {
-      console.log('Starting to fetch plans...');
+      console.log("Starting to fetch plans...");
       try {
-        const response = await fetch('/api/plans');
-        console.log('Fetch response status:', response.status);
+        const response = await fetch("/api/plans");
+        console.log("Fetch response status:", response.status);
         if (!response.ok) {
-          throw new Error('Failed to fetch plans');
+          throw new Error("Failed to fetch plans");
         }
         const data: Plan[] = await response.json();
-        console.log('Fetched plans:', data);
+        console.log("Fetched plans:", data);
         // Filter for hashrate plans
-        const hashratePlans = data.filter((plan) => plan.type === 'hashrate');
+        const hashratePlans = data.filter((plan) => plan.type === "hashrate");
         setPlans(hashratePlans);
 
         // Set initial selected hashrate based on fetched plans
@@ -50,9 +53,9 @@ const HashrateTab = () => {
           setAnimatedOutput(hashratePlans[0].hashrate * 0.0005);
         }
       } catch (error) {
-        console.error('Error fetching plans:', error);
+        console.error("Error fetching plans:", error);
       } finally {
-        console.log('Fetch completed, setting loading to false');
+        console.log("Fetch completed, setting loading to false");
         setLoading(false);
       }
     }
@@ -64,7 +67,10 @@ const HashrateTab = () => {
   const calculateMachinesLit = (hashrate: number): number => {
     const maxHashrate = 3000; // From hardcoded data
     const maxMachines = 15; // From hardcoded data
-    return Math.min(Math.round((hashrate / maxHashrate) * maxMachines), maxMachines);
+    return Math.min(
+      Math.round((hashrate / maxHashrate) * maxMachines),
+      maxMachines
+    );
   };
 
   // Find the selected plan based on hashrate
@@ -72,13 +78,18 @@ const HashrateTab = () => {
 
   // Fallback to defaults if no plan is found
   const totalPrice = selectedPlan ? selectedPlan.price : 150;
-  const machinesLit = selectedPlan ? calculateMachinesLit(selectedPlan.hashrate) : 1;
+  const machinesLit = selectedPlan
+    ? calculateMachinesLit(selectedPlan.hashrate)
+    : 1;
   const estimatedOutput = selectedHashrate * 0.0005;
 
   // Animate price and output transitions
   useEffect(() => {
     const priceTimeout = setTimeout(() => setAnimatedPrice(totalPrice), 100);
-    const outputTimeout = setTimeout(() => setAnimatedOutput(estimatedOutput), 100);
+    const outputTimeout = setTimeout(
+      () => setAnimatedOutput(estimatedOutput),
+      100
+    );
     return () => {
       clearTimeout(priceTimeout);
       clearTimeout(outputTimeout);
@@ -86,7 +97,7 @@ const HashrateTab = () => {
   }, [totalPrice, estimatedOutput]);
 
   // Prepare the query parameters for the Checkout Page
-  const selectedPlanId = selectedPlan ? selectedPlan.id : '';
+  const selectedPlanId = selectedPlan ? selectedPlan.id : "";
   const queryParams = new URLSearchParams({
     planId: selectedPlanId,
     hashrate: selectedHashrate.toString(),
@@ -118,7 +129,11 @@ const HashrateTab = () => {
   }
 
   if (plans.length === 0) {
-    return <div className="bg-black text-white min-h-screen flex items-center justify-center">No plans available</div>;
+    return (
+      <div className="bg-black text-white min-h-screen flex items-center justify-center">
+        No plans available
+      </div>
+    );
   }
 
   return (
@@ -174,7 +189,8 @@ const HashrateTab = () => {
                     Plan Duration
                   </span>
                   <div className="absolute hidden group-hover:block bg-black text-white text-xs p-2 rounded-lg -top-10 left-0 w-48 z-10">
-                    Choose the duration of your mining plan. Monthly plans renew automatically.
+                    Choose the duration of your mining plan. Monthly plans renew
+                    automatically.
                   </div>
                 </label>
                 <motion.select
@@ -204,7 +220,7 @@ const HashrateTab = () => {
                     animate="visible"
                     custom={0}
                   >
-                    <span className="text-lg">⚡</span>
+                    <Zap className="text-white h-5 w-5" />
                     <div>
                       <p className="font-medium">Power Efficiency</p>
                       <p className="text-gray-300">
@@ -219,7 +235,7 @@ const HashrateTab = () => {
                     animate="visible"
                     custom={1}
                   >
-                    <span className="text-lg">🔌</span>
+                    <Plug className="text-white h-5 w-5" />
                     <div>
                       <p className="font-medium">Power Consumption</p>
                       <p className="text-gray-300">
@@ -234,7 +250,7 @@ const HashrateTab = () => {
                     animate="visible"
                     custom={2}
                   >
-                    <span className="text-lg">⏰</span>
+                    <Clock className="text-white h-5 w-5" />
                     <div>
                       <p className="font-medium">Uptime Guarantee</p>
                       <p className="text-gray-300">
@@ -249,7 +265,7 @@ const HashrateTab = () => {
                     animate="visible"
                     custom={3}
                   >
-                    <span className="text-lg">❄️</span>
+                    <Snowflake className="text-white h-5 w-5" />
                     <div>
                       <p className="font-medium">Cooling System</p>
                       <p className="text-gray-300">
@@ -264,7 +280,7 @@ const HashrateTab = () => {
                     animate="visible"
                     custom={4}
                   >
-                    <span className="text-lg">🌐</span>
+                    <Network className="text-white h-5 w-5" />
                     <div>
                       <p className="font-medium">Network Stability</p>
                       <p className="text-gray-300">
@@ -337,15 +353,15 @@ const HashrateTab = () => {
                       key={i}
                       variants={gpuVariants}
                       initial="locked"
-                      animate={i < machinesLit ? 'unlocked' : 'locked'}
+                      animate={i < machinesLit ? "unlocked" : "locked"}
                     >
                       <Image
                         src={
                           i < machinesLit
-                            ? '/gpuunlocked.png'
-                            : '/gpulocked.png'
+                            ? "/gpuunlocked.png"
+                            : "/gpulocked.png"
                         }
-                        alt={i < machinesLit ? 'Active GPU' : 'Inactive GPU'}
+                        alt={i < machinesLit ? "Active GPU" : "Inactive GPU"}
                         width={50}
                         height={50}
                         className="object-contain"
@@ -429,6 +445,7 @@ const HashrateTab = () => {
         <h2 className="text-3xl font-bold mb-6 text-center">
           Frequently Asked Questions
         </h2>
+        Frequently Asked Questions
         <div className="space-y-6">
           <div>
             <h3 className="text-lg font-semibold mb-2">

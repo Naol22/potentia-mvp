@@ -5,9 +5,8 @@ import { useUser, SignedIn, SignedOut } from '@clerk/nextjs';
 import { loadStripe } from '@stripe/stripe-js';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import Image from 'next/image';
 import GlobalLoadingScreen from '@/components/GlobalLoadingScreen';
-import { InfoIcon } from 'lucide-react';
+import { InfoIcon, Zap, Clock, Snowflake, Network } from 'lucide-react';
 
 interface Plan {
   id: string;
@@ -215,17 +214,6 @@ export default function CheckoutPage() {
           whileHover={{ scale: 1.02, boxShadow: '0 10px 20px rgba(0,0,0,0.3)' }}
           transition={{ duration: 0.3 }}
         >
-          <div className="relative">
-            <div className="absolute inset-0 border-4 border-transparent bg-gradient-to-r from-white/20 via-transparent to-white/20 animate-pulse-slow" />
-            <Image
-              src="/antminer-s21.png"
-              alt="Mining Setup"
-              width={600}
-              height={400}
-              className="w-full h-[250px] sm:h-[300px] md:h-[350px] object-cover"
-              priority
-            />
-          </div>
           <div className="p-6 sm:p-8">
             <h2 className="text-2xl sm:text-3xl font-bold mb-4 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
               Hashrate Plan - {selectedHashrate} TH/s
@@ -233,25 +221,58 @@ export default function CheckoutPage() {
             <p className="text-sm text-gray-400 mb-6">
               {plan.type === 'hashrate' ? 'Hashrate' : 'Hosting'} Plan
             </p>
-            <div className="space-y-3 text-sm text-gray-300">
-              <p className="flex items-center">
-                <span className="mr-3 text-white">📍</span> Facility: {plan.facility_id.name}
-              </p>
-              <p className="flex items-center">
-                <span className="mr-3 text-white">📊</span> Hash Rate Fee: ${hashRateFee}
-              </p>
-              <p className="flex items-center">
-                <span className="mr-3 text-white">⚡</span> Electricity Fee: ${electricityFee}
-              </p>
-              <p className="flex items-center">
-                <span className="mr-3 text-white">⏰</span> Static Output: {estimatedOutput.toFixed(4)} BTC/month
-              </p>
-              <p className="flex items-center">
-                <span className="mr-3 text-white">📅</span> Duration: {selectedDuration}
-              </p>
-              <p className="text-lg sm:text-xl font-bold mt-4 text-white">
-                Total: <span className="text-2xl">${plan.price.toFixed(2)}</span>
-              </p>
+            <div className="space-y-6">
+              {/* Mining Setup Details */}
+              <div className="bg-black p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-4">Mining Setup Details</h3>
+                <div className="space-y-3 text-sm text-gray-300">
+                  <p className="flex items-center">
+                    <Zap className="mr-3 text-white h-5 w-5" />
+                    <span>
+                      <span className="font-medium">Power Efficiency:</span> 17.5 J/TH - Industry-leading performance
+                    </span>
+                  </p>
+                  <p className="flex items-center">
+                    <Clock className="mr-3 text-white h-5 w-5" />
+                    <span>
+                      <span className="font-medium">Uptime Guarantee:</span> 99.9% with 24/7 monitoring
+                    </span>
+                  </p>
+                  <p className="flex items-center">
+                    <Snowflake className="mr-3 text-white h-5 w-5" />
+                    <span>
+                      <span className="font-medium">Cooling System:</span> Advanced air-cooling for reliability
+                    </span>
+                  </p>
+                  <p className="flex items-center">
+                    <Network className="mr-3 text-white h-5 w-5" />
+                    <span>
+                      <span className="font-medium">Network Stability:</span> Optimized for low-latency mining
+                    </span>
+                  </p>
+                </div>
+              </div>
+              {/* Plan Details */}
+              <div className="space-y-3 text-sm text-gray-300">
+                <p className="flex items-center">
+                  <span className="mr-3 text-white">📍</span> Facility: {plan.facility_id.name}
+                </p>
+                <p className="flex items-center">
+                  <span className="mr-3 text-white">📊</span> Hash Rate Fee: ${hashRateFee}
+                </p>
+                <p className="flex items-center">
+                  <span className="mr-3 text-white">⚡</span> Electricity Fee: ${electricityFee}
+                </p>
+                <p className="flex items-center">
+                  <span className="mr-3 text-white">⏰</span> Static Output: {estimatedOutput.toFixed(4)} BTC/month
+                </p>
+                <p className="flex items-center">
+                  <span className="mr-3 text-white">📅</span> Duration: {selectedDuration}
+                </p>
+                <p className="text-lg sm:text-xl font-bold mt-4 text-white">
+                  Total: <span className="text-2xl">${plan.price.toFixed(2)}</span>
+                </p>
+              </div>
             </div>
           </div>
         </motion.div>

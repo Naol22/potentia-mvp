@@ -111,21 +111,31 @@ export default function HashrateAdSection() {
                     className="object-contain"
                   />
                 </div>
-                <h3 className="text-2xl font-bold text-black mb-2">
+                <h3 className="text-4xl font-bold text-black mb-2">
                   {option.title}
                 </h3>
                 <p className="text-gray-600 text-sm mb-4 min-h-[40px]">
                   {option.description}
                 </p>
-                <motion.div
-                  className="inline-block text-sm font-medium text-white bg-neutral-900 px-4 py-2 rounded-full group-hover:bg-black group-hover:text-white transition-all"
-                  whileHover={{ scale: 1.1 }}
-                >
-                  View Plan
-                </motion.div>
               </motion.div>
             </Link>
           ))}
+        </div>
+        <div className="text-center mt-12">
+          <Link
+            href={{
+              pathname: '/product',
+              query: { tab: 'hashrate' },
+            }}
+          >
+            <motion.button
+              className="text-sm font-medium text-white bg-neutral-900 px-6 py-3 rounded-full hover:bg-black transition-all"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              View Plans
+            </motion.button>
+          </Link>
         </div>
       </div>
     </section>

@@ -24,7 +24,7 @@ const cardVariants = {
 
 const MiningSolutions: React.FC = () => {
   return (
-    <section className="min-h-screen bg-transparent text-white flex flex-col items-center justify-center py-14 px-6 relative overflow-hidden">
+    <section className="h-full bg-transparent text-white flex flex-col items-center justify-center py-14 px-6 relative overflow-hidden">
       {/* Background Image */}
       <Image
         src="/BackgroundMap.jpg"

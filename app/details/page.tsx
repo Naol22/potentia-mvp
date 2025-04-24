@@ -145,13 +145,13 @@ function DetailsContent() {
           transition={{ duration: 0.3 }}
         >
           <div className="relative">
-            <div className="absolute inset-0 border-4 border-transparent rounded-xl bg-gradient-to-r from-white/20 via-transparent to-white/20 animate-pulse" />
+            <div className="absolute inset-0 border-4 border-transparent bg-gradient-to-r from-white/20 via-transparent to-white/20 animate-pulse" />
             <Image
               src="/antminer-s21.png"
               alt="Antminer S21"
-              width={600}
-              height={400}
-              className="w-full h-64 md:h-80 object-cover"
+              width={900}
+              height={700}
+              className="w-full h-[200px] md:h-[450px] object-fill"
             />
           </div>
           <div className="p-6">
@@ -163,9 +163,9 @@ function DetailsContent() {
               <motion.p variants={statVariants} initial="hidden" animate="visible" custom={1}>
                 <span className="mr-2">⚡</span> Electricity Fee: ${electricityFee}
               </motion.p>
-              <motion.p variants={statVariants} initial="hidden" animate="visible" custom={2}>
+              {/* <motion.p variants={statVariants} initial="hidden" animate="visible" custom={2}>
                 <span className="mr-2">⏰</span> Static Output: {animatedOutput.toFixed(4)} BTC/month
-              </motion.p>
+              </motion.p> */}
             </div>
             {/* Total Sold Progress Bar */}
             <div className="mt-6">

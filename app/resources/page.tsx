@@ -43,7 +43,7 @@ const ResourcesPage = () => {
       link: "docs/sustainable-mining.pdf",
     },
     {
-      title: "White Paper",
+      title: "White Paper For potentia",
       date: "2023-05-12",
       category: "Technology",
       link: "/docs/white-paper.pdf",
@@ -160,9 +160,9 @@ const ResourcesPage = () => {
                     {doc.title} ({doc.date})
                   </h3>
                   <div className="flex justify-between">
-                    <span className="text-sm text-zinc-400 bg-zinc-700/50 px-2 text-center rounded mr-4 mt-2">
+                    {/* <span className="text-sm text-zinc-400 bg-zinc-700/50 px-2 text-center rounded mr-4 mt-2">
                       PDF
-                    </span>
+                    </span> */}
                     <a
                       href={doc.link}
                       download

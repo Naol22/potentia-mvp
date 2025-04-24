@@ -14,16 +14,18 @@ interface Plan {
   price: number;
   duration: string;
   facility_id: { name: string };
-  miner_id: { name: string };
 }
 
 const HashrateTab = () => {
   const [plans, setPlans] = useState<Plan[]>([]); // Store fetched plans
   const [selectedHashrate, setSelectedHashrate] = useState<number>(100); // Default to 100 TH/s
-  const [selectedModel, setSelectedModel] = useState<string>('Antminer S21'); // Default to Antminer S21
+  const [selectedDuration, setSelectedDuration] = useState<string>('Monthly (Recurring)'); // Default to Monthly (Recurring)
   const [animatedPrice, setAnimatedPrice] = useState<number>(150); // Default price
   const [animatedOutput, setAnimatedOutput] = useState<number>(0.05); // Default output
   const [loading, setLoading] = useState(true); // Loading state for fetching plans
+
+  // Available durations (for future scalability)
+  const durationOptions = ['Monthly (Recurring)']; // Add more options like '3 Months', '6 Months' later
 
   // Fetch plans from the backend on component mount
   useEffect(() => {
@@ -41,10 +43,9 @@ const HashrateTab = () => {
         const hashratePlans = data.filter((plan) => plan.type === 'hashrate');
         setPlans(hashratePlans);
 
-        // Set initial selected hashrate and model based on fetched plans
+        // Set initial selected hashrate based on fetched plans
         if (hashratePlans.length > 0) {
           setSelectedHashrate(hashratePlans[0].hashrate);
-          setSelectedModel(hashratePlans[0].miner_id.name);
           setAnimatedPrice(hashratePlans[0].price);
           setAnimatedOutput(hashratePlans[0].hashrate * 0.0005);
         }
@@ -59,21 +60,15 @@ const HashrateTab = () => {
     fetchPlans();
   }, []);
 
-  // Calculate machinesLit based on hashrate (same logic as hardcoded data)
+  // Calculate machinesLit based on hashrate
   const calculateMachinesLit = (hashrate: number): number => {
     const maxHashrate = 3000; // From hardcoded data
     const maxMachines = 15; // From hardcoded data
     return Math.min(Math.round((hashrate / maxHashrate) * maxMachines), maxMachines);
   };
 
-  // Filter plans based on the selected miner model
-  const filteredPlans = plans.filter((plan) => plan.miner_id.name === selectedModel);
-
-  // Get unique miners from plans
-  const uniqueMiners = Array.from(new Set(plans.map((plan) => plan.miner_id.name)));
-
   // Find the selected plan based on hashrate
-  const selectedPlan = filteredPlans.find((plan) => plan.hashrate === selectedHashrate);
+  const selectedPlan = plans.find((plan) => plan.hashrate === selectedHashrate);
 
   // Fallback to defaults if no plan is found
   const totalPrice = selectedPlan ? selectedPlan.price : 150;
@@ -90,10 +85,12 @@ const HashrateTab = () => {
     };
   }, [totalPrice, estimatedOutput]);
 
-  // Prepare the query parameter for the details page (only pass planId)
+  // Prepare the query parameters for the Checkout Page
   const selectedPlanId = selectedPlan ? selectedPlan.id : '';
   const queryParams = new URLSearchParams({
     planId: selectedPlanId,
+    hashrate: selectedHashrate.toString(),
+    duration: selectedDuration,
   }).toString();
 
   // Animation variants (unchanged)
@@ -161,7 +158,7 @@ const HashrateTab = () => {
                   className="w-full p-3 bg-black border border-neutral-700 rounded-lg text-white focus:ring-2 focus:ring-white/20"
                   whileHover={{ scale: 1.02 }}
                 >
-                  {filteredPlans.map((plan) => (
+                  {plans.map((plan) => (
                     <option key={plan.id} value={plan.hashrate}>
                       {plan.hashrate} TH/s - ${plan.price}/month
                     </option>
@@ -169,27 +166,26 @@ const HashrateTab = () => {
                 </motion.select>
               </div>
 
-              {/* Miner Model Selection */}
+              {/* Duration Selection */}
               <div className="relative group">
                 <label className="block text-sm font-medium mb-2">
-                  Miner Model
+                  Duration
                   <span className="ml-2 text-xs text-gray-400 cursor-help group-hover:underline">
-                    About Antminer S21
+                    Plan Duration
                   </span>
                   <div className="absolute hidden group-hover:block bg-black text-white text-xs p-2 rounded-lg -top-10 left-0 w-48 z-10">
-                    The Antminer S21 offers 200 TH/s with 17.5 J/TH efficiency,
-                    ideal for high-performance mining.
+                    Choose the duration of your mining plan. Monthly plans renew automatically.
                   </div>
                 </label>
                 <motion.select
-                  value={selectedModel}
-                  onChange={(e) => setSelectedModel(e.target.value)}
+                  value={selectedDuration}
+                  onChange={(e) => setSelectedDuration(e.target.value)}
                   className="w-full p-3 bg-black border border-neutral-700 rounded-lg text-white focus:ring-2 focus:ring-white/20"
                   whileHover={{ scale: 1.02 }}
                 >
-                  {uniqueMiners.map((minerName) => (
-                    <option key={minerName} value={minerName}>
-                      {minerName}
+                  {durationOptions.map((duration) => (
+                    <option key={duration} value={duration}>
+                      {duration}
                     </option>
                   ))}
                 </motion.select>
@@ -359,53 +355,16 @@ const HashrateTab = () => {
                 </div>
               </div>
 
-              {/* Radial Progress */}
-              <div className="flex justify-center">
-                <div className="relative w-24 h-24">
-                  <svg className="w-full h-full" viewBox="0 0 100 100">
-                    <circle
-                      className="text-gray-700"
-                      strokeWidth="10"
-                      stroke="currentColor"
-                      fill="transparent"
-                      r="40"
-                      cx="50"
-                      cy="50"
-                    />
-                    <motion.circle
-                      className="text-white"
-                      strokeWidth="10"
-                      stroke="currentColor"
-                      fill="transparent"
-                      r="40"
-                      cx="50"
-                      cy="50"
-                      strokeDasharray="251.2"
-                      strokeDashoffset={251.2 * (1 - machinesLit / 15)}
-                      strokeLinecap="round"
-                      initial={{ strokeDashoffset: 251.2 }}
-                      animate={{
-                        strokeDashoffset: 251.2 * (1 - machinesLit / 15),
-                      }}
-                      transition={{ duration: 0.5 }}
-                    />
-                  </svg>
-                  <p className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-sm font-bold">
-                    {Math.round((machinesLit / 15) * 100)}%
-                  </p>
-                </div>
-              </div>
-
-              {/* Check Details Button */}
+              {/* Proceed to Checkout Button */}
               <motion.div
                 className="flex justify-center"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
               >
-                <Link href={`/details?${queryParams}`}>
+                <Link href={`/checkout?${queryParams}`}>
                   <Button className="bg-white text-black hover:bg-black hover:text-white rounded-full px-10 py-4 text-lg font-semibold transition-all duration-300">
-                    Check Details
+                    Proceed to Checkout
                   </Button>
                 </Link>
               </motion.div>
@@ -443,7 +402,7 @@ const HashrateTab = () => {
           >
             <h3 className="text-xl font-semibold mb-2">High Uptime</h3>
             <p className="text-sm text-gray-300">
-              99.9% uptime with advanced Antminer S21 hardware.
+              99.9% uptime with advanced hardware.
             </p>
           </motion.div>
           <motion.div
@@ -478,15 +437,6 @@ const HashrateTab = () => {
             <p className="text-sm text-gray-300">
               You rent hashrate from our data centers, and we handle the
               hardware, maintenance, and power. You earn Bitcoin daily.
-            </p>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold mb-2">
-              What is the Antminer S21?
-            </h3>
-            <p className="text-sm text-gray-300">
-              The Antminer S21 is a top-tier Bitcoin miner with 200 TH/s per
-              unit and 17.5 J/TH efficiency.
             </p>
           </div>
           <div>

@@ -101,7 +101,7 @@ export default function CheckoutPage() {
 
     try {
       console.log('Initiating checkout with planId:', planId, 'BTC Address:', btcAddress, 'Auto Renew:', autoRenew);
-      const response = await fetch('/api/stripe/create-checkout-session', {
+      const response = await fetch('/api/webhooks/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ planId, btcAddress, autoRenew }),

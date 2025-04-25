@@ -2,92 +2,87 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { supabase } from "@/utils/supaBaseClient";
 
-// Check if user is admin using Clerk
-async function isAdmin(userId: string | null) {
+interface SessionClaims {
+  role?: string;
+  [key: string]: unknown; 
+}
+
+async function isAdmin(userId: string | null): Promise<boolean> {
   if (!userId) return false;
-  
-  // Get the user's session claims from Clerk
+
   const { sessionClaims } = await auth();
-  
-  // Check if the user has admin role in Clerk
-  const userRole = sessionClaims && (sessionClaims as any).role;
+  const userRole = sessionClaims ? (sessionClaims as SessionClaims).role : undefined;
   return userRole === "admin";
 }
 
-// Get a specific facility
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
-) {
+): Promise<NextResponse> {
   const { userId } = await auth();
-  
-  if (!await isAdmin(userId)) {
+
+  if (!(await isAdmin(userId))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  
+
   const { data, error } = await supabase
-    .from('facilities')
-    .select('*')
-    .eq('id', params.id)
+    .from("facilities")
+    .select("*")
+    .eq("id", params.id)
     .single();
-  
+
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  
+
   return NextResponse.json(data);
 }
 
-// Update a facility
 export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
-) {
+): Promise<NextResponse> {
   const { userId } = await auth();
-  
-  if (!await isAdmin(userId)) {
+
+  if (!(await isAdmin(userId))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  
+
   try {
     const facilityData = await req.json();
-    
+
     const { data, error } = await supabase
-      .from('facilities')
+      .from("facilities")
       .update(facilityData)
-      .eq('id', params.id)
+      .eq("id", params.id)
       .select()
       .single();
-    
+
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    
+
     return NextResponse.json(data);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Invalid request data" }, { status: 400 });
   }
 }
 
-// Delete a facility
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
-) {
+): Promise<NextResponse> {
   const { userId } = await auth();
-  
-  if (!await isAdmin(userId)) {
+
+  if (!(await isAdmin(userId))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  
-  const { error } = await supabase
-    .from('facilities')
-    .delete()
-    .eq('id', params.id);
-  
+
+  const { error } = await supabase.from("facilities").delete().eq("id", params.id);
+
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-  
+
   return NextResponse.json({ success: true });
 }

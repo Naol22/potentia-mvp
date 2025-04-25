@@ -19,17 +19,22 @@ export default function PlansAdmin() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingPlan, setEditingPlan] = useState<Partial<Plan> | null>(null);
+  const [newPlan, setNewPlan] = useState<Partial<Plan>>({
+    type: "hashrate",
+    hashrate: 100,
+    price: 5.00,
+    duration: "Monthly Recurring"
+  });
   const [isCreating, setIsCreating] = useState(false);
 
-  // Update fetchPlans
   const fetchPlans = async () => {
     try {
       const response = await fetch("/api/admin/plans", {
-        credentials: 'include'
+        credentials: "include"
       });
-      const data = await response.json();
+      const data: Plan[] = await response.json();
       setPlans(data);
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch plans");
     } finally {
       setLoading(false);
@@ -40,38 +45,52 @@ export default function PlansAdmin() {
     fetchPlans();
   }, []);
 
-  // Update createPlan
   const createPlan = async () => {
     try {
+      if (!newPlan.type || !newPlan.hashrate || !newPlan.price || !newPlan.duration) {
+        toast.error("All plan fields are required");
+        return;
+      }
+
       const response = await fetch("/api/admin/plans", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: 'include',
-        body: JSON.stringify(editingPlan), // Changed from newPlan to editingPlan
+        credentials: "include",
+        body: JSON.stringify(newPlan),
       });
       
       if (response.ok) {
         toast.success("Plan created successfully");
         fetchPlans();
-        setEditingPlan(null);
+        setNewPlan({
+          type: "hashrate",
+          hashrate: 100,
+          price: 5.00,
+          duration: "Monthly Recurring"
+        });
         setIsCreating(false);
       } else {
-        toast.error("Failed to create plan");
+        const error = await response.json();
+        toast.error(error.error || "Failed to create plan");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error creating plan");
     }
   };
 
-  // Update plan
   const updatePlan = async () => {
-    if (!editingPlan || !editingPlan.id) return; // Add null check
+    if (!editingPlan || !editingPlan.id) return;
     
     try {
+      if (!editingPlan.type || !editingPlan.hashrate || !editingPlan.price || !editingPlan.duration) {
+        toast.error("All plan fields are required");
+        return;
+      }
+
       const response = await fetch(`/api/admin/plans/${editingPlan.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify(editingPlan),
       });
       
@@ -80,30 +99,31 @@ export default function PlansAdmin() {
         fetchPlans();
         setEditingPlan(null);
       } else {
-        toast.error("Failed to update plan");
+        const error = await response.json();
+        toast.error(error.error || "Failed to update plan");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error updating plan");
     }
   };
 
-  // Delete plan
   const deletePlan = async (id: string) => {
     if (!confirm("Are you sure you want to delete this plan?")) return;
     
     try {
       const response = await fetch(`/api/admin/plans/${id}`, {
         method: "DELETE",
-        credentials: 'include'
+        credentials: "include"
       });
       
       if (response.ok) {
         toast.success("Plan deleted successfully");
         fetchPlans();
       } else {
-        toast.error("Failed to delete plan");
+        const error = await response.json();
+        toast.error(error.error || "Failed to delete plan");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error deleting plan");
     }
   };
@@ -116,17 +136,11 @@ export default function PlansAdmin() {
         <h2 className="text-2xl font-bold">Mining Plans Management</h2>
         <Button onClick={() => {
           setIsCreating(true);
-          setEditingPlan({
-            type: "hashrate",
-            hashrate: 100,
-            price: 5.00,
-            duration: "Monthly Recurring"
-          });
+          setEditingPlan(null);
         }}>Add New Plan</Button>
       </div>
 
-      {/* Edit/Create Form */}
-      {editingPlan && (
+      {(editingPlan || isCreating) && (
         <div className="bg-gray-100 p-6 rounded-lg mb-6">
           <h3 className="text-xl font-semibold mb-4">
             {isCreating ? "Create New Plan" : "Edit Plan"}
@@ -135,8 +149,14 @@ export default function PlansAdmin() {
             <div>
               <Label htmlFor="type">Plan Type</Label>
               <Select 
-                value={editingPlan.type} 
-                onValueChange={(value) => setEditingPlan({...editingPlan, type: value})}
+                value={isCreating ? newPlan.type : editingPlan?.type} 
+                onValueChange={(value) => {
+                  if (isCreating) {
+                    setNewPlan({...newPlan, type: value});
+                  } else {
+                    setEditingPlan({...editingPlan, type: value});
+                  }
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />
@@ -152,8 +172,14 @@ export default function PlansAdmin() {
               <Input
                 id="hashrate"
                 type="number"
-                value={editingPlan.hashrate || 0}
-                onChange={(e) => setEditingPlan({...editingPlan, hashrate: parseInt(e.target.value)})}
+                value={isCreating ? newPlan.hashrate || 0 : editingPlan?.hashrate || 0}
+                onChange={(e) => {
+                  if (isCreating) {
+                    setNewPlan({...newPlan, hashrate: parseInt(e.target.value)});
+                  } else {
+                    setEditingPlan({...editingPlan, hashrate: parseInt(e.target.value)});
+                  }
+                }}
               />
             </div>
             <div>
@@ -162,16 +188,28 @@ export default function PlansAdmin() {
                 id="price"
                 type="number"
                 step="0.01"
-                value={editingPlan.price || 0}
-                onChange={(e) => setEditingPlan({...editingPlan, price: parseFloat(e.target.value)})}
+                value={isCreating ? newPlan.price || 0 : editingPlan?.price || 0}
+                onChange={(e) => {
+                  if (isCreating) {
+                    setNewPlan({...newPlan, price: parseFloat(e.target.value)});
+                  } else {
+                    setEditingPlan({...editingPlan, price: parseFloat(e.target.value)});
+                  }
+                }}
               />
             </div>
             <div>
               <Label htmlFor="duration">Duration</Label>
               <Input
                 id="duration"
-                value={editingPlan.duration || "Monthly Recurring"}
-                onChange={(e) => setEditingPlan({...editingPlan, duration: e.target.value})}
+                value={isCreating ? newPlan.duration || "Monthly Recurring" : editingPlan?.duration || "Monthly Recurring"}
+                onChange={(e) => {
+                  if (isCreating) {
+                    setNewPlan({...newPlan, duration: e.target.value});
+                  } else {
+                    setEditingPlan({...editingPlan, duration: e.target.value});
+                  }
+                }}
               />
             </div>
           </div>
@@ -184,6 +222,12 @@ export default function PlansAdmin() {
               onClick={() => {
                 setEditingPlan(null);
                 setIsCreating(false);
+                setNewPlan({
+                  type: "hashrate",
+                  hashrate: 100,
+                  price: 5.00,
+                  duration: "Monthly Recurring"
+                });
               }}
             >
               Cancel
@@ -192,7 +236,6 @@ export default function PlansAdmin() {
         </div>
       )}
 
-      {/* Plans Table */}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
@@ -216,7 +259,10 @@ export default function PlansAdmin() {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => setEditingPlan(plan)}
+                      onClick={() => {
+                        setEditingPlan(plan);
+                        setIsCreating(false);
+                      }}
                     >
                       Edit
                     </Button>

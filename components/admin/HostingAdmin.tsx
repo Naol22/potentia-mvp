@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { 
   Table, TableBody, TableCaption, TableCell, 
   TableHead, TableHeader, TableRow 
@@ -14,6 +14,16 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
+interface Miner {
+  id: string;
+  name: string;
+}
+
+interface Facility {
+  id: string;
+  name: string;
+}
+
 interface Hosting {
   id: string;
   miner_id: string;
@@ -21,14 +31,8 @@ interface Hosting {
   price: number;
   duration: string;
   created_at: string;
-  miners?: {
-    id: string;
-    name: string;
-  };
-  facilities?: {
-    id: string;
-    name: string;
-  };
+  miners?: Miner;
+  facilities?: Facility;
 }
 
 export default function HostingAdmin() {
@@ -37,45 +41,41 @@ export default function HostingAdmin() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [currentHosting, setCurrentHosting] = useState<Hosting | null>(null);
-  const [miners, setMiners] = useState<any[]>([]);
-  const [facilities, setFacilities] = useState<any[]>([]);
+  const [miners, setMiners] = useState<Miner[]>([]);
+  const [facilities, setFacilities] = useState<Facility[]>([]);
 
-  // Update fetchHostingPlans
   const fetchHostingPlans = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/hosting', {
-        credentials: 'include'
+      const response = await fetch("/api/admin/hosting", {
+        credentials: "include"
       });
-      if (!response.ok) throw new Error('Failed to fetch hosting plans');
+      if (!response.ok) throw new Error("Failed to fetch hosting plans");
       const data = await response.json();
       setHostingPlans(data);
-    } catch (error) {
-      console.error('Error fetching hosting plans:', error);
+    } catch {
       toast.error("Failed to load hosting plans");
     } finally {
       setLoading(false);
     }
   };
 
-  // Update fetchRelatedData
   const fetchRelatedData = async () => {
     try {
       const [minersResponse, facilitiesResponse] = await Promise.all([
-        fetch('/api/miners', { credentials: 'include' }),
-        fetch('/api/facilities', { credentials: 'include' })
+        fetch("/api/miners", { credentials: "include" }),
+        fetch("/api/facilities", { credentials: "include" })
       ]);
       
       if (!minersResponse.ok || !facilitiesResponse.ok) 
-        throw new Error('Failed to fetch related data');
+        throw new Error("Failed to fetch related data");
       
       const minersData = await minersResponse.json();
       const facilitiesData = await facilitiesResponse.json();
       
       setMiners(minersData);
       setFacilities(facilitiesData);
-    } catch (error) {
-      console.error('Error fetching related data:', error);
+    } catch {
     }
   };
 
@@ -91,31 +91,30 @@ export default function HostingAdmin() {
 
   const handleCreate = () => {
     setCurrentHosting({
-      id: '',
-      miner_id: '',
-      facility_id: '',
+      id: "",
+      miner_id: "",
+      facility_id: "",
       price: 0,
-      duration: 'Monthly Recurring',
+      duration: "Monthly Recurring",
       created_at: new Date().toISOString(),
     });
     setIsCreateDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this hosting plan?')) return;
+    if (!confirm("Are you sure you want to delete this hosting plan?")) return;
     
     try {
       const response = await fetch(`/api/admin/hosting/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
+        credentials: "include"
       });
       
-      if (!response.ok) throw new Error('Failed to delete hosting plan');
+      if (!response.ok) throw new Error("Failed to delete hosting plan");
       
       toast.success("Hosting plan deleted successfully");
-      
       fetchHostingPlans();
-    } catch (error) {
-      console.error('Error deleting hosting plan:', error);
+    } catch {
       toast.error("Failed to delete hosting plan");
     }
   };
@@ -126,22 +125,20 @@ export default function HostingAdmin() {
     
     try {
       const response = await fetch(`/api/admin/hosting/${currentHosting.id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify(currentHosting),
       });
       
-      if (!response.ok) throw new Error('Failed to update hosting plan');
+      if (!response.ok) throw new Error("Failed to update hosting plan");
       
       toast.success("Hosting plan updated successfully");
-      
       setIsEditDialogOpen(false);
       fetchHostingPlans();
-    } catch (error) {
-      console.error('Error updating hosting plan:', error);
+    } catch {
       toast.error("Failed to update hosting plan");
     }
   };
@@ -151,23 +148,21 @@ export default function HostingAdmin() {
     if (!currentHosting) return;
     
     try {
-      const response = await fetch('/api/admin/hosting', {
-        method: 'POST',
+      const response = await fetch("/api/admin/hosting", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify(currentHosting),
       });
       
-      if (!response.ok) throw new Error('Failed to create hosting plan');
+      if (!response.ok) throw new Error("Failed to create hosting plan");
       
       toast.success("Hosting plan created successfully");
-      
       setIsCreateDialogOpen(false);
       fetchHostingPlans();
-    } catch (error) {
-      console.error('Error creating hosting plan:', error);
+    } catch {
       toast.error("Failed to create hosting plan");
     }
   };
@@ -178,7 +173,7 @@ export default function HostingAdmin() {
     const { name, value } = e.target;
     setCurrentHosting({
       ...currentHosting,
-      [name]: name === 'price' ? parseFloat(value) : value,
+      [name]: name === "price" ? parseFloat(value) : value,
     });
   };
 
@@ -217,8 +212,8 @@ export default function HostingAdmin() {
           {hostingPlans.map((hosting) => (
             <TableRow key={hosting.id}>
               <TableCell className="font-medium">{hosting.id.substring(0, 8)}...</TableCell>
-              <TableCell>{hosting.miners?.name || 'N/A'}</TableCell>
-              <TableCell>{hosting.facilities?.name || 'N/A'}</TableCell>
+              <TableCell>{hosting.miners?.name || "N/A"}</TableCell>
+              <TableCell>{hosting.facilities?.name || "N/A"}</TableCell>
               <TableCell>${hosting.price}</TableCell>
               <TableCell>{hosting.duration}</TableCell>
               <TableCell>{new Date(hosting.created_at).toLocaleDateString()}</TableCell>
@@ -233,7 +228,6 @@ export default function HostingAdmin() {
         </TableBody>
       </Table>
 
-      {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -249,7 +243,7 @@ export default function HostingAdmin() {
                 <Label htmlFor="miner_id" className="text-right">Miner</Label>
                 <Select 
                   value={currentHosting?.miner_id} 
-                  onValueChange={(value) => handleSelectChange('miner_id', value)}
+                  onValueChange={(value) => handleSelectChange("miner_id", value)}
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select Miner" />
@@ -268,7 +262,7 @@ export default function HostingAdmin() {
                 <Label htmlFor="facility_id" className="text-right">Facility</Label>
                 <Select 
                   value={currentHosting?.facility_id} 
-                  onValueChange={(value) => handleSelectChange('facility_id', value)}
+                  onValueChange={(value) => handleSelectChange("facility_id", value)}
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select Facility" />
@@ -300,7 +294,7 @@ export default function HostingAdmin() {
                 <Label htmlFor="duration" className="text-right">Duration</Label>
                 <Select 
                   value={currentHosting?.duration} 
-                  onValueChange={(value) => handleSelectChange('duration', value)}
+                  onValueChange={(value) => handleSelectChange("duration", value)}
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select Duration" />
@@ -322,7 +316,6 @@ export default function HostingAdmin() {
         </DialogContent>
       </Dialog>
 
-      {/* Create Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -338,7 +331,7 @@ export default function HostingAdmin() {
                 <Label htmlFor="miner_id" className="text-right">Miner</Label>
                 <Select 
                   value={currentHosting?.miner_id} 
-                  onValueChange={(value) => handleSelectChange('miner_id', value)}
+                  onValueChange={(value) => handleSelectChange("miner_id", value)}
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select Miner" />
@@ -357,7 +350,7 @@ export default function HostingAdmin() {
                 <Label htmlFor="facility_id" className="text-right">Facility</Label>
                 <Select 
                   value={currentHosting?.facility_id} 
-                  onValueChange={(value) => handleSelectChange('facility_id', value)}
+                  onValueChange={(value) => handleSelectChange("facility_id", value)}
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select Facility" />
@@ -390,7 +383,7 @@ export default function HostingAdmin() {
                 <Label htmlFor="duration" className="text-right">Duration</Label>
                 <Select 
                   value={currentHosting?.duration} 
-                  onValueChange={(value) => handleSelectChange('duration', value)}
+                  onValueChange={(value) => handleSelectChange("duration", value)}
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select Duration" />

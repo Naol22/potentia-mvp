@@ -20,16 +20,14 @@ export default function UsersAdmin() {
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<Partial<User> | null>(null);
 
-  // Fetch users
-  // Update fetchUsers
   const fetchUsers = async () => {
     try {
       const response = await fetch("/api/admin/users", {
-        credentials: 'include'
+        credentials: "include"
       });
-      const data = await response.json();
+      const data: User[] = await response.json();
       setUsers(data);
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch users");
     } finally {
       setLoading(false);
@@ -40,14 +38,12 @@ export default function UsersAdmin() {
     fetchUsers();
   }, []);
 
-  // Update user
-  // Update updateUser
   const updateUser = async () => {
     try {
       const response = await fetch(`/api/admin/users/${editingUser?.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify(editingUser),
       });
       
@@ -59,20 +55,18 @@ export default function UsersAdmin() {
         const error = await response.json();
         toast.error(error.error || "Failed to update user");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error updating user");
     }
   };
 
-  // Delete user
-  // Update deleteUser
   const deleteUser = async (id: string) => {
     if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
     
     try {
       const response = await fetch(`/api/admin/users/${id}`, {
         method: "DELETE",
-        credentials: 'include'
+        credentials: "include"
       });
       
       if (response.ok) {
@@ -82,7 +76,7 @@ export default function UsersAdmin() {
         const error = await response.json();
         toast.error(error.error || "Failed to delete user");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error deleting user");
     }
   };
@@ -95,7 +89,6 @@ export default function UsersAdmin() {
         <h2 className="text-2xl font-bold">Users Management</h2>
       </div>
 
-      {/* Edit Form */}
       {editingUser && (
         <div className="bg-gray-100 p-6 rounded-lg mb-6">
           <h3 className="text-xl font-semibold mb-4">Edit User</h3>
@@ -133,7 +126,6 @@ export default function UsersAdmin() {
         </div>
       )}
 
-      {/* Users Table */}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
@@ -150,12 +142,12 @@ export default function UsersAdmin() {
               <tr key={user.id} className="border-b">
                 <td className="p-2">{user.email}</td>
                 <td className="p-2">
-                  <span className={`px-2 py-1 rounded text-xs ${user.is_admin ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
-                    {user.is_admin ? 'Admin' : 'User'}
+                  <span className={`px-2 py-1 rounded text-xs ${user.is_admin ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800"}`}>
+                    {user.is_admin ? "Admin" : "User"}
                   </span>
                 </td>
-                <td className="p-2">{format(new Date(user.created_at), 'MMM d, yyyy')}</td>
-                <td className="p-2">{format(new Date(user.updated_at), 'MMM d, yyyy')}</td>
+                <td className="p-2">{format(new Date(user.created_at), "MMM d, yyyy")}</td>
+                <td className="p-2">{format(new Date(user.updated_at), "MMM d, yyyy")}</td>
                 <td className="p-2">
                   <div className="flex space-x-2">
                     <Button 

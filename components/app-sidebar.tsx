@@ -14,15 +14,11 @@ import {
   HelpCircleIcon,
   LayoutDashboardIcon,
   ListIcon,
-  SearchIcon,
   SettingsIcon,
   UsersIcon,
 } from "lucide-react"
 
-import { NavDocuments } from "@/components/nav-documents"
-import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
-// import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
   SidebarContent,
@@ -32,7 +28,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { UserButton } from "@clerk/nextjs"
 import { useTheme } from "next-themes"
 import Image from "next/image"
 import { UserMenu } from "./user-menu"

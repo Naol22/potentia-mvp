@@ -61,70 +61,64 @@ export default function OrdersAdmin() {
   const [isCreating, setIsCreating] = useState(false);
   const [selectedPlanType, setSelectedPlanType] = useState<string | null>(null);
 
-  // Fetch orders and related data
-  // Update fetchOrders
   const fetchOrders = async () => {
     try {
       const response = await fetch("/api/admin/orders", {
-        credentials: 'include'
+        credentials: "include"
       });
       const data = await response.json();
       setOrders(data);
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch orders");
     } finally {
       setLoading(false);
     }
   };
 
-  // Update fetchUsers
   const fetchUsers = async () => {
     try {
       const response = await fetch("/api/admin/users", {
-        credentials: 'include'
+        credentials: "include"
       });
       const data = await response.json();
       setUsers(data);
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch users");
     }
   };
 
-  // Update fetchPlans
   const fetchPlans = async () => {
     try {
       const response = await fetch("/api/admin/plans", {
-        credentials: 'include'
+        credentials: "include"
       });
       const data = await response.json();
       setPlans(data);
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch plans");
     }
   };
 
-  // Update fetchFacilities
   const fetchFacilities = async () => {
     try {
       const response = await fetch("/api/admin/facilities", {
-        credentials: 'include'
+        credentials: "include"
       });
       const data = await response.json();
       setFacilities(data);
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch facilities");
     }
   };
 
-  // Update fetchMiners
   const fetchMiners = async () => {
     try {
       const response = await fetch("/api/admin/miners", {
-        credentials: 'include'
+        credentials: "include"
       });
       const data = await response.json();
       setMiners(data);
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch miners");
     }
   };
@@ -137,14 +131,12 @@ export default function OrdersAdmin() {
     fetchMiners();
   }, []);
 
-  // Handle plan type change
   const handlePlanTypeChange = (planId: string) => {
     const selectedPlan = plans.find(plan => plan.id === planId);
     if (selectedPlan) {
       setSelectedPlanType(selectedPlan.type);
       
-      // Reset facility or miner based on plan type
-      if (selectedPlan.type === 'hosting') {
+      if (selectedPlan.type === "hosting") {
         setNewOrder({
           ...newOrder,
           plan_id: planId,
@@ -165,8 +157,7 @@ export default function OrdersAdmin() {
     if (selectedPlan && editingOrder) {
       setSelectedPlanType(selectedPlan.type);
       
-      // Reset facility or miner based on plan type
-      if (selectedPlan.type === 'hosting') {
+      if (selectedPlan.type === "hosting") {
         setEditingOrder({
           ...editingOrder,
           plan_id: planId,
@@ -182,7 +173,6 @@ export default function OrdersAdmin() {
     }
   };
 
-  // Create order
   const createOrder = async () => {
     try {
       if (!newOrder.user_id || !newOrder.plan_id || !newOrder.btc_address) {
@@ -190,14 +180,13 @@ export default function OrdersAdmin() {
         return;
       }
 
-      // Validate based on plan type
       const selectedPlan = plans.find(plan => plan.id === newOrder.plan_id);
-      if (selectedPlan?.type === 'hosting' && !newOrder.facility_id) {
+      if (selectedPlan?.type === "hosting" && !newOrder.facility_id) {
         toast.error("Facility is required for hosting plans");
         return;
       }
       
-      if (selectedPlan?.type === 'hashrate' && !newOrder.miner_id) {
+      if (selectedPlan?.type === "hashrate" && !newOrder.miner_id) {
         toast.error("Miner is required for hashrate plans");
         return;
       }
@@ -205,6 +194,7 @@ export default function OrdersAdmin() {
       const response = await fetch("/api/admin/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(newOrder),
       });
       
@@ -221,12 +211,11 @@ export default function OrdersAdmin() {
         const error = await response.json();
         toast.error(error.error || "Failed to create order");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error creating order");
     }
   };
 
-  // Update order
   const updateOrder = async () => {
     try {
       if (!editingOrder?.user_id || !editingOrder?.plan_id || !editingOrder?.btc_address) {
@@ -234,14 +223,13 @@ export default function OrdersAdmin() {
         return;
       }
 
-      // Validate based on plan type
       const selectedPlan = plans.find(plan => plan.id === editingOrder.plan_id);
-      if (selectedPlan?.type === 'hosting' && !editingOrder.facility_id) {
+      if (selectedPlan?.type === "hosting" && !editingOrder.facility_id) {
         toast.error("Facility is required for hosting plans");
         return;
       }
       
-      if (selectedPlan?.type === 'hashrate' && !editingOrder.miner_id) {
+      if (selectedPlan?.type === "hashrate" && !editingOrder.miner_id) {
         toast.error("Miner is required for hashrate plans");
         return;
       }
@@ -249,6 +237,7 @@ export default function OrdersAdmin() {
       const response = await fetch(`/api/admin/orders/${editingOrder.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(editingOrder),
       });
       
@@ -261,19 +250,18 @@ export default function OrdersAdmin() {
         const error = await response.json();
         toast.error(error.error || "Failed to update order");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error updating order");
     }
   };
 
-  // Delete order
   const deleteOrder = async (id: string) => {
     if (!confirm("Are you sure you want to delete this order? This action cannot be undone.")) return;
     
     try {
       const response = await fetch(`/api/admin/orders/${id}`, {
         method: "DELETE",
-        credentials: 'include'
+        credentials: "include"
       });
       
       if (response.ok) {
@@ -283,7 +271,7 @@ export default function OrdersAdmin() {
         const error = await response.json();
         toast.error(error.error || "Failed to delete order");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error deleting order");
     }
   };
@@ -297,7 +285,6 @@ export default function OrdersAdmin() {
         <Button onClick={() => setIsCreating(true)}>Add Order</Button>
       </div>
 
-      {/* Create Form */}
       {isCreating && (
         <div className="bg-gray-100 p-6 rounded-lg mb-6">
           <h3 className="text-xl font-semibold mb-4">Add New Order</h3>
@@ -340,7 +327,7 @@ export default function OrdersAdmin() {
               </Select>
             </div>
             
-            {selectedPlanType === 'hosting' && (
+            {selectedPlanType === "hosting" && (
               <div>
                 <Label htmlFor="facility_id">Facility</Label>
                 <Select 
@@ -361,7 +348,7 @@ export default function OrdersAdmin() {
               </div>
             )}
             
-            {selectedPlanType === 'hashrate' && (
+            {selectedPlanType === "hashrate" && (
               <div>
                 <Label htmlFor="miner_id">Miner</Label>
                 <Select 
@@ -438,7 +425,6 @@ export default function OrdersAdmin() {
         </div>
       )}
 
-      {/* Edit Form */}
       {editingOrder && (
         <div className="bg-gray-100 p-6 rounded-lg mb-6">
           <h3 className="text-xl font-semibold mb-4">Edit Order</h3>
@@ -481,7 +467,7 @@ export default function OrdersAdmin() {
               </Select>
             </div>
             
-            {(selectedPlanType === 'hosting' || editingOrder.facilities) && (
+            {(selectedPlanType === "hosting" || editingOrder.facilities) && (
               <div>
                 <Label htmlFor="edit_facility_id">Facility</Label>
                 <Select 
@@ -502,7 +488,7 @@ export default function OrdersAdmin() {
               </div>
             )}
             
-            {(selectedPlanType === 'hashrate' || editingOrder.miners) && (
+            {(selectedPlanType === "hashrate" || editingOrder.miners) && (
               <div>
                 <Label htmlFor="edit_miner_id">Miner</Label>
                 <Select 
@@ -573,7 +559,6 @@ export default function OrdersAdmin() {
         </div>
       )}
 
-      {/* Orders Table */}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
@@ -602,14 +587,14 @@ export default function OrdersAdmin() {
                 </td>
                 <td className="p-2">
                   <span className={`px-2 py-1 rounded text-xs ${
-                    order.status === 'completed' ? 'bg-green-100 text-green-800' : 
-                    order.status === 'failed' ? 'bg-red-100 text-red-800' : 
-                    'bg-yellow-100 text-yellow-800'
+                    order.status === "completed" ? "bg-green-100 text-green-800" : 
+                    order.status === "failed" ? "bg-red-100 text-red-800" : 
+                    "bg-yellow-100 text-yellow-800"
                   }`}>
                     {order.status}
                   </span>
                 </td>
-                <td className="p-2">{format(new Date(order.created_at), 'MMM d, yyyy')}</td>
+                <td className="p-2">{format(new Date(order.created_at), "MMM d, yyyy")}</td>
                 <td className="p-2">
                   <div className="flex space-x-2">
                     <Button 

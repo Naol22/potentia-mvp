@@ -1,119 +1,17 @@
 'use client';
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight, Globe, DollarSign, Box, Wrench, Power, Cpu, Gauge, Lightbulb, Camera, Video } from 'lucide-react';
-import { Span } from 'next/dist/trace';
 import FlatMap3D from './FlatMap3D';
-import { IconAugmentedReality } from '@tabler/icons-react';
 
-// Facility data
-const facilities = [
-  {
-    name: 'Ethiopia',
-    image: '/ethio.jpg',
-    hostingInfo: {
-      price: '4.0ct / kWh',
-      minOrder: '1 piece',
-      setupFee: '$150',
-    },
-    generalInfo: {
-      source: 'Hydro Power',
-      minerType: 'ASIC Miner',
-      capacity: '30 MW',
-      innovation: 'Heat Recovery System',
-      surveillance: '24/7',
-      uptime: '99.9%',
-      ecoFriendly: true,
-    },
-  },
-  {
-    name: 'Dubai',
-    image: '/ethio.jpg',
-    hostingInfo: {
-      price: '8.0ct / kWh',
-      minOrder: '2 pieces',
-      setupFee: '$50',
-    },
-    generalInfo: {
-      source: 'Solar/Grid',
-      minerType: 'ASIC Miner',
-      capacity: '15 MW',
-      innovation: 'Smart Grid Integration',
-      surveillance: '24/7',
-      uptime: '99.8%',
-      ecoFriendly: true,
-    },
-  },
-  {
-    name: 'Texas, Fort Worth',
-    image: '/Texas.jpg',
-    hostingInfo: {
-      price: '7.8ct / kWh',
-      minOrder: '1 piece',
-      setupFee: '$1050',
-    },
-    generalInfo: {
-      source: 'Mains Power',
-      minerType: 'Warehouse Miner',
-      capacity: '25 MW',
-      innovation: 'Advanced Cooling',
-      surveillance: '24/7',
-      uptime: '99.7%',
-      ecoFriendly: true,
-    },
-  },
-  {
-    name: 'Paraguay, Villarica',
-    image: '/para.jpg',
-    hostingInfo: { price: '7.8ct / kWh', minOrder: '1 piece', setupFee: '$50' },
-    generalInfo: {
-      source: 'Hydro Power',
-      minerType: 'Warehouse Miner',
-      capacity: '10 MW',
-      innovation: 'Smart Grid Integration',
-      surveillance: '24/7',
-      uptime: '99.9%',
-      ecoFriendly: true,
-    },
-  },
-  {
-    name: 'Georgia, Tbilisi',
-    image: '/geo.jpg',
-    hostingInfo: { price: '10.5ct / kWh', minOrder: '1 piece', setupFee: '-' },
-    generalInfo: {
-      source: 'Hydro Power',
-      minerType: 'Warehouse/Container',
-      capacity: '5 MW',
-      innovation: 'Modular Design',
-      surveillance: '24/7',
-      uptime: '99.6%',
-      ecoFriendly: true,
-    },
-  },
-  {
-    name: 'Finland, Heat Recovery',
-    image: '/ethio.jpg',
-    hostingInfo: { price: '8.0ct / kWh', minOrder: '1 piece', setupFee: '-' },
-    generalInfo: {
-      source: 'Mixed',
-      minerType: 'Hydro Miner',
-      capacity: '10 MW',
-      innovation: 'District Heating Integration',
-      surveillance: '24/7',
-      uptime: '99.8%',
-      ecoFriendly: true,
-    },
-  },
-];
+
 
 // Icons
-const EcoBadge = () => (
-  <span className="inline-block bg-green-500 text-white text-center text-xs px-2 py-1 rounded-full my-3 w-24">
-    Eco-Friendly
-  </span>
-);
+// const EcoBadge = () => (
+//   <span className="inline-block bg-green-500 text-white text-center text-xs px-2 py-1 rounded-full my-3 w-24">
+//     Eco-Friendly
+//   </span>
+// );
 
 const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
   <svg
@@ -133,14 +31,13 @@ const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
 );
 
 const HostingTab = () => {
-  const [selectedFacility, setSelectedFacility] = useState<string | null>(null);
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  // Add these two state variables for the tour modal
+  // const scrollRef = useRef<HTMLDivElement>(null);
   const [showTourModal, setShowTourModal] = useState(false);
   const [currentTourId, setCurrentTourId] = useState<string | null>(null);
 
   // Add this function to open the virtual tour
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const openVirtualTour = (facilityName: string) => {
     // Map facility names to tour IDs
     const tourMapping: Record<string, string> = {
@@ -169,38 +66,38 @@ const HostingTab = () => {
     setOpenFAQ(openFAQ === index ? null : index);
   };
 
-  const scrollLeft = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: -300, behavior: 'smooth' });
-    }
-  };
+  // const scrollLeft = () => {
+  //   if (scrollRef.current) {
+  //     scrollRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+  //   }
+  // };
 
-  const scrollRight = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
-    }
-  };
+  // const scrollRight = () => {
+  //   if (scrollRef.current) {
+  //     scrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+  //   }
+  // };
 
   const faqs = [
     {
       question: 'What is cloud mining and how does it work?',
       answer:
-        'Cloud mining lets you mine cryptocurrencies like Bitcoin without managing hardware. At Potentia, you rent hash power from our advanced data centers, where we handle setup, maintenance, and power. Rewards are based on your hash rate and network difficulty, paid directly to your wallet. It’s simple and ideal for all experience levels.',
+        'Cloud mining lets you mine cryptocurrencies like Bitcoin without managing hardware. At Potentia, you rent hash power from our advanced data centers, where we handle setup, maintenance, and power. Rewards are based on your hash rate and network difficulty, paid directly to your wallet. It&apos;s simple and ideal for all experience levels.',
     },
     {
       question: 'How do I choose the best facility for my needs?',
       answer:
-        'Pick a facility based on electricity cost, capacity, or location benefits. Ethiopia offers 4.0ct/kWh with hydro power, great for savings. Dubai uses solar/grid with smart tech for reliability. Texas supports larger operations with 25 MW capacity. Check each facility’s price, setup fees, and power source via the "View Facility" button to match your mining goals.',
+        'Pick a facility based on electricity cost, capacity, or location benefits. Ethiopia offers 4.0ct/kWh with hydro power, great for savings. Dubai uses solar/grid with smart tech for reliability. Texas supports larger operations with 25 MW capacity. Check each facility&apos;s price, setup fees, and power source via the "View Facility" button to match your mining goals.',
     },
     {
       question: 'What are the payment options and refund policies?',
       answer:
-        'We accept Bitcoin, Ethereum, Litecoin, credit/debit cards (Visa, MasterCard, Amex) via Stripe, and bank transfers. Crypto and card payments are instant; bank transfers may take longer. Refunds are available within 7 days if mining hasn’t started, with a 5% fee. Reach our 24/7 support for payment or refund help.',
+        'We accept Bitcoin, Ethereum, Litecoin, credit/debit cards (Visa, MasterCard, Amex) via Stripe, and bank transfers. Crypto and card payments are instant; bank transfers may take longer. Refunds are available within 7 days if mining hasn&apos;t started, with a 5% fee. Reach our 24/7 support for payment or refund help.',
     },
     {
       question: 'How profitable is cloud mining with Potentia?',
       answer:
-        'Profits vary by hash rate, plan, facility, and market conditions. Our low-cost facilities maximize returns. We’re adding a profitability calculator soon to help estimate earnings.',
+        'Profits vary by hash rate, plan, facility, and market conditions. Our low-cost facilities maximize returns. We&apos;re adding a profitability calculator soon to help estimate earnings.',
     },
     {
       question: 'How secure are your hosting facilities?',
@@ -395,12 +292,12 @@ const HostingTab = () => {
               Why Choose Our Hosting Services?
             </h2>
             <p className="text-white leading-relaxed mb-6">
-              Potentia’s hosting services make cryptocurrency mining accessible
+              Potentia&apos;s hosting services make cryptocurrency mining accessible
               and efficient. We manage state-of-the-art facilities worldwide,
               handling hardware, power, and maintenance so you can focus on
               earning rewards. Our data centers in Ethiopia, Dubai, Texas, and
               more offer low electricity rates, advanced cooling, and 24/7
-              security. Whether you’re new or experienced, our scalable solutions
+              security. Whether you&apos;re new or experienced, our scalable solutions
               maximize profits with minimal hassle.
             </p>
             <div className="grid md:grid-cols-3 gap-6">

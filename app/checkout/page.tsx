@@ -331,7 +331,7 @@ export default function CheckoutPage() {
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAutoRenew(e.target.checked)}
                       className="mr-2 bg-black text-white border-neutral-700 focus:ring-white/20"
                     />
-                    Enable Auto-Renewal (Monthly)
+                    {/* Enable Auto-Renewal (Monthly) */}
                   </label>
                   <div className="group relative">
                     <InfoIcon className="h-4 w-4 text-gray-400 cursor-pointer" />

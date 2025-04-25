@@ -5,8 +5,8 @@ import { MapContainer, TileLayer, GeoJSON, Marker, Popup, useMap } from "react-l
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import countriesGeoJSON from "../public/custom.geo.json";
-import emailjs from "@emailjs/browser";
-import { ChevronLeft, ChevronRight, Globe, DollarSign, Box, Wrench, Power, Cpu, Gauge, Lightbulb, Camera, Video, Minus, Plus } from 'lucide-react';
+// import emailjs from "@emailjs/browser";
+import { ChevronRight, Globe, Box, Power, Cpu, Gauge, Lightbulb, Camera, Minus, Plus } from 'lucide-react';
 import { motion } from 'framer-motion'; // <-- Add this import
 import Link from "next/link";
 
@@ -30,17 +30,17 @@ interface MiningDataByCountry {
   };
 }
 
-interface FormData {
-  name: string;
-  email: string;
-  message: string;
-}
+// interface FormData {
+//   name: string;
+//   email: string;
+//   message: string;
+// }
 
-interface FormStatus {
-  isSubmitting: boolean;
-  isSuccess: boolean;
-  error: string | null;
-}
+// interface FormStatus {
+//   isSubmitting: boolean;
+//   isSuccess: boolean;
+//   error: string | null;
+// }
 
 // Component to access the map instance
 const MapController = ({ setMap }: { setMap: (map: L.Map) => void }) => {
@@ -52,17 +52,18 @@ const MapController = ({ setMap }: { setMap: (map: L.Map) => void }) => {
 }
 
 const MapboxMap: React.FC = () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedLocation, setSelectedLocation] = useState<MiningLocation | null>(null);
-  const [formData, setFormData] = useState<FormData>({
-    name: "",
-    email: "",
-    message: "",
-  });
-  const [formStatus, setFormStatus] = useState<FormStatus>({
-    isSubmitting: false,
-    isSuccess: false,
-    error: null,
-  });
+  // const [formData, setFormData] = useState<FormData>({
+  //   name: "",
+  //   email: "",
+  //   message: "",
+  // });
+  // const [setFormStatus] = useState<FormStatus>({
+  //   isSubmitting: false,
+  //   isSuccess: false,
+  //   error: null,
+  // });
   const [map, setMap] = useState<L.Map | null>(null);
 
   // Store marker references
@@ -283,45 +284,45 @@ const MapboxMap: React.FC = () => {
     iconSize: [24, 24],
   });
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ): void => {
-    const { id, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
-  };
+  // const handleInputChange = (
+  //   e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  // ): void => {
+  //   const { id, value } = e.target;
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     [id]: value,
+  //   }));
+  // };
 
-  const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
-  ): Promise<void> => {
-    e.preventDefault();
-    setFormStatus({ isSubmitting: true, isSuccess: false, error: null });
-    try {
-      await emailjs.send(
-        "service_v56md1p",
-        "template_udglllb",
-        {
-          from_name: formData.name,
-          from_email: formData.email,
-          message: formData.message,
-          location_name: selectedLocation?.name || "Not specified",
-          location_country: selectedLocation?.country || "Not specified",
-          location_region: selectedLocation?.region || "Not specified",
-        },
-        "byVNdgtC-5hoSDIl_"
-      );
-      setFormStatus({ isSubmitting: false, isSuccess: true, error: null });
-      setFormData({ name: "", email: "", message: "" });
-    } catch {
-      setFormStatus({
-        isSubmitting: false,
-        isSuccess: false,
-        error: "Failed to send message. Please try again.",
-      });
-    }
-  };
+  // const handleSubmit = async (
+  //   e: React.FormEvent<HTMLFormElement>
+  // ): Promise<void> => {
+  //   e.preventDefault();
+  //   setFormStatus({ isSubmitting: true, isSuccess: false, error: null });
+  //   try {
+  //     await emailjs.send(
+  //       "service_v56md1p",
+  //       "template_udglllb",
+  //       {
+  //         from_name: formData.name,
+  //         from_email: formData.email,
+  //         message: formData.message,
+  //         location_name: selectedLocation?.name || "Not specified",
+  //         location_country: selectedLocation?.country || "Not specified",
+  //         location_region: selectedLocation?.region || "Not specified",
+  //       },
+  //       "byVNdgtC-5hoSDIl_"
+  //     );
+  //     setFormStatus({ isSubmitting: false, isSuccess: true, error: null });
+  //     setFormData({ name: "", email: "", message: "" });
+  //   } catch {
+  //     setFormStatus({
+  //       isSubmitting: false,
+  //       isSuccess: false,
+  //       error: "Failed to send message. Please try again.",
+  //     });
+  //   }
+  // };
 
   return (
     <motion.div
@@ -367,7 +368,7 @@ const MapboxMap: React.FC = () => {
             acc[key].locations += 1;
             return acc;
           }, {} as MiningDataByCountry)
-        ).map(([country, data]) => (
+        ).map(([country]) => (
           <div
             key={country}
             className="mb-4 p-4 rounded-xl backdrop-blur-md bg-black hover:bg-gray-800 transition-all duration-300 border border-gray-700 cursor-pointer relative"

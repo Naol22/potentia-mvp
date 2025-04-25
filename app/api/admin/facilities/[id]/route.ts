@@ -1,28 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { supabase } from "@/utils/supaBaseClient";
+import { getAuth } from "@clerk/nextjs/server";
 
-interface SessionClaims {
-  role?: string;
-  [key: string]: unknown; 
+interface Facility {
+  id: string;
+  name: string;
+  location: string;
+  capacity: number;
+  electricity_cost: number;
+  created_at: string;
 }
 
-async function isAdmin(userId: string | null): Promise<boolean> {
-  if (!userId) return false;
-
-  const { sessionClaims } = await auth();
-  const userRole = sessionClaims ? (sessionClaims as SessionClaims).role : undefined;
-  return userRole === "admin";
+async function isAdmin(userId: string) {
+  const { data: user, error } = await supabase
+    .from("users")
+    .select("is_admin")
+    .eq("id", userId)
+    .single();
+  if (error) {
+    throw new Error(error.message);
+  }
+  return user?.is_admin ?? false;
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-): Promise<NextResponse> {
-  const { userId } = await auth();
-
-  if (!(await isAdmin(userId))) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const { userId } = getAuth(request);
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const isAdminUser = await isAdmin(userId);
+  if (!isAdminUser) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { data, error } = await supabase
@@ -34,55 +43,61 @@ export async function GET(
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+  if (!data) {
+    return NextResponse.json({ error: "Facility not found" }, { status: 404 });
+  }
 
-  return NextResponse.json(data);
+  return NextResponse.json(data as Facility);
 }
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-): Promise<NextResponse> {
-  const { userId } = await auth();
-
-  if (!(await isAdmin(userId))) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+  const { userId } = getAuth(request);
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  try {
-    const facilityData = await req.json();
-
-    const { data, error } = await supabase
-      .from("facilities")
-      .update(facilityData)
-      .eq("id", params.id)
-      .select()
-      .single();
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json(data);
-  } catch {
-    return NextResponse.json({ error: "Invalid request data" }, { status: 400 });
+  const isAdminUser = await isAdmin(userId);
+  if (!isAdminUser) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+
+  const body = await request.json();
+  const { data, error } = await supabase
+    .from("facilities")
+    .update(body)
+    .eq("id", params.id)
+    .select()
+    .single();
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  if (!data) {
+    return NextResponse.json({ error: "Facility not found" }, { status: 404 });
+  }
+
+  return NextResponse.json(data as Facility);
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-): Promise<NextResponse> {
-  const { userId } = await auth();
-
-  if (!(await isAdmin(userId))) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  const { userId } = getAuth(request);
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { error } = await supabase.from("facilities").delete().eq("id", params.id);
+  const isAdminUser = await isAdmin(userId);
+  if (!isAdminUser) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { error } = await supabase
+    .from("facilities")
+    .delete()
+    .eq("id", params.id);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ message: "Facility deleted successfully" });
 }

@@ -52,8 +52,8 @@ export async function POST(request: Request) {
         plan_id: planId,
         amount: plan.price,
         status: "pending",
-        type: 'one-time', 
-        description: `Payment for ${plan.type} plan - ${plan.hashrate} TH/s`,
+        type: 'subscription', // Changed from 'one-time' to 'subscription'
+        description: `Subscription for ${plan.type} plan - ${plan.hashrate} TH/s`,
       })
       .select()
       .single();
@@ -75,6 +75,9 @@ export async function POST(request: Request) {
         {
           price_data: {
             currency: "usd",
+            recurring: {
+              interval: 'month', // Add recurring payment configuration
+            },
             product_data: {
               name: `${
                 plan.type === "hashrate" ? "Hashrate" : "Hosting"
@@ -86,7 +89,7 @@ export async function POST(request: Request) {
           quantity: 1,
         },
       ],
-      mode: "payment",
+      mode: "subscription", // Changed from "payment" to "subscription"
       success_url: `${request.headers.get(
         "origin"
       )}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,

@@ -6,8 +6,31 @@ import { TransactionsTable } from "@/components/transactions-table"
 import { SectionCards } from "@/components/section-cards"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import SubscriptionManager from "@/components/dashboard/SubscriptionManager"
+import { useState, useEffect } from "react"
 
 export default function Page() {
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchSubscriptions() {
+      try {
+        const response = await fetch('/api/subscriptions');
+        if (response.ok) {
+          const data = await response.json();
+          setSubscriptions(data.subscriptions || []);
+        }
+      } catch (error) {
+        console.error('Error fetching subscriptions:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchSubscriptions();
+  }, []);
+
   return (
     <SidebarProvider>
       <AppSidebar variant="inset" />
@@ -22,6 +45,12 @@ export default function Page() {
               </div>
               <div className="px-4 lg:px-6">
                 <TransactionsTable />
+              </div>
+              
+              {/* Subscription Management Section */}
+              <div className="px-4 lg:px-6 mt-4">
+                <h2 className="text-2xl font-bold mb-4">Subscription Management</h2>
+                <SubscriptionManager subscriptions={subscriptions} />
               </div>
             </div>
           </div>

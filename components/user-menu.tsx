@@ -2,8 +2,6 @@
 
 import { useClerk, useUser } from "@clerk/nextjs"
 import {
-  BellIcon,
-  CreditCardIcon,
   LogOutIcon,
   SettingsIcon,
   UserCircleIcon,

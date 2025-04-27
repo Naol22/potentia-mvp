@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { 
   Table, TableBody, TableCaption, TableCell, 
   TableHead, TableHeader, TableRow 
@@ -7,12 +7,27 @@ import {
 import { Button } from "@/components/ui/button";
 import { 
   Dialog, DialogContent, DialogDescription, 
-  DialogHeader, DialogTitle, DialogTrigger, DialogFooter 
+  DialogHeader, DialogTitle, DialogFooter 
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+
+interface User {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+}
+
+interface Plan {
+  id: string;
+  type: string;
+  hashrate: number;
+  price: number;
+  duration: string;
+}
 
 interface Transaction {
   id: string;
@@ -23,19 +38,8 @@ interface Transaction {
   description: string;
   stripe_payment_id: string;
   created_at: string;
-  users?: {
-    id: string;
-    first_name: string;
-    last_name: string;
-    email: string;
-  };
-  plans?: {
-    id: string;
-    type: string;
-    hashrate: number;
-    price: number;
-    duration: string;
-  };
+  users?: User;
+  plans?: Plan;
 }
 
 export default function TransactionsAdmin() {
@@ -44,45 +48,42 @@ export default function TransactionsAdmin() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [currentTransaction, setCurrentTransaction] = useState<Transaction | null>(null);
-  const [users, setUsers] = useState<any[]>([]);
-  const [plans, setPlans] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [plans, setPlans] = useState<Plan[]>([]);
 
-  // Update fetchTransactions
   const fetchTransactions = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/transactions', {
-        credentials: 'include'
+      const response = await fetch("/api/admin/transactions", {
+        credentials: "include"
       });
-      if (!response.ok) throw new Error('Failed to fetch transactions');
-      const data = await response.json();
+      if (!response.ok) throw new Error("Failed to fetch transactions");
+      const data: Transaction[] = await response.json();
       setTransactions(data);
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
+    } catch {
       toast.error("Failed to load transactions");
     } finally {
       setLoading(false);
     }
   };
 
-  // Update fetchRelatedData
   const fetchRelatedData = async () => {
     try {
       const [usersResponse, plansResponse] = await Promise.all([
-        fetch('/api/admin/users', { credentials: 'include' }),
-        fetch('/api/admin/plans', { credentials: 'include' })
+        fetch("/api/admin/users", { credentials: "include" }),
+        fetch("/api/admin/plans", { credentials: "include" })
       ]);
       
       if (!usersResponse.ok || !plansResponse.ok) 
-        throw new Error('Failed to fetch related data');
+        throw new Error("Failed to fetch related data");
       
-      const usersData = await usersResponse.json();
-      const plansData = await plansResponse.json();
+      const usersData: User[] = await usersResponse.json();
+      const plansData: Plan[] = await plansResponse.json();
       
       setUsers(usersData);
       setPlans(plansData);
-    } catch (error) {
-      console.error('Error fetching related data:', error);
+    } catch {
+      toast.error("Failed to fetch related data");
     }
   };
 
@@ -98,33 +99,32 @@ export default function TransactionsAdmin() {
 
   const handleCreate = () => {
     setCurrentTransaction({
-      id: '',
-      user_id: '',
-      plan_id: '',
+      id: "",
+      user_id: "",
+      plan_id: "",
       amount: 0,
-      status: 'pending',
-      description: '',
-      stripe_payment_id: '',
+      status: "pending",
+      description: "",
+      stripe_payment_id: "",
       created_at: new Date().toISOString(),
     });
     setIsCreateDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this transaction?')) return;
+    if (!confirm("Are you sure you want to delete this transaction?")) return;
     
     try {
       const response = await fetch(`/api/admin/transactions/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
+        credentials: "include"
       });
       
-      if (!response.ok) throw new Error('Failed to delete transaction');
+      if (!response.ok) throw new Error("Failed to delete transaction");
       
       toast.success("Transaction deleted successfully");
-      
       fetchTransactions();
-    } catch (error) {
-      console.error('Error deleting transaction:', error);
+    } catch {
       toast.error("Failed to delete transaction");
     }
   };
@@ -135,22 +135,20 @@ export default function TransactionsAdmin() {
     
     try {
       const response = await fetch(`/api/admin/transactions/${currentTransaction.id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify(currentTransaction),
       });
       
-      if (!response.ok) throw new Error('Failed to update transaction');
+      if (!response.ok) throw new Error("Failed to update transaction");
       
       toast.success("Transaction updated successfully");
-      
       setIsEditDialogOpen(false);
       fetchTransactions();
-    } catch (error) {
-      console.error('Error updating transaction:', error);
+    } catch {
       toast.error("Failed to update transaction");
     }
   };
@@ -160,23 +158,21 @@ export default function TransactionsAdmin() {
     if (!currentTransaction) return;
     
     try {
-      const response = await fetch('/api/admin/transactions', {
-        method: 'POST',
+      const response = await fetch("/api/admin/transactions", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify(currentTransaction),
       });
       
-      if (!response.ok) throw new Error('Failed to create transaction');
+      if (!response.ok) throw new Error("Failed to create transaction");
       
       toast.success("Transaction created successfully");
-      
       setIsCreateDialogOpen(false);
       fetchTransactions();
-    } catch (error) {
-      console.error('Error creating transaction:', error);
+    } catch {
       toast.error("Failed to create transaction");
     }
   };
@@ -187,7 +183,7 @@ export default function TransactionsAdmin() {
     const { name, value } = e.target;
     setCurrentTransaction({
       ...currentTransaction,
-      [name]: name === 'amount' ? parseFloat(value) : value,
+      [name]: name === "amount" ? parseFloat(value) : value,
     });
   };
 
@@ -226,14 +222,14 @@ export default function TransactionsAdmin() {
           {transactions.map((transaction) => (
             <TableRow key={transaction.id}>
               <TableCell className="font-medium">{transaction.id.substring(0, 8)}...</TableCell>
-              <TableCell>{transaction.users?.email || 'N/A'}</TableCell>
+              <TableCell>{transaction.users?.email || "N/A"}</TableCell>
               <TableCell>{transaction.plans?.type} - {transaction.plans?.hashrate}TH/s</TableCell>
-              <TableCell>${transaction.amount}</TableCell>
+              <TableCell>${transaction.amount.toFixed(2)}</TableCell>
               <TableCell>
                 <span className={`px-2 py-1 rounded-full text-xs ${
-                  transaction.status === 'completed' ? 'bg-green-100 text-green-800' :
-                  transaction.status === 'failed' ? 'bg-red-100 text-red-800' :
-                  'bg-yellow-100 text-yellow-800'
+                  transaction.status === "completed" ? "bg-green-100 text-green-800" :
+                  transaction.status === "failed" ? "bg-red-100 text-red-800" :
+                  "bg-yellow-100 text-yellow-800"
                 }`}>
                   {transaction.status}
                 </span>
@@ -250,7 +246,6 @@ export default function TransactionsAdmin() {
         </TableBody>
       </Table>
 
-      {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -266,7 +261,7 @@ export default function TransactionsAdmin() {
                 <Label htmlFor="user_id" className="text-right">User</Label>
                 <Select 
                   value={currentTransaction?.user_id} 
-                  onValueChange={(value) => handleSelectChange('user_id', value)}
+                  onValueChange={(value) => handleSelectChange("user_id", value)}
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select User" />
@@ -285,7 +280,7 @@ export default function TransactionsAdmin() {
                 <Label htmlFor="plan_id" className="text-right">Plan</Label>
                 <Select 
                   value={currentTransaction?.plan_id} 
-                  onValueChange={(value) => handleSelectChange('plan_id', value)}
+                  onValueChange={(value) => handleSelectChange("plan_id", value)}
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select Plan" />
@@ -317,7 +312,7 @@ export default function TransactionsAdmin() {
                 <Label htmlFor="status" className="text-right">Status</Label>
                 <Select 
                   value={currentTransaction?.status} 
-                  onValueChange={(value) => handleSelectChange('status', value)}
+                  onValueChange={(value) => handleSelectChange("status", value)}
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select Status" />
@@ -335,7 +330,7 @@ export default function TransactionsAdmin() {
                 <Input
                   id="description"
                   name="description"
-                  value={currentTransaction?.description || ''}
+                  value={currentTransaction?.description || ""}
                   onChange={handleInputChange}
                   className="col-span-3"
                 />
@@ -346,7 +341,7 @@ export default function TransactionsAdmin() {
                 <Input
                   id="stripe_payment_id"
                   name="stripe_payment_id"
-                  value={currentTransaction?.stripe_payment_id || ''}
+                  value={currentTransaction?.stripe_payment_id || ""}
                   onChange={handleInputChange}
                   className="col-span-3"
                 />
@@ -360,7 +355,6 @@ export default function TransactionsAdmin() {
         </DialogContent>
       </Dialog>
 
-      {/* Create Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -376,7 +370,7 @@ export default function TransactionsAdmin() {
                 <Label htmlFor="user_id" className="text-right">User</Label>
                 <Select 
                   value={currentTransaction?.user_id} 
-                  onValueChange={(value) => handleSelectChange('user_id', value)}
+                  onValueChange={(value) => handleSelectChange("user_id", value)}
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select User" />
@@ -395,7 +389,7 @@ export default function TransactionsAdmin() {
                 <Label htmlFor="plan_id" className="text-right">Plan</Label>
                 <Select 
                   value={currentTransaction?.plan_id} 
-                  onValueChange={(value) => handleSelectChange('plan_id', value)}
+                  onValueChange={(value) => handleSelectChange("plan_id", value)}
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select Plan" />
@@ -428,7 +422,7 @@ export default function TransactionsAdmin() {
                 <Label htmlFor="status" className="text-right">Status</Label>
                 <Select 
                   value={currentTransaction?.status} 
-                  onValueChange={(value) => handleSelectChange('status', value)}
+                  onValueChange={(value) => handleSelectChange("status", value)}
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select Status" />
@@ -446,7 +440,7 @@ export default function TransactionsAdmin() {
                 <Input
                   id="description"
                   name="description"
-                  value={currentTransaction?.description || ''}
+                  value={currentTransaction?.description || ""}
                   onChange={handleInputChange}
                   className="col-span-3"
                 />
@@ -457,7 +451,7 @@ export default function TransactionsAdmin() {
                 <Input
                   id="stripe_payment_id"
                   name="stripe_payment_id"
-                  value={currentTransaction?.stripe_payment_id || ''}
+                  value={currentTransaction?.stripe_payment_id || ""}
                   onChange={handleInputChange}
                   className="col-span-3"
                 />

@@ -19,16 +19,14 @@ export default function FacilitiesAdmin() {
   const [newFacility, setNewFacility] = useState<Partial<Facility>>({ name: "" });
   const [isCreating, setIsCreating] = useState(false);
 
-  // Fetch facilities
-  // Update fetchFacilities
   const fetchFacilities = async () => {
     try {
       const response = await fetch("/api/admin/facilities", {
-        credentials: 'include'
+        credentials: "include"
       });
       const data = await response.json();
       setFacilities(data);
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch facilities");
     } finally {
       setLoading(false);
@@ -39,7 +37,6 @@ export default function FacilitiesAdmin() {
     fetchFacilities();
   }, []);
 
-  // Create facility
   const createFacility = async () => {
     try {
       if (!newFacility.name) {
@@ -50,7 +47,7 @@ export default function FacilitiesAdmin() {
       const response = await fetch("/api/admin/facilities", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify(newFacility),
       });
       
@@ -63,12 +60,11 @@ export default function FacilitiesAdmin() {
         const error = await response.json();
         toast.error(error.error || "Failed to create facility");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error creating facility");
     }
   };
 
-  // Update facility
   const updateFacility = async () => {
     try {
       if (!editingFacility?.name) {
@@ -79,7 +75,7 @@ export default function FacilitiesAdmin() {
       const response = await fetch(`/api/admin/facilities/${editingFacility.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify(editingFacility),
       });
       
@@ -91,19 +87,18 @@ export default function FacilitiesAdmin() {
         const error = await response.json();
         toast.error(error.error || "Failed to update facility");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error updating facility");
     }
   };
 
-  // Delete facility
   const deleteFacility = async (id: string) => {
     if (!confirm("Are you sure you want to delete this facility? This action cannot be undone.")) return;
     
     try {
       const response = await fetch(`/api/admin/facilities/${id}`, {
         method: "DELETE",
-        credentials: 'include'
+        credentials: "include"
       });
       
       if (response.ok) {
@@ -113,7 +108,7 @@ export default function FacilitiesAdmin() {
         const error = await response.json();
         toast.error(error.error || "Failed to delete facility");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error deleting facility");
     }
   };
@@ -127,7 +122,6 @@ export default function FacilitiesAdmin() {
         <Button onClick={() => setIsCreating(true)}>Add Facility</Button>
       </div>
 
-      {/* Create Form */}
       {isCreating && (
         <div className="bg-gray-100 p-6 rounded-lg mb-6">
           <h3 className="text-xl font-semibold mb-4">Add New Facility</h3>
@@ -157,7 +151,6 @@ export default function FacilitiesAdmin() {
         </div>
       )}
 
-      {/* Edit Form */}
       {editingFacility && (
         <div className="bg-gray-100 p-6 rounded-lg mb-6">
           <h3 className="text-xl font-semibold mb-4">Edit Facility</h3>
@@ -183,7 +176,6 @@ export default function FacilitiesAdmin() {
         </div>
       )}
 
-      {/* Facilities Table */}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
@@ -197,7 +189,7 @@ export default function FacilitiesAdmin() {
             {facilities.map((facility) => (
               <tr key={facility.id} className="border-b">
                 <td className="p-2">{facility.name}</td>
-                <td className="p-2">{format(new Date(facility.created_at), 'MMM d, yyyy')}</td>
+                <td className="p-2">{format(new Date(facility.created_at), "MMM d, yyyy")}</td>
                 <td className="p-2">
                   <div className="flex space-x-2">
                     <Button 

@@ -47,7 +47,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Failed to update transaction' }, { status: 500 });
       }
 
-      const { error: orderError } = await supabase
+      const { error: checkoutOrderError } = await supabase
         .from('orders')
         .insert({
           user_id,
@@ -63,11 +63,10 @@ export async function POST(request: Request) {
           auto_renew: false,
         });
 
-      if (orderError) {
-        console.error('Error creating order:', orderError);
+      if (checkoutOrderError) {
+        console.error('Error creating order:', checkoutOrderError);
         return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
       }
-
       break;
 
     case 'checkout.session.expired':
@@ -82,51 +81,54 @@ export async function POST(request: Request) {
       }
       break;
 
-    // Fix in customer.subscription.deleted handler
+    // In customer.subscription.deleted handler
     case 'customer.subscription.deleted':
       const cancelledSubscription = event.data.object as Stripe.Subscription;
       const subscriptionId = cancelledSubscription.id;
       
-      // Update subscription record
+      // Find the subscription and user data first
       const { data: subscriptionData, error: subscriptionError } = await supabase
+        .from('subscriptions')
+        .select('id, user_id')
+        .eq('provider_subscription_id', subscriptionId)
+        .single();
+        
+      if (subscriptionError || !subscriptionData) {
+        console.error('Error updating subscription:', subscriptionError);
+        break;
+      }
+
+      // Update subscription record
+      const { error: subUpdateError } = await supabase
         .from('subscriptions')
         .update({
           status: 'canceled',
           canceled_at: new Date(),
           updated_at: new Date()
         })
-        .eq('provider_subscription_id', subscriptionId)
-        .select('id');
-        
-      if (subscriptionError) {
-        console.error('Error updating subscription:', subscriptionError);
-      } else if (subscriptionData && subscriptionData.length > 0) {
-        // Also update related orders
-        const { error: orderError } = await supabase
-          .from('orders')
-          .update({
-            status: 'unsubscribed',
-            is_active: false,
-            auto_renew: false
-          })
-          .eq('subscription_id', subscriptionData[0].id);
+        .eq('id', subscriptionData.id);
           
-        if (orderError) {
-          console.error('Error updating order status:', orderError);
-        }
+      if (subUpdateError) {
+        console.error('Error updating subscription:', subUpdateError);
+        break;
+      }
+
+      // Also update related orders
+      const { error: subOrderError } = await supabase
+        .from('orders')
+        .update({
+          status: 'unsubscribed',
+          is_active: false,
+          auto_renew: false
+        })
+        .eq('subscription_id', subscriptionData.id);
         
-        // Log the event for audit purposes
-        await supabase
-          .from('subscription_events')
-          .insert({
-            subscription_id: subscriptionData[0].id,
-            event_type: 'subscription_canceled',
-            data: JSON.stringify(cancelledSubscription)
-          });
+      if (subOrderError) {
+        console.error('Error updating order status:', subOrderError);
       }
       break;
     
-    // Fix in customer.subscription.created handler
+    // In customer.subscription.created handler
     case 'customer.subscription.created':
       const newSubscription = event.data.object as Stripe.Subscription;
       const customerId = newSubscription.customer as string;
@@ -183,19 +185,20 @@ export async function POST(request: Request) {
         .from('subscription_events')
         .insert({
           subscription_id: newSubData.id,
+          user_id: userData.id, // Add user_id
           event_type: 'subscription_created',
           data: JSON.stringify(newSubscription)
         });
       break;
       
-    // Fix in customer.subscription.updated handler
+    // In customer.subscription.updated handler
     case 'customer.subscription.updated':
       const updatedSubscription = event.data.object as Stripe.Subscription;
       
       // Find the subscription first
       const { data: existingSubData, error: findError } = await supabase
         .from('subscriptions')
-        .select('id')
+        .select('id, user_id')
         .eq('provider_subscription_id', updatedSubscription.id)
         .single();
         
@@ -205,7 +208,7 @@ export async function POST(request: Request) {
       }
       
       // Update subscription record
-      const { error: updateError } = await supabase
+      const { error: subscriptionUpdateError } = await supabase
         .from('subscriptions')
         .update({
           status: updatedSubscription.status,
@@ -215,8 +218,8 @@ export async function POST(request: Request) {
         })
         .eq('provider_subscription_id', updatedSubscription.id);
         
-      if (updateError) {
-        console.error('Error updating subscription:', updateError);
+      if (subscriptionUpdateError) {
+        console.error('Error updating subscription:', subscriptionUpdateError);
         break;
       }
       
@@ -225,19 +228,20 @@ export async function POST(request: Request) {
         .from('subscription_events')
         .insert({
           subscription_id: existingSubData.id,
+          user_id: existingSubData.user_id,
           event_type: 'subscription_updated',
           data: JSON.stringify(updatedSubscription)
         });
       break;
       
-    // Fix in customer.subscription.paused handler
+    // In customer.subscription.paused handler
     case 'customer.subscription.paused':
       const pausedSubscription = event.data.object as Stripe.Subscription;
       
       // Find the subscription first
       const { data: pausedSubData, error: pausedFindError } = await supabase
         .from('subscriptions')
-        .select('id')
+        .select('id, user_id')
         .eq('provider_subscription_id', pausedSubscription.id)
         .single();
         
@@ -265,6 +269,7 @@ export async function POST(request: Request) {
         .from('subscription_events')
         .insert({
           subscription_id: pausedSubData.id,
+          user_id: pausedSubData.user_id,
           event_type: 'subscription_paused',
           data: JSON.stringify(pausedSubscription)
         });
@@ -312,6 +317,7 @@ export async function POST(request: Request) {
         .from('subscription_events')
         .insert({
           subscription_id: subData.id,
+          user_id: subData.user_id, // Add user_id
           event_type: 'payment_succeeded',
           data: JSON.stringify(successfulInvoice)
         });
@@ -358,6 +364,7 @@ export async function POST(request: Request) {
         .from('subscription_events')
         .insert({
           subscription_id: failedSubData.id,
+          user_id: failedSubData.user_id, // Add user_id
           event_type: 'payment_failed',
           data: JSON.stringify(failedInvoice)
         });

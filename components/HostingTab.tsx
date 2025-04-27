@@ -6,12 +6,7 @@ import FlatMap3D from './FlatMap3D';
 
 
 
-// Icons
-// const EcoBadge = () => (
-//   <span className="inline-block bg-green-500 text-white text-center text-xs px-2 py-1 rounded-full my-3 w-24">
-//     Eco-Friendly
-//   </span>
-// );
+
 
 const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
   <svg
@@ -66,17 +61,7 @@ const HostingTab = () => {
     setOpenFAQ(openFAQ === index ? null : index);
   };
 
-  // const scrollLeft = () => {
-  //   if (scrollRef.current) {
-  //     scrollRef.current.scrollBy({ left: -300, behavior: 'smooth' });
-  //   }
-  // };
-
-  // const scrollRight = () => {
-  //   if (scrollRef.current) {
-  //     scrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
-  //   }
-  // };
+  
 
   const faqs = [
     {
@@ -185,93 +170,7 @@ const HostingTab = () => {
         transition={{ duration: 1 }}
       >
         <div className="max-w-6xl mx-auto">
-          {/* <motion.div className="relative mb-12">
-            <h2 className="text-2xl font-bold mb-4 text-center text-white">
-              Choose Your Mining Facility
-            </h2>
-            <button
-              onClick={scrollLeft}
-              className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-black/80 border border-neutral-600 text-white rounded-full p-2 hover:bg-neutral-700 transition-all duration-300"
-            >
-              <ChevronLeft size={24} />
-            </button>
-            <div
-              ref={scrollRef}
-              className="flex overflow-x-auto space-x-4 py-4 snap-x snap-mandatory"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
-              <style jsx global>{`
-                .flex::-webkit-scrollbar {
-                  display: none;
-                }
-              `}</style>
-              {facilities.map((facility, index) => (
-                <motion.div
-                  key={facility.name}
-                  className="flex-none w-80 mt-12 bg-gradient-to-b from-zinc-700/60 via-zinc-900/40 to-black p-6 rounded-lg shadow-md relative group"
-                  initial={{ opacity: 0, x: -50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                >
-                 
-                  <div
-                    onClick={() => setSelectedFacility(facility.name)}
-                    className={`w-full h-full flex flex-col text-left rounded-lg shadow-sm transition-all bg-neutral-800 text-white hover:bg-neutral-800 snap-center p-4 cursor-pointer ${
-                      selectedFacility === facility.name ? 'bg-zinc opacity-40 h-1 bg-gradient-to-r from-black to-gray-600 group-hover:opacity-100 transition-opacity' : ''
-                    }`}
-
-                  >
-                    <Image
-                      src={facility.image}
-                      alt={facility.name}
-                      width={400}
-                      height={192}
-                      className="w-full h-48 object-fill rounded-md mb-2"
-                    />
-                    <h3 className="text-lg font-semibold truncate my-2">
-                      {facility.name}
-                    </h3>
-                    <p className="text-sm flex-1 my-2">
-                      {facility.generalInfo.capacity} Capacity
-                    </p>
-                    <p className="text-sm my-2">{facility.hostingInfo.price}</p>
-                    {facility.generalInfo.ecoFriendly && <EcoBadge />}
-                    
-                  </div>
-                
-                  
-                  <motion.div
-                    className="absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-300 opacity-0 group-hover:opacity-100 text-white text-sm z-20 space-y-2 bg-black bg-opacity-90 p-4 rounded-lg"
-                    style={{ pointerEvents: 'none' }} // Prevent blocking hover
-                  >
-                    <h2 className="text-lg font-bold mb-2 flex items-center">
-                      
-                      <strong>Hosting Information</strong>
-                    </h2>
-                    <p className="flex items-center">
-                      <DollarSign className="w-4 h-4 mr-2" />
-                      Price: {facility.hostingInfo.price}
-                    </p>
-                    <p className="flex items-center">
-                      <Box className="w-4 h-4 mr-2" />
-                      Minimum Order: {facility.hostingInfo.minOrder}
-                    </p>
-                    <p className="flex items-center">
-                      <Wrench className="w-4 h-4 mr-2" />
-                      Setup Fee: {facility.hostingInfo.setupFee}
-                    </p>
-                    
-                  </motion.div>
-                </motion.div>
-              ))}
-            </div>
-            <button
-              onClick={scrollRight}
-              className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-black/80 border border-neutral-600 text-white rounded-full p-2 hover:bg-neutral-700 transition-all duration-300"
-            >
-              <ChevronRight size={24} />
-            </button>
-          </motion.div> */}
+          
 
           <motion.div
             className="mt-2 bg-transparent"

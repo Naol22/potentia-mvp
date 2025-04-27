@@ -29,7 +29,7 @@ export default clerkMiddleware(async (authFn, req: NextRequest) => {
     return NextResponse.redirect(new URL("/sign-in", req.url));
   }
 
-  if (path.startsWith("/admin")) {
+  if (path.startsWith("/admin") || path.startsWith("/adm")) {
     if (!userId) {
       return NextResponse.redirect(new URL("/sign-in", req.url));
     }
@@ -55,5 +55,6 @@ export const config = {
     "/cart(.*)",
     "/checkout(.*)",
     "/admin(.*)",
+    "/adm(.*)",  // Added new admin path pattern
   ],
 };

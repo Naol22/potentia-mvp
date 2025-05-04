@@ -185,6 +185,7 @@ const Hero = (): React.ReactElement => {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isAmharic, setIsAmharic] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // New state for error messages
   const ball1Controls = useAnimation();
   const ball2Controls = useAnimation();
   const lineControls = useAnimation();
@@ -233,22 +234,37 @@ const Hero = (): React.ReactElement => {
   // Handle survey submission
   const handleSubmit = async () => {
     setLoading(true);
+    setErrorMessage(null); // Clear previous errors
     const finalResponses = { ...responses, [questions[step].id]: currentAnswer };
+
+    // Ensure responses match the expected API structure
+    const payload = {
+      satisfaction: Number(finalResponses.satisfaction),
+      completed: Boolean(finalResponses.completed),
+      issue: finalResponses.issue ? String(finalResponses.issue) : undefined,
+      suggestion: finalResponses.suggestion ? String(finalResponses.suggestion) : undefined,
+      nps: finalResponses.nps ? Number(finalResponses.nps) : undefined,
+    };
+
     try {
       const response = await fetch('/api/survey/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(finalResponses),
+        body: JSON.stringify(payload),
       });
+
+      const responseData = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to submit survey');
+        throw new Error(responseData.error || 'Failed to submit survey');
       }
+
       setLoading(false);
       setSubmitted(true);
-    } catch (error) {
+    } catch (error: any) {
       setLoading(false);
+      setErrorMessage(error.message || 'An unexpected error occurred. Please try again.');
       console.error('Submission error:', error);
-      alert('There was an error submitting your survey. Please try again.');
     }
   };
 
@@ -541,6 +557,19 @@ const Hero = (): React.ReactElement => {
                 </motion.div>
               ) : (
                 <>
+                  {/* Error Message Display */}
+                  {errorMessage && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`text-center mb-6 p-4 rounded-lg ${
+                        theme === 'dark' ? 'bg-red-900/50 text-red-200' : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {errorMessage}
+                    </motion.div>
+                  )}
+
                   {/* Header Section */}
                   <motion.div
                     className="text-center mb-8"
@@ -927,6 +956,7 @@ const Hero = (): React.ReactElement => {
       <style jsx>{`
         @keyframes typewriter {
           from {
+            from {
             width: 0;
           }
           to {

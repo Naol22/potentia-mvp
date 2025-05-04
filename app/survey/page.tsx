@@ -3,11 +3,16 @@
 import Image from 'next/image';
 import { motion, useScroll, useTransform, useMotionValue, useSpring, useAnimation, AnimatePresence } from 'framer-motion';
 import { CheckCircleIcon, SunIcon, MoonIcon, PinIcon, CheckIcon, XIcon } from 'lucide-react';
-import '@fontsource/poppins';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useState, useEffect } from 'react';
+import { Poppins } from 'next/font/google';
 
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+});
 // Define survey questions with Amharic labels
 const questions = [
   { id: 'satisfaction', type: 'rating', label: 'Rate your satisfaction', amharicLabel: 'እርካታዎ ምን ያህል ነው?' },
@@ -30,7 +35,7 @@ const Particle = ({ left, delay, theme }: { left: string; delay: number; theme: 
     <motion.div
       className={`absolute w-3 h-3 rounded-full opacity-50 ${
         theme === 'dark' ? 'bg-gradient-to-b from-white to-black animate-gradient-shift' : 'bg-gradient-to-b from-black to-white animate-gradient-shift'
-      }`}
+      } ${poppins.className}`}
       style={{ top: '0%', left }}
       initial={{ y: randomYStart, x: 0, opacity: 0.5, scale: 1 }}
       animate={{
@@ -261,10 +266,11 @@ const Hero = (): React.ReactElement => {
 
       setLoading(false);
       setSubmitted(true);
-    } catch (error: any) {
+    } catch (error) {
       setLoading(false);
-      setErrorMessage(error.message || 'An unexpected error occurred. Please try again.');
-      console.error('Submission error:', error);
+      const err = error as Error;
+      setErrorMessage(err.message || 'An unexpected error occurred. Please try again.');
+      console.error('Submission error:', err);
     }
   };
 
@@ -548,7 +554,7 @@ const Hero = (): React.ReactElement => {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.5, duration: 0.4 }}
                   >
-                    <p className="mb-2">"Your input shapes our future."</p>
+                    <p className="mb-2">&quot;Your input shapes our future.&quot;</p>
                     <p className="text-sm mb-4">- A Grateful Team</p>
                     <p className={`${theme === 'dark' ? 'text-white' : 'text-black'}`}>
                       Enter to win a $50 gift card!

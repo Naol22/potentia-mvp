@@ -3,12 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "analyze": "ANALYZE=true next build",
-    "dev": "next dev --turbopack"
-
+    "lint": "next lint"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.18.0",

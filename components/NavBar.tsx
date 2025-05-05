@@ -25,7 +25,7 @@ const Header = () => {
   const { scrollYProgress } = useScroll();
 
   // Detect mobile screen size (< 1280px, xl breakpoint)
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 1280;
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 750;
 
   // Map scroll progress to logo scale (smaller max scale for mobile)
   const logoScale = useTransform(scrollYProgress, [0, 1], isMobile ? [2.0, 1.3] : [2.5, 1.3]);
@@ -42,7 +42,7 @@ const Header = () => {
   const headerClassName = `${
     sticky ? "fixed top-0 w-full z-30" : "relative"
   } transition-all duration-300 ${
-    scrolled ? "bg-white shadow-md md:py-0 py-2" : "bg-transparent md:py-0 py-1"
+    scrolled ? "bg-white shadow-md md:py-3 py-3" : "bg-transparent md:py-1 py-2"
   } xl:pt-0 pt-3`;
 
   const linkClassName = `block px-6 py-2 transition-colors duration-300 ${

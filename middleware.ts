@@ -10,7 +10,7 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (authFn, req: NextRequest) => {
-  const { userId, sessionClaims, has, orgRole } = await authFn();
+  const { userId, orgRole } = await authFn();
   const path = req.nextUrl.pathname;
 
   const publicPaths = ["/", "/api/webhooks"];

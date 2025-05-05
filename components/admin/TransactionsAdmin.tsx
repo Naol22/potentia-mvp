@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useAuth } from "@clerk/nextjs";
 
 interface User {
   id: string;
@@ -50,12 +51,18 @@ export default function TransactionsAdmin() {
   const [currentTransaction, setCurrentTransaction] = useState<Transaction | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
+  const { isLoaded, userId, getToken } = useAuth();
 
   const fetchTransactions = async () => {
     setLoading(true);
     try {
+      const token = await getToken();
+
       const response = await fetch("/api/admin/transactions", {
-        credentials: "include"
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
       });
       if (!response.ok) throw new Error("Failed to fetch transactions");
       const data: Transaction[] = await response.json();

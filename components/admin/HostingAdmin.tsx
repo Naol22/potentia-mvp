@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useAuth } from "@clerk/nextjs";
 
 interface Miner {
   id: string;
@@ -43,12 +44,17 @@ export default function HostingAdmin() {
   const [currentHosting, setCurrentHosting] = useState<Hosting | null>(null);
   const [miners, setMiners] = useState<Miner[]>([]);
   const [facilities, setFacilities] = useState<Facility[]>([]);
+  const { isLoaded, userId, getToken } = useAuth();
 
   const fetchHostingPlans = async () => {
     setLoading(true);
     try {
+      const token = await getToken();
       const response = await fetch("/api/admin/hosting", {
-        credentials: "include"
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
       });
       if (!response.ok) throw new Error("Failed to fetch hosting plans");
       const data = await response.json();

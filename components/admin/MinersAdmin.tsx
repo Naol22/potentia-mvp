@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useAuth } from "@clerk/nextjs";
 
 interface Miner {
   id: string;
@@ -18,11 +19,16 @@ export default function MinersAdmin() {
   const [editingMiner, setEditingMiner] = useState<Partial<Miner> | null>(null);
   const [newMiner, setNewMiner] = useState<Partial<Miner>>({ name: "" });
   const [isCreating, setIsCreating] = useState(false);
-
+  const { isLoaded, userId, getToken } = useAuth();
   const fetchMiners = async () => {
     try {
+      const token = await getToken();
+
       const response = await fetch("/api/admin/miners", {
-        credentials: "include"
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
       });
       const data = await response.json();
       setMiners(data);

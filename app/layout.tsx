@@ -54,7 +54,7 @@ export default function RootLayout({
         },
       }}
     >
-      <html lang="en" className={`${inter.className} dark`}>
+      <html lang="en" className={`${inter.className} dark`} suppressHydrationWarning>
         <head>
           <link rel="icon" href="/O.png" />
         </head>

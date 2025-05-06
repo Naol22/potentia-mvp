@@ -1,43 +1,61 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
-// Define a type for session claims with public_metadata
-interface ClerkSessionClaims {
-  public_metadata?: {
-    role?: string;
-    [key: string]: unknown;
-  };
-  [key: string]: unknown;
-}
-
-// Define route matchers
 const isPublicRoute = createRouteMatcher(["/", "/sign-in(.*)", "/sign-up(.*)", "/api/webhooks(.*)"]);
 const isAdminRoute = createRouteMatcher(["/admin(.*)", "/api/admin(.*)"]);
 const isClientOrAdminRoute = createRouteMatcher(["/admdashboard(.*)", "/api/adm(.*)"]);
 const isDashboardRoute = createRouteMatcher(["/dashboard(.*)"]);
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceRoleKey) {
+  throw new Error("Missing Supabase environment variables");
+}
+
+const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+
 export default clerkMiddleware(async (auth, req: NextRequest) => {
-  const { userId, sessionClaims, getToken } = await auth();
+  const { userId, getToken } = await auth();
   const url = new URL(req.url);
   const pathname = url.pathname;
 
-  // Allow public routes without authentication
   if (isPublicRoute(req)) {
     return NextResponse.next();
   }
 
-  // Protect all other routes
   if (!userId) {
     return NextResponse.redirect(new URL("/sign-in", req.url));
   }
 
-  // Safely extract role from sessionClaims with fallback
-  const role = (sessionClaims as ClerkSessionClaims)?.public_metadata?.role || "regular";
+  let role = "regular";
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .select("role")
+      .eq("clerk_user_id", userId)
+      .single();
 
-  // Handle role-based access
+    if (error) {
+      if (error.code === "PGRST116") { // No rows found
+        console.log(`User ${userId} not found in Supabase, defaulting to 'regular' role.`);
+      } else {
+        console.error("Error fetching role from Supabase:", error.message);
+      }
+    } else if (data) {
+      role = data.role.toLowerCase();
+    }
+  } catch (err) {
+    console.error("Unexpected error fetching role:", err);
+  }
+
+  console.log("Debug - Fetched role from Supabase:", role);
+
   if (isAdminRoute(req)) {
     if (role !== "admin") {
+      console.log("Debug - Unauthorized admin access attempt, redirecting to /dashboard. Role:", role);
       if (pathname.startsWith("/api/")) {
         return new NextResponse(
           JSON.stringify({ error: "Unauthorized" }),
@@ -48,6 +66,7 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     }
   } else if (isClientOrAdminRoute(req)) {
     if (role !== "client" && role !== "admin") {
+      console.log("Debug - Unauthorized client/admin access attempt, redirecting to /dashboard. Role:", role);
       if (pathname.startsWith("/api/")) {
         return new NextResponse(
           JSON.stringify({ error: "Unauthorized" }),
@@ -64,7 +83,6 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     }
   }
 
-  // Pass the token to API routes
   const token = await getToken();
   const requestHeaders = new Headers(req.headers);
   if (token) {

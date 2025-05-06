@@ -475,3 +475,103 @@ GROUP BY f.name, p.hashrate;
 -- WHERE s.status = 'active'
 -- GROUP BY f.name, p.hashrate;
 -- CREATE UNIQUE INDEX idx_subscription_summary_materialized ON subscription_summary_materialized(facility, hashrate);
+
+-- Create or update the users table
+CREATE TABLE IF NOT EXISTS users (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  clerk_user_id TEXT UNIQUE NOT NULL, -- Maps to Clerk's `sub` claim
+  email TEXT NOT NULL,
+  first_name TEXT,
+  last_name TEXT,
+  role TEXT NOT NULL DEFAULT 'regular', -- Possible values: 'admin', 'client', 'regular'
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS on the users table
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+-- RLS policy: Users can view their own profile
+
+-- RLS policy: Admins can view and manage all users
+CREATE POLICY "Admins can manage users" ON users
+FOR ALL TO authenticated
+USING (auth.jwt()->>'role' = 'admin')
+WITH CHECK (auth.jwt()->>'role' = 'admin');
+
+-- Ensure RLS is enabled on all tables
+ALTER TABLE plans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE facilities ENABLE ROW LEVEL SECURITY;
+
+-- RLS policies for plans
+
+
+CREATE POLICY "Admins can manage plans" ON plans
+FOR ALL TO authenticated
+USING (auth.jwt()->>'role' = 'admin')
+WITH CHECK (auth.jwt()->>'role' = 'admin');
+
+-- RLS policies for transactions
+CREATE POLICY "Clients can view transactions" ON transactions
+FOR SELECT TO authenticated
+USING (auth.jwt()->>'role' IN ('client', 'admin'));
+
+CREATE POLICY "Admins can manage transactions" ON transactions
+FOR ALL TO authenticated
+USING (auth.jwt()->>'role' = 'admin')
+WITH CHECK (auth.jwt()->>'role' = 'admin');
+
+-- RLS policies for orders
+CREATE POLICY "Regular users can view their orders" ON orders
+FOR SELECT TO authenticated
+USING (user_id = (SELECT id FROM users WHERE clerk_user_id = auth.jwt()->>'sub'));
+
+CREATE POLICY "Clients can view all orders" ON orders
+FOR SELECT TO authenticated
+USING (auth.jwt()->>'role' IN ('client', 'admin'));
+
+CREATE POLICY "Admins can manage orders" ON orders
+FOR ALL TO authenticated
+USING (auth.jwt()->>'role' = 'admin')
+WITH CHECK (auth.jwt()->>'role' = 'admin');
+
+-- RLS policies for facilities
+CREATE POLICY "Clients can view facilities" ON facilities
+FOR SELECT TO authenticated
+USING (auth.jwt()->>'role' IN ('client', 'admin'));
+
+CREATE POLICY "Admins can manage facilities" ON facilities
+FOR ALL TO authenticated
+USING (auth.jwt()->>'role' = 'admin')
+WITH CHECK (auth.jwt()->>'role' = 'admin');
+
+-- Users table
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view their own profile" ON users;
+DROP POLICY IF EXISTS "Admins can manage all users" ON users;
+
+CREATE POLICY "Users can view their own profile" ON users
+FOR SELECT TO authenticated
+USING (clerk_user_id = auth.jwt()->>'sub');
+
+CREATE POLICY "Admins can manage all users" ON users
+FOR ALL TO authenticated
+USING ((auth.jwt()->'public_metadata'->>'role') = 'admin')
+WITH CHECK ((auth.jwt()->'public_metadata'->>'role') = 'admin');
+
+-- Plans table
+ALTER TABLE plans ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Authenticated users can read plans" ON plans;
+DROP POLICY IF EXISTS "Admins can manage plans" ON plans;
+
+CREATE POLICY "Authenticated users can read plans" ON plans
+FOR SELECT TO authenticated
+USING (true);
+
+CREATE POLICY "Admins can manage plans" ON plans
+FOR ALL TO authenticated
+USING ((auth.jwt()->'public_metadata'->>'role') = 'admin')
+WITH CHECK ((auth.jwt()->'public_metadata'->>'role') = 'admin');

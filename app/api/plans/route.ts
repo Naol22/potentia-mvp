@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { auth } from "@clerk/nextjs/server";
+import { createClerkSupabaseClient } from "@/lib/supabase";
 
 interface Plan {
   id: string;
@@ -15,16 +16,23 @@ interface Plan {
   is_subscription: boolean;
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+export async function GET() {
+  const authResult = await auth();
+  const { getToken } = authResult;
+  let token: string | undefined;
 
-export async function GET(req: Request) {
-  const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-    global: {
-      headers: { Authorization: `Bearer ${token}` },
-    },
-  });
+  try {
+    const rawToken = await getToken();
+    token = rawToken ?? undefined; 
+  } catch (error) {
+    console.error("Error retrieving Clerk token:", error);
+    return NextResponse.json(
+      { error: "Unauthorized", details: "Failed to retrieve authentication token" },
+      { status: 401 }
+    );
+  }
+
+  const supabase = createClerkSupabaseClient(token);
 
   try {
     const { data, error } = await supabase
@@ -48,7 +56,10 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error("Unexpected error fetching plans:", error);
     return NextResponse.json(
-      { error: "Internal Server Error", details: error instanceof Error ? error.message : "Unknown error" },
+      {
+        error: "Internal Server Error",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }

@@ -2,15 +2,14 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useAuth } from "@clerk/nextjs";
 
 interface User {
   id: string;
   email: string;
-  is_admin: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -19,15 +18,29 @@ export default function UsersAdmin() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<Partial<User> | null>(null);
+  const { isLoaded, userId, getToken } = useAuth();
+
 
   const fetchUsers = async () => {
     try {
+      // Get the session token to include in the request
+      const token = await getToken();
+      
       const response = await fetch("/api/admin/users", {
-        credentials: "include"
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
       });
-      const data: User[] = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch users: ${response.status}`);
+      }
+      
+      const data = await response.json();
       setUsers(data);
-    } catch {
+    } catch (error) {
+      console.error("Fetch error:", error);
       toast.error("Failed to fetch users");
     } finally {
       setLoading(false);
@@ -35,8 +48,10 @@ export default function UsersAdmin() {
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (isLoaded && userId) {
+      fetchUsers();
+    }
+  }, [isLoaded, userId]);
 
   const updateUser = async () => {
     try {
@@ -92,7 +107,7 @@ export default function UsersAdmin() {
       {editingUser && (
         <div className="bg-gray-100 p-6 rounded-lg mb-6">
           <h3 className="text-xl font-semibold mb-4">Edit User</h3>
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 gap-4 mb-4">
             <div>
               <Label htmlFor="email">Email</Label>
               <Input
@@ -102,16 +117,6 @@ export default function UsersAdmin() {
                 disabled
               />
               <p className="text-sm text-gray-500 mt-1">Email cannot be changed</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="is_admin"
-                checked={editingUser.is_admin || false}
-                onCheckedChange={(checked) => 
-                  setEditingUser({...editingUser, is_admin: checked === true})
-                }
-              />
-              <Label htmlFor="is_admin">Admin Access</Label>
             </div>
           </div>
           <div className="flex space-x-2">
@@ -131,7 +136,6 @@ export default function UsersAdmin() {
           <thead>
             <tr className="bg-gray-100">
               <th className="p-2 text-left">Email</th>
-              <th className="p-2 text-left">Role</th>
               <th className="p-2 text-left">Created</th>
               <th className="p-2 text-left">Updated</th>
               <th className="p-2 text-left">Actions</th>
@@ -142,12 +146,11 @@ export default function UsersAdmin() {
               <tr key={user.id} className="border-b">
                 <td className="p-2">{user.email}</td>
                 <td className="p-2">
-                  <span className={`px-2 py-1 rounded text-xs ${user.is_admin ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800"}`}>
-                    {user.is_admin ? "Admin" : "User"}
-                  </span>
+                  {user.created_at ? format(new Date(user.created_at), "MMM d, yyyy") : 'N/A'}
                 </td>
-                <td className="p-2">{format(new Date(user.created_at), "MMM d, yyyy")}</td>
-                <td className="p-2">{format(new Date(user.updated_at), "MMM d, yyyy")}</td>
+                <td className="p-2">
+                  {user.updated_at ? format(new Date(user.updated_at), "MMM d, yyyy") : 'N/A'}
+                </td>
                 <td className="p-2">
                   <div className="flex space-x-2">
                     <Button 

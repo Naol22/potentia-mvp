@@ -12,21 +12,24 @@ interface Plan {
   type: string;
   hashrate: number;
   price: number;
+  currency: string;
   duration: string;
-  facility_id: { name: string };
+  miner_id: string | null; 
+  facility_id: string | null; 
+  stripe_price_id: string | null;
+  nowpayments_item_code: string | null;
+  is_subscription: boolean;
 }
 
 const HashrateTab = () => {
-  const [plans, setPlans] = useState<Plan[]>([]); 
-  const [selectedHashrate, setSelectedHashrate] = useState<number>(100); 
-  const [selectedDuration, setSelectedDuration] = useState<string>(
-    "Monthly (Recurring)"
-  ); 
-  const [animatedPrice, setAnimatedPrice] = useState<number>(150); 
-  const [animatedOutput, setAnimatedOutput] = useState<number>(0.05); 
-  const [loading, setLoading] = useState(true); 
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [selectedHashrate, setSelectedHashrate] = useState<number>(100);
+  const [selectedDuration, setSelectedDuration] = useState<string>("Monthly Recurring");
+  const [animatedPrice, setAnimatedPrice] = useState<number>(150);
+  const [animatedOutput, setAnimatedOutput] = useState<number>(0.05);
+  const [loading, setLoading] = useState(true);
 
-  const durationOptions = ["Monthly (Recurring)"]; 
+  const durationOptions = ["Monthly Recurring"];
 
   useEffect(() => {
     async function fetchPlans() {
@@ -59,8 +62,8 @@ const HashrateTab = () => {
   }, []);
 
   const calculateMachinesLit = (hashrate: number): number => {
-    const maxHashrate = 3000; 
-    const maxMachines = 15; 
+    const maxHashrate = 3000;
+    const maxMachines = 15;
     return Math.min(
       Math.round((hashrate / maxHashrate) * maxMachines),
       maxMachines
@@ -196,7 +199,7 @@ const HashrateTab = () => {
                 </motion.select>
               </div>
 
-              {/* Enhanced Plan Details */}
+              {/* Plan Details (removed miner/facility references) */}
               <div className="bg-black p-6 rounded-lg shadow-md">
                 <h3 className="text-lg font-semibold mb-4">
                   Plan Specifications
@@ -378,7 +381,7 @@ const HashrateTab = () => {
         </div>
       </motion.div>
 
-      {/* Info Section */}
+      {/* Info Section (Removed facility references) */}
       <motion.section
         className="max-w-5xl mx-auto mt-16 bg-neutral-800 p-8 rounded-xl shadow-lg"
         initial={{ opacity: 0, y: 20 }}
@@ -415,9 +418,9 @@ const HashrateTab = () => {
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.3 }}
           >
-            <h3 className="text-xl font-semibold mb-2">Global Facilities</h3>
+            <h3 className="text-xl font-semibold mb-2">Advanced Technology</h3>
             <p className="text-sm text-gray-300">
-              Data centers in Ethiopia, Dubai, and Texas.
+              Cutting-edge hardware for maximum efficiency.
             </p>
           </motion.div>
         </div>
@@ -434,7 +437,6 @@ const HashrateTab = () => {
         <h2 className="text-3xl font-bold mb-6 text-center">
           Frequently Asked Questions
         </h2>
-        Frequently Asked Questions
         <div className="space-y-6">
           <div>
             <h3 className="text-lg font-semibold mb-2">

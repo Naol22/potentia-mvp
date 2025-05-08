@@ -13,9 +13,7 @@ import MusicVideoIcon from "@mui/icons-material/MusicVideo";
 import EmailIcon from "@mui/icons-material/Email";
 import ContactPageIcon from "@mui/icons-material/ContactPage";
 
-// Import modern font (e.g., Inter from Google Fonts)
-import "@fontsource/inter/400.css";
-import "@fontsource/inter/600.css";
+
 
 export default function FooterSection() {
   return (

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useAuth } from "@clerk/nextjs";
 
 interface Plan {
   id: string;
@@ -26,11 +27,18 @@ export default function PlansAdmin() {
     duration: "Monthly Recurring"
   });
   const [isCreating, setIsCreating] = useState(false);
+  const { isLoaded, userId, getToken } = useAuth();
 
   const fetchPlans = async () => {
     try {
+      // Get the session token to include in the request
+      const token = await getToken();
       const response = await fetch("/api/admin/plans", {
-        credentials: "include"
+
+          credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
       });
       const data: Plan[] = await response.json();
       setPlans(data);

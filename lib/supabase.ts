@@ -1,10 +1,22 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+export function createClerkSupabaseClient(token?: string) {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      global: {
+        fetch: async (url, options = {}) => {
+          const headers = new Headers(options.headers || {});
+          if (token) {
+            headers.set("Authorization", `Bearer ${token}`);
+          }
+          return fetch(url, {
+            ...options,
+            headers,
+          });
+        },
+      },
+    }
+  );
 }
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);

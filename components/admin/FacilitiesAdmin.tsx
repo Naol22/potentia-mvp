@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { format } from "date-fns";
-
+import { useAuth } from "@clerk/nextjs";
 interface Facility {
   id: string;
   name: string;
@@ -18,11 +18,15 @@ export default function FacilitiesAdmin() {
   const [editingFacility, setEditingFacility] = useState<Partial<Facility> | null>(null);
   const [newFacility, setNewFacility] = useState<Partial<Facility>>({ name: "" });
   const [isCreating, setIsCreating] = useState(false);
-
+  const { isLoaded, userId, getToken } = useAuth();
   const fetchFacilities = async () => {
     try {
+      const token = await getToken();
       const response = await fetch("/api/admin/facilities", {
-        credentials: "include"
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
       });
       const data = await response.json();
       setFacilities(data);

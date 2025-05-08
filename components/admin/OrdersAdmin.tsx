@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useAuth } from "@clerk/nextjs";
 
 interface User {
   id: string;
@@ -60,11 +61,16 @@ export default function OrdersAdmin() {
   });
   const [isCreating, setIsCreating] = useState(false);
   const [selectedPlanType, setSelectedPlanType] = useState<string | null>(null);
+  const { isLoaded, userId, getToken } = useAuth();
 
   const fetchOrders = async () => {
     try {
+      const token = await getToken();
       const response = await fetch("/api/admin/orders", {
-        credentials: "include"
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
       });
       const data = await response.json();
       setOrders(data);

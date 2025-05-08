@@ -7,7 +7,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const NOWPAYMENTS_API_KEY = 'J5SHGSD-EBVMJX6-PYEKYZ9-4VB4CMT';
+const NOWPAYMENTS_API_KEY = process.env.NOWPAYMENTS_API_KEY;
 const NOWPAYMENTS_API_URL = 'https://api.nowpayments.io/v1';
 
 // Initialize NOWPayments API client

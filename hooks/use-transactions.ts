@@ -5,7 +5,7 @@ import { supabase } from "@/utils/supaBaseClient"
 
 type Transaction = {
   id: string
-  clerk_user_id: string
+  user_id: string
   stripe_transaction_id: string
   amount: number
   status: string

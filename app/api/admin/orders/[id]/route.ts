@@ -25,7 +25,7 @@ export async function GET(
     .from("orders")
     .select(`
       *,
-      users (id, clerk_user_id),
+      users (id, user_id),
       plans (id, type, hashrate, price, duration),
       facilities (id, name),
       miners (id, name)

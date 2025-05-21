@@ -35,7 +35,7 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     const { data, error } = await supabase
       .from("users")
       .select("role")
-      .eq("clerk_user_id", userId)
+      .eq("user_id", userId) // Updated to user_id
       .single();
 
     if (error) {

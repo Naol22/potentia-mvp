@@ -18,9 +18,9 @@ interface Plan {
 
 export async function GET(
   request: Request,
-  context: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = context.params;
+  const { id } = await params;
 
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!uuidRegex.test(id)) {
@@ -28,7 +28,7 @@ export async function GET(
   }
 
   const authResult = await auth();
-  const { getToken } = authResult;
+  const { getToken, userId } = authResult;
   let token: string | undefined;
 
   try {
@@ -42,10 +42,18 @@ export async function GET(
     );
   }
 
+  if (!userId) {
+    return NextResponse.json(
+      { error: "Unauthorized", details: "User ID not found in token" },
+      { status: 401 }
+    );
+  }
+
   const supabase = createClerkSupabaseClient(token);
 
   try {
-    const { data, error } = await supabase
+    // Fetch plan details
+    const { data: planData, error: planError } = await supabase
       .from("plans")
       .select(
         "id, type, hashrate, price, currency, duration, miner_id, facility_id, stripe_price_id, nowpayments_item_code, is_subscription"
@@ -53,16 +61,34 @@ export async function GET(
       .eq("id", id)
       .single();
 
-    if (error || !data) {
-      console.error("Error fetching plan:", error?.message || "No data found");
+    if (planError || !planData) {
+      console.error("Error fetching plan:", planError?.message || "No data found");
       return NextResponse.json(
-        { error: "Plan not found", details: error?.message },
+        { error: "Plan not found", details: planError?.message },
         { status: 404 }
       );
     }
 
-    const plan: Plan = data;
-    return NextResponse.json(plan);
+    const plan: Plan = planData;
+
+    // Fetch user role with fallback
+    let role = "regular";
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("role")
+      .eq("user_id", userId)
+      .single();
+
+    if (userError || !userData) {
+      console.error("Error fetching role from Supabase:", userError?.message || "No role found");
+      console.log("Debug - User ID:", userId);
+      console.log("Debug - Token:", token);
+    } else {
+      role = userData.role;
+      console.log("Debug - Fetched role from Supabase:", role);
+    }
+
+    return NextResponse.json({ plan, role });
   } catch (error) {
     console.error("Unexpected error fetching plan:", error);
     return NextResponse.json(

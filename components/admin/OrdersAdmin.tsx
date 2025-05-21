@@ -10,7 +10,7 @@ import { useAuth } from "@clerk/nextjs";
 
 interface User {
   id: string;
-  clerk_user_id: string;
+  user_id: string;
 }
 
 interface Plan {
@@ -307,7 +307,7 @@ export default function OrdersAdmin() {
                 <SelectContent>
                   {users.map(user => (
                     <SelectItem key={user.id} value={user.id}>
-                      {user.clerk_user_id}
+                      {user.user_id}
                     </SelectItem>
                   ))}
                 </SelectContent>

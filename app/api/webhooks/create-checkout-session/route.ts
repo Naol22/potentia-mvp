@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { currentUser } from "@clerk/nextjs/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-03-31.basil",
+  apiVersion: "2025-04-30.basil",
 });
 
 const supabase = createClient(
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     const { data: supabaseUser, error: userError } = await supabase
       .from("users")
       .select("id")
-      .eq("clerk_user_id", user.id)
+      .eq("user_id", user.id)
       .single();
 
     if (userError || !supabaseUser) {

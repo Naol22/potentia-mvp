@@ -73,7 +73,7 @@ export enum TransactionStatus {
    */
   export interface User {
     id: string;
-    clerk_user_id: string; // Unique user ID from Clerk authentication provider
+    user_id: string; // Unique user ID from Clerk authentication provider
     first_name?: string | null;
     last_name?: string | null;
     full_name?: string | null;

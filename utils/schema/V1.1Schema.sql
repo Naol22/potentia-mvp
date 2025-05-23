@@ -74,6 +74,10 @@ USING (
   ((SELECT auth.jwt()->'fva'->>1) != '-1')
 );
 
+
+
+
+
 -- Create facilities table to store mining facility locations
 
 CREATE TABLE facilities (
@@ -112,6 +116,10 @@ WITH CHECK (
 );
 
 COMMENT ON TABLE facilities IS 'Stores mining facility locations for front-end map display';
+
+
+
+
 
 
 
@@ -164,6 +172,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+
+
+
+
 -- Create payment_methods table to store payment provider configurations
 
 CREATE TABLE payment_methods (
@@ -211,10 +223,96 @@ WITH CHECK (
   (COALESCE(auth.jwt()->>'org_id', auth.jwt()->'o'->>'id') IS NOT NULL)
 );
 
+
+
 COMMENT ON TABLE payment_methods IS 'Stores payment provider configurations for Stripe and NowPayments';
+
+
 
 INSERT INTO payment_methods (name, display_name, is_active, requires_crypto_address, config) VALUES
 ('stripe', 'Credit Card (Stripe)', TRUE, TRUE, '{"webhook_endpoint": "/api/webhooks/stripe-webhook"}'),
 ('nowpayments', 'Crypto (NOWPayments)', TRUE, TRUE, '{"webhook_endpoint": "/api/webhooks/nowpayments-webhook"}');
 
 
+
+
+
+
+
+-- Create currency_code enum for hashrate_plans
+CREATE TYPE currency_code AS ENUM ('USD', 'EUR', 'BTC');
+
+-- Create hashrate_plans table to define hashrate-based mining plans
+
+CREATE TABLE hashrate_plans (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  hashrate INTEGER NOT NULL,
+  price DECIMAL(10, 2) NOT NULL,
+  currency currency_code NOT NULL DEFAULT 'USD',
+  duration TEXT NOT NULL DEFAULT 'Monthly Recurring',
+  stripe_price_id TEXT, -- Stripe pricing ID for subscriptions
+  nowpayments_item_id TEXT, -- NowPayments item ID for subscriptions
+  is_subscription BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT positive_hashrate CHECK (hashrate > 0),
+  CONSTRAINT positive_price CHECK (price > 0)
+);
+
+-- Enable RLS on the hashrate_plans table
+ALTER TABLE hashrate_plans ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Authenticated users can view hashrate plans within their organization for checkout
+CREATE POLICY "Authenticated users can view hashrate plans" ON hashrate_plans
+FOR SELECT TO authenticated
+USING (
+  (COALESCE(auth.jwt()->>'org_id', auth.jwt()->'o'->>'id') IS NOT NULL)
+);
+
+-- RLS Policy: Only organization admins can manage hashrate plans
+CREATE POLICY "Only organization admins can manage hashrate plans" ON hashrate_plans
+FOR ALL TO authenticated
+USING (
+  (
+    ((auth.jwt()->>'org_role') = 'org:admin') OR
+    ((auth.jwt()->'o'->>'rol') = 'admin')
+  ) AND
+  (COALESCE(auth.jwt()->>'org_id', auth.jwt()->'o'->>'id') IS NOT NULL)
+)
+WITH CHECK (
+  (
+    ((auth.jwt()->>'org_role') = 'org:admin') OR
+    ((auth.jwt()->'o'->>'rol') = 'admin')
+  ) AND
+  (COALESCE(auth.jwt()->>'org_id', auth.jwt()->'o'->>'id') IS NOT NULL)
+);
+
+COMMENT ON TABLE hashrate_plans IS 'Defines hashrate-based mining plans for checkout display and subscription integration';
+
+
+
+
+-- Insert facility data
+INSERT INTO facilities (name) VALUES
+('Ethiopia'),
+('Dubai'),
+('Texas'),
+('Finland'),
+('Paraguay'),
+('Georgia');
+
+
+-- Insert miner data
+INSERT INTO miners (name) VALUES
+('Antminer S21');
+
+
+-- Insert hashrate plans data with null pricing IDs
+INSERT INTO hashrate_plans (hashrate, price, currency, duration, is_subscription, stripe_price_id, nowpayments_item_id) VALUES
+(100, 150.00, 'USD', 'Monthly Recurring', TRUE, NULL, NULL),
+(300, 450.00, 'USD', 'Monthly Recurring', TRUE, NULL, NULL),
+(500, 750.00, 'USD', 'Monthly Recurring', TRUE, NULL, NULL),
+(1000, 150.00, 'USD', 'Monthly Recurring', TRUE, NULL, NULL),
+(1500, 2250.00, 'USD', 'Monthly Recurring', TRUE, NULL, NULL),
+(2000, 3000.00, 'USD', 'Monthly Recurring', TRUE, NULL, NULL),
+(2500, 3750.00, 'USD', 'Monthly Recurring', TRUE, NULL, NULL),
+(3000, 4500.00, 'USD', 'Monthly Recurring', TRUE, NULL, NULL);

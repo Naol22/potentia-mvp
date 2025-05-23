@@ -73,3 +73,42 @@ TO authenticated
 USING (
   ((SELECT auth.jwt()->'fva'->>1) != '-1')
 );
+
+-- Create facilities table to store mining facility locations
+
+CREATE TABLE facilities (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  details JSONB, -- Can store geospatial data (e.g., {"lat": 40.7128, "lon": -74.0060})
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Enable RLS on the facilities table
+ALTER TABLE facilities ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Authenticated users can view facilities within their organization for map display
+CREATE POLICY "Authenticated users can view facilities" ON facilities
+FOR SELECT TO authenticated
+USING (
+  (COALESCE(auth.jwt()->>'org_id', auth.jwt()->'o'->>'id') IS NOT NULL)
+);
+
+-- RLS Policy: Only organization admins can manage facilities
+CREATE POLICY "Only organization admins can manage facilities" ON facilities
+FOR ALL TO authenticated
+USING (
+  (
+    ((auth.jwt()->>'org_role') = 'org:admin') OR
+    ((auth.jwt()->'o'->>'rol') = 'admin')
+  ) AND
+  (COALESCE(auth.jwt()->>'org_id', auth.jwt()->'o'->>'id') IS NOT NULL)
+)
+WITH CHECK (
+  (
+    ((auth.jwt()->>'org_role') = 'org:admin') OR
+    ((auth.jwt()->'o'->>'rol') = 'admin')
+  ) AND
+  (COALESCE(auth.jwt()->>'org_id', auth.jwt()->'o'->>'id') IS NOT NULL)
+);
+
+COMMENT ON TABLE facilities IS 'Stores mining facility locations for front-end map display';

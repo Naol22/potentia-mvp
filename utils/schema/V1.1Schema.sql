@@ -316,3 +316,88 @@ INSERT INTO hashrate_plans (hashrate, price, currency, duration, is_subscription
 (2000, 3000.00, 'USD', 'Monthly Recurring', TRUE, NULL, NULL),
 (2500, 3750.00, 'USD', 'Monthly Recurring', TRUE, NULL, NULL),
 (3000, 4500.00, 'USD', 'Monthly Recurring', TRUE, NULL, NULL);
+
+
+
+
+
+
+
+
+
+-- Create hosting_plans table to store hosting_plans plans for crypto mining
+
+CREATE TABLE hosting_plans (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  miner_id UUID REFERENCES miners(id) ON DELETE SET NULL,
+  facility_id UUID REFERENCES facilities(id) ON DELETE SET NULL,
+  price DECIMAL(10, 2) NOT NULL,
+  currency currency_code NOT NULL DEFAULT 'USD',
+  duration TEXT NOT NULL DEFAULT 'Monthly Recurring',
+  stripe_price_id TEXT, -- Stripe pricing ID for subscriptions
+  nowpayments_item_id TEXT, -- NowPayments item ID for subscriptions
+  is_subscription BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT positive_price CHECK (price > 0)
+);
+
+-- Enable RLS on the hosting_plans table
+ALTER TABLE hosting_plans ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Authenticated users can view hosting_plans plans within their organization
+CREATE POLICY "Authenticated users can view hosting_plans " ON hosting_plans
+FOR SELECT TO authenticated
+USING (
+  (COALESCE(auth.jwt()->>'org_id', auth.jwt()->'o'->>'id') IS NOT NULL)
+);
+
+-- RLS Policy: Only organization admins can manage hosting_plans plans
+CREATE POLICY "Only organization admins can manage hosting_plans" ON hosting_plans
+FOR ALL TO authenticated
+USING (
+  (
+    ((auth.jwt()->>'org_role') = 'org:admin') OR
+    ((auth.jwt()->'o'->>'rol') = 'admin')
+  ) AND
+  (COALESCE(auth.jwt()->>'org_id', auth.jwt()->'o'->>'id') IS NOT NULL)
+)
+WITH CHECK (
+  (
+    ((auth.jwt()->>'org_role') = 'org:admin') OR
+    ((auth.jwt()->'o'->>'rol') = 'admin')
+  ) AND
+  (COALESCE(auth.jwt()->>'org_id', auth.jwt()->'o'->>'id') IS NOT NULL)
+);
+COMMENT ON TABLE hosting_plans IS 'Stores hosting_plans plans for crypto mining with miner and facility details';
+
+
+
+
+
+-- Insert hosting plans data
+INSERT INTO hosting_plans (miner_id, facility_id, price, currency, duration, stripe_price_id, nowpayments_item_id, is_subscription)
+SELECT
+  m.id AS miner_id,
+  f.id AS facility_id,
+  CASE
+    WHEN f.name = 'Ethiopia' THEN 80.00
+    WHEN f.name = 'Dubai' THEN 120.00
+    WHEN f.name = 'Texas' THEN 100.00
+    WHEN f.name = 'Finland' THEN 110.00
+    WHEN f.name = 'Paraguay' THEN 90.00
+    WHEN f.name = 'Georgia' THEN 95.00
+  END AS price,
+  'USD' AS currency,
+  'Monthly Recurring' AS duration,
+  NULL AS stripe_price_id, -- Not set up yet
+  NULL AS nowpayments_item_id, -- Not set up yet
+  TRUE AS is_subscription
+FROM miners m
+JOIN facilities f ON TRUE
+WHERE m.name = 'Antminer S21';
+
+
+
+
+
+

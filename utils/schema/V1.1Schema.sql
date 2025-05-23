@@ -154,3 +154,67 @@ WITH CHECK (
 
 COMMENT ON TABLE miners IS 'Stores mining hardware details for user selection with hosting plans';
 
+-- Create trigger function for updating updated_at columns
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- Create payment_methods table to store payment provider configurations
+
+CREATE TABLE payment_methods (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL UNIQUE,
+  display_name TEXT NOT NULL,
+  is_active BOOLEAN DEFAULT TRUE,
+  requires_crypto_address BOOLEAN DEFAULT FALSE,
+  config JSONB, -- Stores provider-specific settings (e.g., webhook endpoints)
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Add trigger for updated_at
+CREATE TRIGGER set_timestamp_payment_methods
+BEFORE UPDATE ON payment_methods
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Enable RLS on the payment_methods table
+ALTER TABLE payment_methods ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Authenticated users can view active payment methods within their organization
+CREATE POLICY "Authenticated users can view active payment methods" ON payment_methods
+FOR SELECT TO authenticated
+USING (
+  is_active = TRUE AND
+  (COALESCE(auth.jwt()->>'org_id', auth.jwt()->'o'->>'id') IS NOT NULL)
+);
+
+-- RLS Policy: Only organization admins can manage payment methods
+CREATE POLICY "Only organization admins can manage payment methods" ON payment_methods
+FOR ALL TO authenticated
+USING (
+  (
+    ((auth.jwt()->>'org_role') = 'org:admin') OR
+    ((auth.jwt()->'o'->>'rol') = 'admin')
+  ) AND
+  (COALESCE(auth.jwt()->>'org_id', auth.jwt()->'o'->>'id') IS NOT NULL)
+)
+WITH CHECK (
+  (
+    ((auth.jwt()->>'org_role') = 'org:admin') OR
+    ((auth.jwt()->'o'->>'rol') = 'admin')
+  ) AND
+  (COALESCE(auth.jwt()->>'org_id', auth.jwt()->'o'->>'id') IS NOT NULL)
+);
+
+COMMENT ON TABLE payment_methods IS 'Stores payment provider configurations for Stripe and NowPayments';
+
+INSERT INTO payment_methods (name, display_name, is_active, requires_crypto_address, config) VALUES
+('stripe', 'Credit Card (Stripe)', TRUE, TRUE, '{"webhook_endpoint": "/api/webhooks/stripe-webhook"}'),
+('nowpayments', 'Crypto (NOWPayments)', TRUE, TRUE, '{"webhook_endpoint": "/api/webhooks/nowpayments-webhook"}');
+
+

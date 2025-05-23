@@ -112,3 +112,45 @@ WITH CHECK (
 );
 
 COMMENT ON TABLE facilities IS 'Stores mining facility locations for front-end map display';
+
+
+
+-- Create miners table to store mining hardware details
+
+CREATE TABLE miners (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  details JSONB, -- Can store specs (e.g., {"hashrate": 200, "power": 3000})
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Enable RLS on the miners table
+ALTER TABLE miners ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Authenticated users can view miners within their organization for selection
+CREATE POLICY "Authenticated users can view miners" ON miners
+FOR SELECT TO authenticated
+USING (
+  (COALESCE(auth.jwt()->>'org_id', auth.jwt()->'o'->>'id') IS NOT NULL)
+);
+
+-- RLS Policy: Only organization admins can manage miners
+CREATE POLICY "Only organization admins can manage miners" ON miners
+FOR ALL TO authenticated
+USING (
+  (
+    ((auth.jwt()->>'org_role') = 'org:admin') OR
+    ((auth.jwt()->'o'->>'rol') = 'admin')
+  ) AND
+  (COALESCE(auth.jwt()->>'org_id', auth.jwt()->'o'->>'id') IS NOT NULL)
+)
+WITH CHECK (
+  (
+    ((auth.jwt()->>'org_role') = 'org:admin') OR
+    ((auth.jwt()->'o'->>'rol') = 'admin')
+  ) AND
+  (COALESCE(auth.jwt()->>'org_id', auth.jwt()->'o'->>'id') IS NOT NULL)
+);
+
+COMMENT ON TABLE miners IS 'Stores mining hardware details for user selection with hosting plans';
+

@@ -22,7 +22,7 @@ COMMENT ON TABLE users IS 'Stores user profiles linked to Clerk authentication';
 COMMENT ON COLUMN users.clerk_user_id IS 'Unique user ID from Clerk authentication provider, explicitly interpreted as text';
 CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  clerk_user_id TEXT UNIQUE NOT NULL DEFAULT (auth.jwt()->>'sub')::text,
+  user_id TEXT UNIQUE NOT NULL DEFAULT (auth.jwt()->>'sub')::text,
   first_name TEXT,
   last_name TEXT,
   full_name TEXT NULL,

@@ -58,7 +58,7 @@ const handler = async (req: Request) => {
       await fetch(`${clerkApiBaseUrl}/organizations/${potentiaOrgId}/memberships`, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${process.env.CLERK_API_KEY}`, // Add Clerk API key to env
+          "Authorization": `Bearer ${process.env.CLERK_API_KEY}`, 
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -72,7 +72,6 @@ const handler = async (req: Request) => {
       return new Response("Error: Failed to add user to org", { status: 500 });
     }
 
-    // Sync with Supabase
     const upsertData = {
       user_id: id,
       email: email_addresses[0].email_address,

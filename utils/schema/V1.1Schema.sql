@@ -401,3 +401,48 @@ WHERE m.name = 'Antminer S21';
 
 
 
+--The Following Are Updates to the tables and policies regarding the use of single orgs and 2 roles only (We ain't paying a hunnid for a custom role f that)
+-- Alter users table to make org_id nullable (remove default)
+ALTER TABLE users
+  ALTER COLUMN org_id DROP DEFAULT,
+  ALTER COLUMN org_id DROP NOT NULL;
+
+-- Update RLS policies
+-- Policy: Users can view their own profile
+ALTER POLICY "Users can view their own profile" ON users
+  FOR SELECT
+  USING (user_id = auth.jwt()->>'sub');
+
+-- Policy: Users can insert their own profile
+ALTER POLICY "Users can insert their own profile" ON users
+  FOR INSERT
+  WITH CHECK (user_id = auth.jwt()->>'sub');
+
+-- Policy: Users can update their own profile
+ALTER POLICY "Users can update their own profile" ON users
+  FOR UPDATE
+  USING (user_id = auth.jwt()->>'sub');
+
+-- Policy: Only organization admins can manage users
+ALTER POLICY "Only organization admins can manage users" ON users
+  FOR ALL
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+  -- Update RLS policies for facilities
+-- Policy: Authenticated users can view facilities
+ALTER POLICY "Authenticated users can view facilities" ON facilities
+  USING (true);
+
+-- Policy: Only organization admins can manage facilities
+ALTER POLICY "Only organization admins can manage facilities" ON facilities
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );

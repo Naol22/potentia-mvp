@@ -774,3 +774,51 @@ CREATE POLICY "Deny all other access to sessions" ON subscription_sessions
   USING (false);
 
 COMMENT ON TABLE subscription_sessions IS 'Stores secure session links for Stripe and NowPayments hosted checkouts';
+
+
+
+-- Create subscription_events table
+
+CREATE TABLE subscription_events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  subscription_id UUID NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  event_type TEXT NOT NULL CHECK (
+    event_type IN (
+      'created', 'updated', 'canceled', 'renewed', 'payment_failed', 'payment_succeeded'
+    )
+  ), -- Common lifecycle events
+  provider TEXT NOT NULL CHECK (provider IN ('stripe', 'nowpayments')),
+  data JSONB NOT NULL, -- Event payload (e.g., webhook data)
+  status TEXT NOT NULL DEFAULT 'success' CHECK (status IN ('success', 'failed')),
+  error_message TEXT, -- Error details if status = 'failed'
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Add trigger for updated_at
+CREATE TRIGGER set_timestamp_subscription_events
+  BEFORE UPDATE ON subscription_events
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Enable RLS on the subscription_events table
+ALTER TABLE subscription_events ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Admins can manage all events (read-only for debugging)
+CREATE POLICY "Admins can manage subscription events" ON subscription_events
+  FOR ALL
+  TO authenticated
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+-- Default deny policy
+CREATE POLICY "Deny all other access to subscription events" ON subscription_events
+  FOR ALL
+  TO authenticated
+  USING (false);
+
+COMMENT ON TABLE subscription_events IS 'Logs lifecycle events for subscriptions (e.g., updates, cancellations)';

@@ -723,3 +723,54 @@ CREATE POLICY "Deny all other access to orders" ON orders
   USING (false);
 
 COMMENT ON TABLE orders IS 'Unified view of user orders aggregating transactions and subscriptions for plans or services';
+
+ALTER TABLE subscriptions
+  ADD COLUMN IF NOT EXISTS checkout_session_id TEXT; -- Store Stripe/NowPayments session ID for reference
+
+
+
+
+
+-- Create subscription_sessions table
+
+CREATE TABLE subscription_sessions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  subscription_id UUID REFERENCES subscriptions(id) ON DELETE CASCADE, -- Link to subscription
+  provider TEXT NOT NULL CHECK (provider IN ('stripe', 'nowpayments')), -- Identify provider
+  session_id TEXT NOT NULL, -- Stripe session ID (cs_xxx) or NowPayments payment ID
+  session_url TEXT NOT NULL, -- URL for hosted checkout
+  expires_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Session expiry (Stripe: 24h, NowPayments: varies)
+  is_used BOOLEAN DEFAULT FALSE, -- Track if session was completed
+  metadata JSONB DEFAULT '{}', -- Store additional data (e.g., payment intent)
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT unique_session_id UNIQUE (session_id) -- Prevent duplicates
+);
+
+-- Enable RLS on the subscription_sessions table
+ALTER TABLE subscription_sessions ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Users can view their own sessions
+CREATE POLICY "Users can view their own sessions" ON subscription_sessions
+  FOR SELECT
+  TO authenticated
+  USING (user_id = (SELECT id FROM users WHERE user_id = auth.jwt()->>'sub'));
+
+-- RLS Policy: Admins can manage all sessions
+CREATE POLICY "Admins can manage sessions" ON subscription_sessions
+  FOR ALL
+  TO authenticated
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+-- Default deny policy
+CREATE POLICY "Deny all other access to sessions" ON subscription_sessions
+  FOR ALL
+  TO authenticated
+  USING (false);
+
+COMMENT ON TABLE subscription_sessions IS 'Stores secure session links for Stripe and NowPayments hosted checkouts';

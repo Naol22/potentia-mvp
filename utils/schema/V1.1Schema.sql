@@ -657,3 +657,69 @@ CREATE TRIGGER validate_plan_ids_trigger
 BEFORE INSERT OR UPDATE ON subscriptions
 FOR EACH ROW
 EXECUTE FUNCTION check_valid_plan_ids();
+
+
+-- Create order_status enum (covering order lifecycle states)
+CREATE TYPE order_status AS ENUM ('pending', 'completed', 'canceled', 'failed');
+
+-- Create orders table
+CREATE TABLE orders (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  plan_type TEXT NOT NULL CHECK (plan_type IN ('hashrate', 'hosting', 'bundle')),
+  plan_ids JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_array_length(plan_ids) > 0),
+  transaction_ids UUID[] NOT NULL DEFAULT ARRAY[]::UUID[],
+  subscription_id UUID REFERENCES subscriptions(id) ON DELETE SET NULL,
+  crypto_address TEXT CHECK (
+    crypto_address IS NULL OR crypto_address ~ '^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$'
+  ),
+  status order_status NOT NULL DEFAULT 'pending',
+  start_date TIMESTAMP WITH TIME ZONE,
+  end_date TIMESTAMP WITH TIME ZONE,
+  is_active BOOLEAN DEFAULT FALSE,
+  next_billing_date TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT valid_order_dates CHECK (
+    start_date IS NULL OR end_date IS NULL OR start_date <= end_date
+  ),
+  CONSTRAINT valid_plan_ids_check CHECK (
+    (plan_type = 'bundle' AND jsonb_array_length(plan_ids) > 1) OR
+    (plan_type IN ('hashrate', 'hosting') AND jsonb_array_length(plan_ids) = 1)
+  ),
+  CONSTRAINT valid_transaction_ids CHECK (
+    array_length(transaction_ids, 1) > 0 OR subscription_id IS NOT NULL
+  )
+);
+
+-- Add trigger for updated_at (assuming update_updated_at_column() exists)
+CREATE TRIGGER set_timestamp_orders
+  BEFORE UPDATE ON orders
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Enable RLS on the orders table
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Users can view their own orders
+CREATE POLICY "Users can view their own orders" ON orders
+  FOR SELECT
+  TO authenticated
+  USING (user_id = (SELECT id FROM users WHERE user_id = auth.jwt()->>'sub'));
+
+-- RLS Policy: Admins can manage all orders
+CREATE POLICY "Admins can manage orders" ON orders
+  FOR ALL
+  TO authenticated
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+-- Default deny policy to ensure no unauthorized access
+CREATE POLICY "Deny all other access to orders" ON orders
+  FOR ALL
+  TO authenticated
+  USING (false);
+
+COMMENT ON TABLE orders IS 'Unified view of user orders aggregating transactions and subscriptions for plans or services';

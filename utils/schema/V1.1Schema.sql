@@ -822,3 +822,53 @@ CREATE POLICY "Deny all other access to subscription events" ON subscription_eve
   USING (false);
 
 COMMENT ON TABLE subscription_events IS 'Logs lifecycle events for subscriptions (e.g., updates, cancellations)';
+
+
+-- Create survey_responses table
+
+CREATE TABLE survey_responses (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  anonymous_user_id UUID DEFAULT uuid_generate_v4(),
+  satisfaction INTEGER NOT NULL,
+  completed BOOLEAN NOT NULL DEFAULT TRUE,
+  issue TEXT,
+  suggestion TEXT,
+  nps INTEGER,
+  metadata JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT valid_satisfaction CHECK (satisfaction BETWEEN 1 AND 5),
+  CONSTRAINT valid_nps CHECK (nps IS NULL OR nps BETWEEN 0 AND 10)
+);
+
+-- Add index for querying by user
+CREATE INDEX idx_survey_responses_user_id ON survey_responses(user_id, created_at);
+
+-- Enable RLS on the survey_responses table
+ALTER TABLE survey_responses ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Users can view their own responses
+CREATE POLICY "Users can view their own responses" ON survey_responses
+  FOR SELECT
+  TO authenticated
+  USING (user_id = (SELECT id FROM users WHERE user_id = auth.jwt()->>'sub'));
+
+-- RLS Policy: Admins can manage all responses
+CREATE POLICY "Admins can manage responses" ON survey_responses
+  FOR ALL
+  TO authenticated
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+-- Default deny policy
+CREATE POLICY "Deny all other access to survey_responses" ON survey_responses
+  FOR ALL
+  TO authenticated
+  USING (false);
+
+
+COMMENT ON TABLE survey_responses IS 'Stores user feedback and satisfaction ratings';

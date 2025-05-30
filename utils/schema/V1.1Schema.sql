@@ -872,3 +872,53 @@ CREATE POLICY "Deny all other access to survey_responses" ON survey_responses
 
 
 COMMENT ON TABLE survey_responses IS 'Stores user feedback and satisfaction ratings';
+
+
+-- Create notifications table
+COMMENT ON TABLE notifications IS 'Stores global notifications for subscriptions, invoices, and updates';
+
+CREATE TABLE notifications (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  subscription_id UUID REFERENCES subscriptions(id) ON DELETE SET NULL,
+  transaction_id UUID REFERENCES transactions(id) ON DELETE SET NULL, -- Link to payment events
+  type TEXT NOT NULL CHECK (
+    type IN ('new_subscription', 'invoice_due', 'subscription_ending', 'payment_failed', 'general_update')
+  ),
+  message TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'sent', 'failed')),
+  scheduled_at TIMESTAMP WITH TIME ZONE, -- For delayed notifications
+  sent_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Add trigger for updated_at
+CREATE TRIGGER set_timestamp_notifications
+  BEFORE UPDATE ON notifications
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Enable RLS on the notifications table
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Users can view their own notifications
+CREATE POLICY "Users can view their own notifications" ON notifications
+  FOR SELECT
+  TO authenticated
+  USING (user_id = (SELECT id FROM users WHERE user_id = auth.jwt()->>'sub'));
+
+-- RLS Policy: Admins can manage all notifications
+CREATE POLICY "Admins can manage notifications" ON notifications
+  FOR ALL
+  TO authenticated
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+-- Default deny policy
+CREATE POLICY "Deny all other access to notifications" ON notifications
+  FOR ALL
+  TO authenticated
+  USING (false);

@@ -446,3 +446,17 @@ ALTER POLICY "Only organization admins can manage facilities" ON facilities
   WITH CHECK (
     ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
   );
+
+-- Update RLS policies for miners
+-- Policy: Authenticated users can view miners
+ALTER POLICY "Authenticated users can view miners" ON miners
+  USING (true);
+
+-- Policy: Only organization admins can manage miners
+ALTER POLICY "Only organization admins can manage miners" ON miners
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );

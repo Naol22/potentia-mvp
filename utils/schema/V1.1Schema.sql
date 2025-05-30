@@ -617,3 +617,43 @@ CREATE POLICY "Deny all other access to subscriptions" ON subscriptions
   USING (false);
 
 COMMENT ON TABLE subscriptions IS 'Stores recurring subscription details for Stripe and NowPayments';
+
+
+-- Alter transactions table to enhance scalability
+ALTER TABLE transactions
+  ADD COLUMN IF NOT EXISTS subscription_id UUID REFERENCES subscriptions(id) ON DELETE SET NULL; -- Link to subscription for recurring payments
+ALTER TABLE transactions
+  ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'; -- Store additional payment details (e.g., bundle info)
+
+
+  CREATE OR REPLACE FUNCTION check_valid_plan_ids()
+RETURNS trigger AS $$
+DECLARE
+  plan jsonb;
+  valid_ids jsonb;
+BEGIN
+  -- Get all valid plan IDs from both tables
+  SELECT jsonb_agg(id) INTO valid_ids
+  FROM (
+    SELECT id FROM hashrate_plans
+    UNION ALL
+    SELECT id FROM hosting_plans
+  ) AS all_ids;
+
+  -- Check each element in plan_ids
+  FOR plan IN SELECT * FROM jsonb_array_elements(NEW.plan_ids)
+  LOOP
+    IF NOT (plan <@ valid_ids) THEN
+      RAISE EXCEPTION 'Invalid plan ID: %', plan;
+    END IF;
+  END LOOP;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER validate_plan_ids_trigger
+BEFORE INSERT OR UPDATE ON subscriptions
+FOR EACH ROW
+EXECUTE FUNCTION check_valid_plan_ids();

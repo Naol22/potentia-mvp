@@ -922,3 +922,35 @@ CREATE POLICY "Deny all other access to notifications" ON notifications
   FOR ALL
   TO authenticated
   USING (false);
+
+
+
+
+--Rollback of Bundle Logic in subscriptions Table (Will not be impelemted for thsi version)
+-- Drop the trigger and function
+DROP TRIGGER IF EXISTS validate_plan_ids_trigger ON subscriptions;
+DROP FUNCTION IF EXISTS check_valid_plan_ids;
+
+-- Remove the plan_ids column and related constraints
+ALTER TABLE subscriptions
+  DROP COLUMN IF EXISTS plan_ids,
+  DROP CONSTRAINT IF EXISTS valid_plan_ids;
+
+-- Revert plan_id to NOT NULL with reference to hashrate_plans or hosting_plans
+ALTER TABLE subscriptions
+  ALTER COLUMN plan_id SET NOT NULL,
+  ALTER COLUMN plan_id SET DEFAULT NULL,
+  ADD CONSTRAINT plan_id_check CHECK (
+    EXISTS (SELECT 1 FROM hashrate_plans WHERE id = plan_id) OR
+    EXISTS (SELECT 1 FROM hosting_plans WHERE id = plan_id)
+  );
+
+-- Recreate the original foreign key constraint (adjusted for separate plans tables)
+ALTER TABLE subscriptions
+  ADD CONSTRAINT fk_plan_id
+  FOREIGN KEY (plan_id)
+  REFERENCES hashrate_plans(id)
+  ON DELETE SET NULL
+  DEFERRABLE INITIALLY DEFERRED; -- Add a deferrable FK to allow flexibility if needed later
+
+-- Note: If you also want to reference hosting_plans, you’d need a union table or separate FK, but for now, we’ll assume hashrate_plans as the primary plan type

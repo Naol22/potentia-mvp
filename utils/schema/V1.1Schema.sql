@@ -544,3 +544,76 @@ CREATE POLICY "Deny all other access" ON transactions
   USING (false);
 
 COMMENT ON TABLE transactions IS 'Admin-only table to store payment transactions for hashrate and hosting plans';
+
+
+
+
+
+-- Create subscription_status enum (covering Stripe and NowPayments statuses)
+CREATE TYPE subscription_status AS ENUM (
+  'active',      -- Common: Subscription is active
+  'past_due',    -- Stripe: Payment failed but still retrying
+  'unpaid',      -- Stripe: Payment failed after retries
+  'canceled',    -- Common: Subscription canceled
+  'failed',      -- NowPayments: Payment failed
+  'expired',     -- NowPayments: Subscription expired
+  'incomplete',  -- Stripe: Awaiting initial payment
+  'trialing'     -- Stripe: In trial period
+);
+
+-- Create subscriptions table
+
+CREATE TABLE subscriptions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  plan_type TEXT NOT NULL CHECK (plan_type IN ('hashrate', 'hosting')), -- Specifies plan type
+  plan_id UUID NOT NULL, -- References hashrate_plans.id or hosting_plans.id based on plan_type
+  status subscription_status NOT NULL DEFAULT 'active',
+  payment_method_id UUID REFERENCES payment_methods(id) ON DELETE SET NULL,
+  provider_subscription_id TEXT NOT NULL, -- Stripe sub_xxx or NowPayments subscription_id
+  current_period_start TIMESTAMP WITH TIME ZONE, -- Stripe: Exact period start; NowPayments: Inferred
+  current_period_end TIMESTAMP WITH TIME ZONE, -- Stripe: Exact period end; NowPayments: Inferred
+  cancel_at_period_end BOOLEAN DEFAULT FALSE, -- Stripe: Cancel at period end; NowPayments: N/A
+  canceled_at TIMESTAMP WITH TIME ZONE, -- Common: When subscription was canceled
+  metadata JSONB, -- Stores provider-specific data (e.g., latest_invoice, payment_id)
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT valid_period_dates CHECK (
+    current_period_start IS NULL OR current_period_end IS NULL OR current_period_start <= current_period_end
+  ),
+  CONSTRAINT valid_plan_reference_hashrate FOREIGN KEY (plan_id) REFERENCES hashrate_plans(id) ON DELETE CASCADE,
+  CONSTRAINT valid_plan_reference_hosting FOREIGN KEY (plan_id) REFERENCES hosting_plans(id) ON DELETE CASCADE
+);
+
+-- Add trigger for updated_at
+CREATE TRIGGER set_timestamp_subscriptions
+  BEFORE UPDATE ON subscriptions
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Enable RLS on the subscriptions table
+ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Users can view their own subscriptions
+CREATE POLICY "Users can view their own subscriptions" ON subscriptions
+  FOR SELECT
+  TO authenticated
+  USING (user_id = (SELECT id FROM users WHERE user_id = auth.jwt()->>'sub'));
+
+-- RLS Policy: Admins can manage all subscriptions
+CREATE POLICY "Admins can manage subscriptions" ON subscriptions
+  FOR ALL
+  TO authenticated
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+-- Default deny policy to ensure no unauthorized access
+CREATE POLICY "Deny all other access to subscriptions" ON subscriptions
+  FOR ALL
+  TO authenticated
+  USING (false);
+
+COMMENT ON TABLE subscriptions IS 'Stores recurring subscription details for Stripe and NowPayments';

@@ -460,3 +460,18 @@ ALTER POLICY "Only organization admins can manage miners" ON miners
   WITH CHECK (
     ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
   );
+
+
+-- Update RLS policies for hashrate_plans
+-- Policy: Authenticated users can view hashrate plans
+ALTER POLICY "Authenticated users can view hashrate plans" ON hashrate_plans
+  USING (true);
+
+-- Policy: Only organization admins can manage hashrate plans
+ALTER POLICY "Only organization admins can manage hashrate plans" ON hashrate_plans
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );

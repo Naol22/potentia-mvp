@@ -475,3 +475,18 @@ ALTER POLICY "Only organization admins can manage hashrate plans" ON hashrate_pl
   WITH CHECK (
     ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
   );
+
+
+-- Update RLS policies for hosting_plans
+-- Policy: Authenticated users can view hosting plans
+ALTER POLICY "Authenticated users can view hosting_plans" ON hosting_plans
+  USING (true);
+
+-- Policy: Only organization admins can manage hosting plans
+ALTER POLICY "Only organization admins can manage hosting_plans" ON hosting_plans
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );

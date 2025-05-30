@@ -490,3 +490,57 @@ ALTER POLICY "Only organization admins can manage hosting_plans" ON hosting_plan
   WITH CHECK (
     ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
   );
+
+
+
+
+
+
+
+
+-- Create transaction_status enum
+CREATE TYPE transaction_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
+
+-- Create payment_type enum
+CREATE TYPE payment_type AS ENUM ('subscription', 'one_time');
+
+-- Create transactions table
+CREATE TABLE transactions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE, -- Links to the user making the transaction
+  plan_type TEXT NOT NULL CHECK (plan_type IN ('hashrate', 'hosting')), -- Specifies plan type
+  plan_id UUID NOT NULL, -- References hashrate_plans.id or hosting_plans.id based on plan_type
+  payment_type payment_type NOT NULL, -- Indicates subscription or one-time payment
+  amount DECIMAL(10, 2) NOT NULL,
+  currency TEXT NOT NULL DEFAULT 'USD' CHECK (currency IN ('USD', 'EUR', 'BTC')),
+  status transaction_status NOT NULL DEFAULT 'pending',
+  payment_method_id UUID REFERENCES payment_methods(id) ON DELETE SET NULL,
+  payment_provider_reference TEXT, -- E.g., Stripe charge ID or NowPayments transaction ID
+  metadata JSONB, -- Stores additional details (e.g., invoice, plan details)
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT positive_amount CHECK (amount > 0),
+  CONSTRAINT valid_plan_reference_hashrate FOREIGN KEY (plan_id) REFERENCES hashrate_plans(id) ON DELETE CASCADE,
+  CONSTRAINT valid_plan_reference_hosting FOREIGN KEY (plan_id) REFERENCES hosting_plans(id) ON DELETE CASCADE
+);
+
+-- Enable RLS on the transactions table
+ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Only admins can view and manage transactions
+CREATE POLICY "Admins can manage transactions" ON transactions
+  FOR ALL
+  TO authenticated
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+-- Default deny policy to ensure no unauthorized access
+CREATE POLICY "Deny all other access" ON transactions
+  FOR ALL
+  TO authenticated
+  USING (false);
+
+COMMENT ON TABLE transactions IS 'Admin-only table to store payment transactions for hashrate and hosting plans';

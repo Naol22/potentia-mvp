@@ -953,4 +953,86 @@ ALTER TABLE subscriptions
   ON DELETE SET NULL
   DEFERRABLE INITIALLY DEFERRED; -- Add a deferrable FK to allow flexibility if needed later
 
--- Note: If you also want to reference hosting_plans, you’d need a union table or separate FK, but for now, we’ll assume hashrate_plans as the primary plan type
+
+
+
+--Notable Indexes for Performance Optimization
+-- users table
+CREATE INDEX IF NOT EXISTS idx_users_user_id ON users(user_id); -- Corrected from clerk_user_id (assuming typo)
+CREATE INDEX IF NOT EXISTS idx_users_org_id ON users(org_id); -- For organization-based queries
+CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at); -- For recent user tracking
+
+-- facilities table
+CREATE INDEX IF NOT EXISTS idx_facilities_name ON facilities(name); -- For searching facilities
+CREATE INDEX IF NOT EXISTS idx_facilities_created_at ON facilities(created_at); -- For recent additions
+
+-- miners table
+CREATE INDEX IF NOT EXISTS idx_miners_name ON miners(name); -- For searching miners
+CREATE INDEX IF NOT EXISTS idx_miners_created_at ON miners(created_at); -- For recent additions
+
+-- payment_methods table
+CREATE INDEX IF NOT EXISTS idx_payment_methods_name ON payment_methods(name); -- For payment method lookup
+CREATE INDEX IF NOT EXISTS idx_payment_methods_is_active ON payment_methods(is_active); -- For active methods
+CREATE INDEX IF NOT EXISTS idx_payment_methods_created_at ON payment_methods(created_at); -- For recent configs
+
+-- hashrate_plans table
+CREATE INDEX IF NOT EXISTS idx_hashrate_plans_hashrate ON hashrate_plans(hashrate); -- For plan selection
+CREATE INDEX IF NOT EXISTS idx_hashrate_plans_price ON hashrate_plans(price); -- For price filtering
+CREATE INDEX IF NOT EXISTS idx_hashrate_plans_created_at ON hashrate_plans(created_at); -- For recent plans
+
+-- hosting_plans table
+CREATE INDEX IF NOT EXISTS idx_hosting_plans_miner_id ON hosting_plans(miner_id); -- For miner-based queries
+CREATE INDEX IF NOT EXISTS idx_hosting_plans_facility_id ON hosting_plans(facility_id); -- For facility-based queries
+CREATE INDEX IF NOT EXISTS idx_hosting_plans_price ON hosting_plans(price); -- For price filtering
+CREATE INDEX IF NOT EXISTS idx_hosting_plans_created_at ON hosting_plans(created_at); -- For recent plans
+
+-- transactions table
+CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON transactions(user_id); -- For user payment history
+CREATE INDEX IF NOT EXISTS idx_transactions_plan_id ON transactions(plan_id); -- For plan-based queries
+CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status); -- For payment status filtering
+CREATE INDEX IF NOT EXISTS idx_transactions_created_at ON transactions(created_at); -- For recent transactions
+CREATE INDEX IF NOT EXISTS idx_transactions_subscription_id ON transactions(subscription_id); -- For subscription payments
+
+-- subscriptions table
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id); -- For user subscription history
+CREATE INDEX IF NOT EXISTS idx_subscriptions_plan_id ON subscriptions(plan_id); -- For plan-based queries
+CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status); -- For subscription status filtering
+CREATE INDEX IF NOT EXISTS idx_subscriptions_created_at ON subscriptions(created_at); -- For recent subscriptions
+CREATE INDEX IF NOT EXISTS idx_subscriptions_current_period_end ON subscriptions(current_period_end); -- For nearly ending subscriptions
+
+-- orders table
+CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id); -- For user order history
+CREATE INDEX IF NOT EXISTS idx_orders_plan_id ON orders(plan_ids); -- For plan-based queries (using plan_ids for consistency, though reverted)
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status); -- For order status filtering
+CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at); -- For recent orders
+CREATE INDEX IF NOT EXISTS idx_orders_transaction_ids ON orders USING GIN(transaction_ids); -- For array searches
+CREATE INDEX IF NOT EXISTS idx_orders_next_billing_date ON orders(next_billing_date); -- For billing reminders
+
+-- subscription_sessions table
+CREATE INDEX IF NOT EXISTS idx_subscription_sessions_user_id ON subscription_sessions(user_id); -- For user session tracking
+CREATE INDEX IF NOT EXISTS idx_subscription_sessions_subscription_id ON subscription_sessions(subscription_id); -- For subscription sessions
+CREATE INDEX IF NOT EXISTS idx_subscription_sessions_expires_at ON subscription_sessions(expires_at); -- For expiry cleanup
+CREATE INDEX IF NOT EXISTS idx_subscription_sessions_is_used ON subscription_sessions(is_used); -- For unused session filtering
+
+-- subscription_events table
+CREATE INDEX IF NOT EXISTS idx_subscription_events_subscription_id ON subscription_events(subscription_id); -- For event lookup
+CREATE INDEX IF NOT EXISTS idx_subscription_events_user_id ON subscription_events(user_id); -- For user event history
+CREATE INDEX IF NOT EXISTS idx_subscription_events_event_type ON subscription_events(event_type); -- For event type filtering
+CREATE INDEX IF NOT EXISTS idx_subscription_events_created_at ON subscription_events(created_at); -- For recent events
+
+-- survey_responses table
+CREATE INDEX IF NOT EXISTS idx_survey_responses_user_id ON survey_responses(user_id); -- For user feedback
+CREATE INDEX IF NOT EXISTS idx_survey_responses_satisfaction ON survey_responses(satisfaction); -- For satisfaction analysis
+CREATE INDEX IF NOT EXISTS idx_survey_responses_completed ON survey_responses(completed); -- For completed surveys
+CREATE INDEX IF NOT EXISTS idx_survey_responses_nps ON survey_responses(nps); -- For NPS analysis
+CREATE INDEX IF NOT EXISTS idx_survey_responses_created_at ON survey_responses(created_at); -- For recent responses
+
+-- notifications table
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id); -- For user notifications
+CREATE INDEX IF NOT EXISTS idx_notifications_status ON notifications(status); -- For status filtering
+CREATE INDEX IF NOT EXISTS idx_notifications_scheduled_at ON notifications(scheduled_at); -- For scheduled notifications
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at); -- For recent notifications
+
+
+
+

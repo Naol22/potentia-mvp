@@ -401,3 +401,638 @@ WHERE m.name = 'Antminer S21';
 
 
 
+--The Following Are Updates to the tables and policies regarding the use of single orgs and 2 roles only (We ain't paying a hunnid for a custom role f that)
+-- Alter users table to make org_id nullable (remove default)
+ALTER TABLE users
+  ALTER COLUMN org_id DROP DEFAULT,
+  ALTER COLUMN org_id DROP NOT NULL;
+
+-- Update RLS policies
+-- Policy: Users can view their own profile
+ALTER POLICY "Users can view their own profile" ON users
+  FOR SELECT
+  USING (user_id = auth.jwt()->>'sub');
+
+-- Policy: Users can insert their own profile
+ALTER POLICY "Users can insert their own profile" ON users
+  FOR INSERT
+  WITH CHECK (user_id = auth.jwt()->>'sub');
+
+-- Policy: Users can update their own profile
+ALTER POLICY "Users can update their own profile" ON users
+  FOR UPDATE
+  USING (user_id = auth.jwt()->>'sub');
+
+-- Policy: Only organization admins can manage users
+ALTER POLICY "Only organization admins can manage users" ON users
+  FOR ALL
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+  -- Update RLS policies for facilities
+-- Policy: Authenticated users can view facilities
+ALTER POLICY "Authenticated users can view facilities" ON facilities
+  USING (true);
+
+-- Policy: Only organization admins can manage facilities
+ALTER POLICY "Only organization admins can manage facilities" ON facilities
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+-- Update RLS policies for miners
+-- Policy: Authenticated users can view miners
+ALTER POLICY "Authenticated users can view miners" ON miners
+  USING (true);
+
+-- Policy: Only organization admins can manage miners
+ALTER POLICY "Only organization admins can manage miners" ON miners
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+
+-- Update RLS policies for hashrate_plans
+-- Policy: Authenticated users can view hashrate plans
+ALTER POLICY "Authenticated users can view hashrate plans" ON hashrate_plans
+  USING (true);
+
+-- Policy: Only organization admins can manage hashrate plans
+ALTER POLICY "Only organization admins can manage hashrate plans" ON hashrate_plans
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+
+-- Update RLS policies for hosting_plans
+-- Policy: Authenticated users can view hosting plans
+ALTER POLICY "Authenticated users can view hosting_plans" ON hosting_plans
+  USING (true);
+
+-- Policy: Only organization admins can manage hosting plans
+ALTER POLICY "Only organization admins can manage hosting_plans" ON hosting_plans
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+
+
+
+
+
+
+
+-- Create transaction_status enum
+CREATE TYPE transaction_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
+
+-- Create payment_type enum
+CREATE TYPE payment_type AS ENUM ('subscription', 'one_time');
+
+-- Create transactions table
+CREATE TABLE transactions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE, -- Links to the user making the transaction
+  plan_type TEXT NOT NULL CHECK (plan_type IN ('hashrate', 'hosting')), -- Specifies plan type
+  plan_id UUID NOT NULL, -- References hashrate_plans.id or hosting_plans.id based on plan_type
+  payment_type payment_type NOT NULL, -- Indicates subscription or one-time payment
+  amount DECIMAL(10, 2) NOT NULL,
+  currency TEXT NOT NULL DEFAULT 'USD' CHECK (currency IN ('USD', 'EUR', 'BTC')),
+  status transaction_status NOT NULL DEFAULT 'pending',
+  payment_method_id UUID REFERENCES payment_methods(id) ON DELETE SET NULL,
+  payment_provider_reference TEXT, -- E.g., Stripe charge ID or NowPayments transaction ID
+  metadata JSONB, -- Stores additional details (e.g., invoice, plan details)
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT positive_amount CHECK (amount > 0),
+  CONSTRAINT valid_plan_reference_hashrate FOREIGN KEY (plan_id) REFERENCES hashrate_plans(id) ON DELETE CASCADE,
+  CONSTRAINT valid_plan_reference_hosting FOREIGN KEY (plan_id) REFERENCES hosting_plans(id) ON DELETE CASCADE
+);
+
+-- Enable RLS on the transactions table
+ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Only admins can view and manage transactions
+CREATE POLICY "Admins can manage transactions" ON transactions
+  FOR ALL
+  TO authenticated
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+-- Default deny policy to ensure no unauthorized access
+CREATE POLICY "Deny all other access" ON transactions
+  FOR ALL
+  TO authenticated
+  USING (false);
+
+COMMENT ON TABLE transactions IS 'Admin-only table to store payment transactions for hashrate and hosting plans';
+
+
+
+
+
+-- Create subscription_status enum (covering Stripe and NowPayments statuses)
+CREATE TYPE subscription_status AS ENUM (
+  'active',      -- Common: Subscription is active
+  'past_due',    -- Stripe: Payment failed but still retrying
+  'unpaid',      -- Stripe: Payment failed after retries
+  'canceled',    -- Common: Subscription canceled
+  'failed',      -- NowPayments: Payment failed
+  'expired',     -- NowPayments: Subscription expired
+  'incomplete',  -- Stripe: Awaiting initial payment
+  'trialing'     -- Stripe: In trial period
+);
+
+-- Create subscriptions table
+
+CREATE TABLE subscriptions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  plan_type TEXT NOT NULL CHECK (plan_type IN ('hashrate', 'hosting')), -- Specifies plan type
+  plan_id UUID NOT NULL, -- References hashrate_plans.id or hosting_plans.id based on plan_type
+  status subscription_status NOT NULL DEFAULT 'active',
+  payment_method_id UUID REFERENCES payment_methods(id) ON DELETE SET NULL,
+  provider_subscription_id TEXT NOT NULL, -- Stripe sub_xxx or NowPayments subscription_id
+  current_period_start TIMESTAMP WITH TIME ZONE, -- Stripe: Exact period start; NowPayments: Inferred
+  current_period_end TIMESTAMP WITH TIME ZONE, -- Stripe: Exact period end; NowPayments: Inferred
+  cancel_at_period_end BOOLEAN DEFAULT FALSE, -- Stripe: Cancel at period end; NowPayments: N/A
+  canceled_at TIMESTAMP WITH TIME ZONE, -- Common: When subscription was canceled
+  metadata JSONB, -- Stores provider-specific data (e.g., latest_invoice, payment_id)
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT valid_period_dates CHECK (
+    current_period_start IS NULL OR current_period_end IS NULL OR current_period_start <= current_period_end
+  ),
+  CONSTRAINT valid_plan_reference_hashrate FOREIGN KEY (plan_id) REFERENCES hashrate_plans(id) ON DELETE CASCADE,
+  CONSTRAINT valid_plan_reference_hosting FOREIGN KEY (plan_id) REFERENCES hosting_plans(id) ON DELETE CASCADE
+);
+
+-- Add trigger for updated_at
+CREATE TRIGGER set_timestamp_subscriptions
+  BEFORE UPDATE ON subscriptions
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Enable RLS on the subscriptions table
+ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Users can view their own subscriptions
+CREATE POLICY "Users can view their own subscriptions" ON subscriptions
+  FOR SELECT
+  TO authenticated
+  USING (user_id = (SELECT id FROM users WHERE user_id = auth.jwt()->>'sub'));
+
+-- RLS Policy: Admins can manage all subscriptions
+CREATE POLICY "Admins can manage subscriptions" ON subscriptions
+  FOR ALL
+  TO authenticated
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+-- Default deny policy to ensure no unauthorized access
+CREATE POLICY "Deny all other access to subscriptions" ON subscriptions
+  FOR ALL
+  TO authenticated
+  USING (false);
+
+COMMENT ON TABLE subscriptions IS 'Stores recurring subscription details for Stripe and NowPayments';
+
+
+-- Alter transactions table to enhance scalability
+ALTER TABLE transactions
+  ADD COLUMN IF NOT EXISTS subscription_id UUID REFERENCES subscriptions(id) ON DELETE SET NULL; -- Link to subscription for recurring payments
+ALTER TABLE transactions
+  ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'; -- Store additional payment details (e.g., bundle info)
+
+
+  CREATE OR REPLACE FUNCTION check_valid_plan_ids()
+RETURNS trigger AS $$
+DECLARE
+  plan jsonb;
+  valid_ids jsonb;
+BEGIN
+  -- Get all valid plan IDs from both tables
+  SELECT jsonb_agg(id) INTO valid_ids
+  FROM (
+    SELECT id FROM hashrate_plans
+    UNION ALL
+    SELECT id FROM hosting_plans
+  ) AS all_ids;
+
+  -- Check each element in plan_ids
+  FOR plan IN SELECT * FROM jsonb_array_elements(NEW.plan_ids)
+  LOOP
+    IF NOT (plan <@ valid_ids) THEN
+      RAISE EXCEPTION 'Invalid plan ID: %', plan;
+    END IF;
+  END LOOP;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER validate_plan_ids_trigger
+BEFORE INSERT OR UPDATE ON subscriptions
+FOR EACH ROW
+EXECUTE FUNCTION check_valid_plan_ids();
+
+
+-- Create order_status enum (covering order lifecycle states)
+CREATE TYPE order_status AS ENUM ('pending', 'completed', 'canceled', 'failed');
+
+-- Create orders table
+CREATE TABLE orders (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  plan_type TEXT NOT NULL CHECK (plan_type IN ('hashrate', 'hosting', 'bundle')),
+  plan_ids JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_array_length(plan_ids) > 0),
+  transaction_ids UUID[] NOT NULL DEFAULT ARRAY[]::UUID[],
+  subscription_id UUID REFERENCES subscriptions(id) ON DELETE SET NULL,
+  crypto_address TEXT CHECK (
+    crypto_address IS NULL OR crypto_address ~ '^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$'
+  ),
+  status order_status NOT NULL DEFAULT 'pending',
+  start_date TIMESTAMP WITH TIME ZONE,
+  end_date TIMESTAMP WITH TIME ZONE,
+  is_active BOOLEAN DEFAULT FALSE,
+  next_billing_date TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT valid_order_dates CHECK (
+    start_date IS NULL OR end_date IS NULL OR start_date <= end_date
+  ),
+  CONSTRAINT valid_plan_ids_check CHECK (
+    (plan_type = 'bundle' AND jsonb_array_length(plan_ids) > 1) OR
+    (plan_type IN ('hashrate', 'hosting') AND jsonb_array_length(plan_ids) = 1)
+  ),
+  CONSTRAINT valid_transaction_ids CHECK (
+    array_length(transaction_ids, 1) > 0 OR subscription_id IS NOT NULL
+  )
+);
+
+-- Add trigger for updated_at (assuming update_updated_at_column() exists)
+CREATE TRIGGER set_timestamp_orders
+  BEFORE UPDATE ON orders
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Enable RLS on the orders table
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Users can view their own orders
+CREATE POLICY "Users can view their own orders" ON orders
+  FOR SELECT
+  TO authenticated
+  USING (user_id = (SELECT id FROM users WHERE user_id = auth.jwt()->>'sub'));
+
+-- RLS Policy: Admins can manage all orders
+CREATE POLICY "Admins can manage orders" ON orders
+  FOR ALL
+  TO authenticated
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+-- Default deny policy to ensure no unauthorized access
+CREATE POLICY "Deny all other access to orders" ON orders
+  FOR ALL
+  TO authenticated
+  USING (false);
+
+COMMENT ON TABLE orders IS 'Unified view of user orders aggregating transactions and subscriptions for plans or services';
+
+ALTER TABLE subscriptions
+  ADD COLUMN IF NOT EXISTS checkout_session_id TEXT; -- Store Stripe/NowPayments session ID for reference
+
+
+
+
+
+-- Create subscription_sessions table
+
+CREATE TABLE subscription_sessions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  subscription_id UUID REFERENCES subscriptions(id) ON DELETE CASCADE, -- Link to subscription
+  provider TEXT NOT NULL CHECK (provider IN ('stripe', 'nowpayments')), -- Identify provider
+  session_id TEXT NOT NULL, -- Stripe session ID (cs_xxx) or NowPayments payment ID
+  session_url TEXT NOT NULL, -- URL for hosted checkout
+  expires_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Session expiry (Stripe: 24h, NowPayments: varies)
+  is_used BOOLEAN DEFAULT FALSE, -- Track if session was completed
+  metadata JSONB DEFAULT '{}', -- Store additional data (e.g., payment intent)
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT unique_session_id UNIQUE (session_id) -- Prevent duplicates
+);
+
+-- Enable RLS on the subscription_sessions table
+ALTER TABLE subscription_sessions ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Users can view their own sessions
+CREATE POLICY "Users can view their own sessions" ON subscription_sessions
+  FOR SELECT
+  TO authenticated
+  USING (user_id = (SELECT id FROM users WHERE user_id = auth.jwt()->>'sub'));
+
+-- RLS Policy: Admins can manage all sessions
+CREATE POLICY "Admins can manage sessions" ON subscription_sessions
+  FOR ALL
+  TO authenticated
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+-- Default deny policy
+CREATE POLICY "Deny all other access to sessions" ON subscription_sessions
+  FOR ALL
+  TO authenticated
+  USING (false);
+
+COMMENT ON TABLE subscription_sessions IS 'Stores secure session links for Stripe and NowPayments hosted checkouts';
+
+
+
+-- Create subscription_events table
+
+CREATE TABLE subscription_events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  subscription_id UUID NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  event_type TEXT NOT NULL CHECK (
+    event_type IN (
+      'created', 'updated', 'canceled', 'renewed', 'payment_failed', 'payment_succeeded'
+    )
+  ), -- Common lifecycle events
+  provider TEXT NOT NULL CHECK (provider IN ('stripe', 'nowpayments')),
+  data JSONB NOT NULL, -- Event payload (e.g., webhook data)
+  status TEXT NOT NULL DEFAULT 'success' CHECK (status IN ('success', 'failed')),
+  error_message TEXT, -- Error details if status = 'failed'
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Add trigger for updated_at
+CREATE TRIGGER set_timestamp_subscription_events
+  BEFORE UPDATE ON subscription_events
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Enable RLS on the subscription_events table
+ALTER TABLE subscription_events ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Admins can manage all events (read-only for debugging)
+CREATE POLICY "Admins can manage subscription events" ON subscription_events
+  FOR ALL
+  TO authenticated
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+-- Default deny policy
+CREATE POLICY "Deny all other access to subscription events" ON subscription_events
+  FOR ALL
+  TO authenticated
+  USING (false);
+
+COMMENT ON TABLE subscription_events IS 'Logs lifecycle events for subscriptions (e.g., updates, cancellations)';
+
+
+-- Create survey_responses table
+
+CREATE TABLE survey_responses (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  anonymous_user_id UUID DEFAULT uuid_generate_v4(),
+  satisfaction INTEGER NOT NULL,
+  completed BOOLEAN NOT NULL DEFAULT TRUE,
+  issue TEXT,
+  suggestion TEXT,
+  nps INTEGER,
+  metadata JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT valid_satisfaction CHECK (satisfaction BETWEEN 1 AND 5),
+  CONSTRAINT valid_nps CHECK (nps IS NULL OR nps BETWEEN 0 AND 10)
+);
+
+-- Add index for querying by user
+CREATE INDEX idx_survey_responses_user_id ON survey_responses(user_id, created_at);
+
+-- Enable RLS on the survey_responses table
+ALTER TABLE survey_responses ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Users can view their own responses
+CREATE POLICY "Users can view their own responses" ON survey_responses
+  FOR SELECT
+  TO authenticated
+  USING (user_id = (SELECT id FROM users WHERE user_id = auth.jwt()->>'sub'));
+
+-- RLS Policy: Admins can manage all responses
+CREATE POLICY "Admins can manage responses" ON survey_responses
+  FOR ALL
+  TO authenticated
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+-- Default deny policy
+CREATE POLICY "Deny all other access to survey_responses" ON survey_responses
+  FOR ALL
+  TO authenticated
+  USING (false);
+
+
+COMMENT ON TABLE survey_responses IS 'Stores user feedback and satisfaction ratings';
+
+
+-- Create notifications table
+COMMENT ON TABLE notifications IS 'Stores global notifications for subscriptions, invoices, and updates';
+
+CREATE TABLE notifications (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  subscription_id UUID REFERENCES subscriptions(id) ON DELETE SET NULL,
+  transaction_id UUID REFERENCES transactions(id) ON DELETE SET NULL, -- Link to payment events
+  type TEXT NOT NULL CHECK (
+    type IN ('new_subscription', 'invoice_due', 'subscription_ending', 'payment_failed', 'general_update')
+  ),
+  message TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'sent', 'failed')),
+  scheduled_at TIMESTAMP WITH TIME ZONE, -- For delayed notifications
+  sent_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Add trigger for updated_at
+CREATE TRIGGER set_timestamp_notifications
+  BEFORE UPDATE ON notifications
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Enable RLS on the notifications table
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Users can view their own notifications
+CREATE POLICY "Users can view their own notifications" ON notifications
+  FOR SELECT
+  TO authenticated
+  USING (user_id = (SELECT id FROM users WHERE user_id = auth.jwt()->>'sub'));
+
+-- RLS Policy: Admins can manage all notifications
+CREATE POLICY "Admins can manage notifications" ON notifications
+  FOR ALL
+  TO authenticated
+  USING (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  )
+  WITH CHECK (
+    ((auth.jwt()->>'org_role' = 'admin') OR (auth.jwt()->'o'->>'rol' = 'admin'))
+  );
+
+-- Default deny policy
+CREATE POLICY "Deny all other access to notifications" ON notifications
+  FOR ALL
+  TO authenticated
+  USING (false);
+
+
+
+
+--Rollback of Bundle Logic in subscriptions Table (Will not be impelemted for thsi version)
+-- Drop the trigger and function
+DROP TRIGGER IF EXISTS validate_plan_ids_trigger ON subscriptions;
+DROP FUNCTION IF EXISTS check_valid_plan_ids;
+
+-- Remove the plan_ids column and related constraints
+ALTER TABLE subscriptions
+  DROP COLUMN IF EXISTS plan_ids,
+  DROP CONSTRAINT IF EXISTS valid_plan_ids;
+
+-- Revert plan_id to NOT NULL with reference to hashrate_plans or hosting_plans
+ALTER TABLE subscriptions
+  ALTER COLUMN plan_id SET NOT NULL,
+  ALTER COLUMN plan_id SET DEFAULT NULL,
+  ADD CONSTRAINT plan_id_check CHECK (
+    EXISTS (SELECT 1 FROM hashrate_plans WHERE id = plan_id) OR
+    EXISTS (SELECT 1 FROM hosting_plans WHERE id = plan_id)
+  );
+
+-- Recreate the original foreign key constraint (adjusted for separate plans tables)
+ALTER TABLE subscriptions
+  ADD CONSTRAINT fk_plan_id
+  FOREIGN KEY (plan_id)
+  REFERENCES hashrate_plans(id)
+  ON DELETE SET NULL
+  DEFERRABLE INITIALLY DEFERRED; -- Add a deferrable FK to allow flexibility if needed later
+
+
+
+
+--Notable Indexes for Performance Optimization
+-- users table
+CREATE INDEX IF NOT EXISTS idx_users_user_id ON users(user_id); -- Corrected from clerk_user_id (assuming typo)
+CREATE INDEX IF NOT EXISTS idx_users_org_id ON users(org_id); -- For organization-based queries
+CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at); -- For recent user tracking
+
+-- facilities table
+CREATE INDEX IF NOT EXISTS idx_facilities_name ON facilities(name); -- For searching facilities
+CREATE INDEX IF NOT EXISTS idx_facilities_created_at ON facilities(created_at); -- For recent additions
+
+-- miners table
+CREATE INDEX IF NOT EXISTS idx_miners_name ON miners(name); -- For searching miners
+CREATE INDEX IF NOT EXISTS idx_miners_created_at ON miners(created_at); -- For recent additions
+
+-- payment_methods table
+CREATE INDEX IF NOT EXISTS idx_payment_methods_name ON payment_methods(name); -- For payment method lookup
+CREATE INDEX IF NOT EXISTS idx_payment_methods_is_active ON payment_methods(is_active); -- For active methods
+CREATE INDEX IF NOT EXISTS idx_payment_methods_created_at ON payment_methods(created_at); -- For recent configs
+
+-- hashrate_plans table
+CREATE INDEX IF NOT EXISTS idx_hashrate_plans_hashrate ON hashrate_plans(hashrate); -- For plan selection
+CREATE INDEX IF NOT EXISTS idx_hashrate_plans_price ON hashrate_plans(price); -- For price filtering
+CREATE INDEX IF NOT EXISTS idx_hashrate_plans_created_at ON hashrate_plans(created_at); -- For recent plans
+
+-- hosting_plans table
+CREATE INDEX IF NOT EXISTS idx_hosting_plans_miner_id ON hosting_plans(miner_id); -- For miner-based queries
+CREATE INDEX IF NOT EXISTS idx_hosting_plans_facility_id ON hosting_plans(facility_id); -- For facility-based queries
+CREATE INDEX IF NOT EXISTS idx_hosting_plans_price ON hosting_plans(price); -- For price filtering
+CREATE INDEX IF NOT EXISTS idx_hosting_plans_created_at ON hosting_plans(created_at); -- For recent plans
+
+-- transactions table
+CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON transactions(user_id); -- For user payment history
+CREATE INDEX IF NOT EXISTS idx_transactions_plan_id ON transactions(plan_id); -- For plan-based queries
+CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status); -- For payment status filtering
+CREATE INDEX IF NOT EXISTS idx_transactions_created_at ON transactions(created_at); -- For recent transactions
+CREATE INDEX IF NOT EXISTS idx_transactions_subscription_id ON transactions(subscription_id); -- For subscription payments
+
+-- subscriptions table
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id); -- For user subscription history
+CREATE INDEX IF NOT EXISTS idx_subscriptions_plan_id ON subscriptions(plan_id); -- For plan-based queries
+CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status); -- For subscription status filtering
+CREATE INDEX IF NOT EXISTS idx_subscriptions_created_at ON subscriptions(created_at); -- For recent subscriptions
+CREATE INDEX IF NOT EXISTS idx_subscriptions_current_period_end ON subscriptions(current_period_end); -- For nearly ending subscriptions
+
+-- orders table
+CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id); -- For user order history
+CREATE INDEX IF NOT EXISTS idx_orders_plan_id ON orders(plan_ids); -- For plan-based queries (using plan_ids for consistency, though reverted)
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status); -- For order status filtering
+CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at); -- For recent orders
+CREATE INDEX IF NOT EXISTS idx_orders_transaction_ids ON orders USING GIN(transaction_ids); -- For array searches
+CREATE INDEX IF NOT EXISTS idx_orders_next_billing_date ON orders(next_billing_date); -- For billing reminders
+
+-- subscription_sessions table
+CREATE INDEX IF NOT EXISTS idx_subscription_sessions_user_id ON subscription_sessions(user_id); -- For user session tracking
+CREATE INDEX IF NOT EXISTS idx_subscription_sessions_subscription_id ON subscription_sessions(subscription_id); -- For subscription sessions
+CREATE INDEX IF NOT EXISTS idx_subscription_sessions_expires_at ON subscription_sessions(expires_at); -- For expiry cleanup
+CREATE INDEX IF NOT EXISTS idx_subscription_sessions_is_used ON subscription_sessions(is_used); -- For unused session filtering
+
+-- subscription_events table
+CREATE INDEX IF NOT EXISTS idx_subscription_events_subscription_id ON subscription_events(subscription_id); -- For event lookup
+CREATE INDEX IF NOT EXISTS idx_subscription_events_user_id ON subscription_events(user_id); -- For user event history
+CREATE INDEX IF NOT EXISTS idx_subscription_events_event_type ON subscription_events(event_type); -- For event type filtering
+CREATE INDEX IF NOT EXISTS idx_subscription_events_created_at ON subscription_events(created_at); -- For recent events
+
+-- survey_responses table
+CREATE INDEX IF NOT EXISTS idx_survey_responses_user_id ON survey_responses(user_id); -- For user feedback
+CREATE INDEX IF NOT EXISTS idx_survey_responses_satisfaction ON survey_responses(satisfaction); -- For satisfaction analysis
+CREATE INDEX IF NOT EXISTS idx_survey_responses_completed ON survey_responses(completed); -- For completed surveys
+CREATE INDEX IF NOT EXISTS idx_survey_responses_nps ON survey_responses(nps); -- For NPS analysis
+CREATE INDEX IF NOT EXISTS idx_survey_responses_created_at ON survey_responses(created_at); -- For recent responses
+
+-- notifications table
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id); -- For user notifications
+CREATE INDEX IF NOT EXISTS idx_notifications_status ON notifications(status); -- For status filtering
+CREATE INDEX IF NOT EXISTS idx_notifications_scheduled_at ON notifications(scheduled_at); -- For scheduled notifications
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at); -- For recent notifications
+
+
+
+

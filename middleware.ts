@@ -11,14 +11,14 @@ const isPublicRoute = createRouteMatcher([
   '/api(.*)',
 ]);
 
-
-const isAdminRoute = createRouteMatcher(['/admin(.*)', '/admdasboard(.*)']);
+const isAdminRoute = createRouteMatcher(['/admin(.*)', '/admdasboard(.*)']); // Note: 'admdasboard' might be a typo, should be 'dashboard'?
 
 const isUserDashboardRoute = createRouteMatcher(['/dashboard(.*)']);
 
 export default clerkMiddleware(async (auth, req) => {
-  const { sessionClaims, userId } = await auth()
+  const { sessionClaims, userId } = await auth();
   const debug = process.env.NODE_ENV === 'development';
+
   if (debug) {
     console.log(`[Middleware] Request URL: ${req.url}`);
     console.log(`[Middleware] User ID: ${userId || 'Not authenticated'}`);
@@ -27,12 +27,12 @@ export default clerkMiddleware(async (auth, req) => {
 
   if (isAdminRoute(req)) {
     if (debug) console.log('[Middleware] Accessing admin route...');
-    await auth.protect(() => {
-      const role = sessionClaims?.org_role;
-      const hasAdminAccess = role === 'admin';
-      if (debug) console.log(`[Middleware] Admin role check: ${hasAdminAccess}`);
-      return hasAdminAccess;
-    });
+    const role = sessionClaims?.o?.rol;
+    const hasAdminAccess = role === 'admin'; // Match JWT's o.rol value
+    if (debug) console.log(`[Middleware] Admin role check: ${hasAdminAccess} (Role: ${role})`);
+    if (!hasAdminAccess) {
+      return NextResponse.redirect(new URL('/unauthorized', req.url));
+    }
     return NextResponse.next();
   }
 

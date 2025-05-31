@@ -1,104 +1,60 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
-const isPublicRoute = createRouteMatcher(["/", "/sign-in(.*)", "/sign-up(.*)", "/api/webhooks(.*)"]);
-const isAdminRoute = createRouteMatcher(["/admin(.*)", "/api/admin(.*)"]);
-const isClientOrAdminRoute = createRouteMatcher(["/admdashboard(.*)", "/api/adm(.*)"]);
-const isDashboardRoute = createRouteMatcher(["/dashboard(.*)"]);
+const isPublicRoute = createRouteMatcher([
+  '/',
+  '/about',
+  '/learn',
+  '/resources',
+  '/sign-in(.*)',
+  '/sign-up(.*)',
+  '/api(.*)',
+]);
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseServiceRoleKey) {
-  throw new Error("Missing Supabase environment variables");
-}
+const isAdminRoute = createRouteMatcher(['/admin(.*)', '/admdasboard(.*)']);
 
-const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+const isUserDashboardRoute = createRouteMatcher(['/dashboard(.*)']);
 
-export default clerkMiddleware(async (auth, req: NextRequest) => {
-  const { userId, getToken } = await auth();
-  const url = new URL(req.url);
-  const pathname = url.pathname;
+export default clerkMiddleware(async (auth, req) => {
+  const { sessionClaims, userId } = await auth()
+  const debug = process.env.NODE_ENV === 'development';
+  if (debug) {
+    console.log(`[Middleware] Request URL: ${req.url}`);
+    console.log(`[Middleware] User ID: ${userId || 'Not authenticated'}`);
+    console.log(`[Middleware] Session Claims: ${JSON.stringify(sessionClaims, null, 2)}`);
+  }
 
-  if (isPublicRoute(req)) {
+  if (isAdminRoute(req)) {
+    if (debug) console.log('[Middleware] Accessing admin route...');
+    await auth.protect(() => {
+      const role = sessionClaims?.org_role;
+      const hasAdminAccess = role === 'admin';
+      if (debug) console.log(`[Middleware] Admin role check: ${hasAdminAccess}`);
+      return hasAdminAccess;
+    });
     return NextResponse.next();
   }
 
-  if (!userId) {
-    return NextResponse.redirect(new URL("/sign-in", req.url));
+  if (isUserDashboardRoute(req)) {
+    if (debug) console.log('[Middleware] Accessing user dashboard route...');
+    await auth.protect();
+    return NextResponse.next();
   }
 
-  let role = "regular";
-  try {
-    const { data, error } = await supabase
-      .from("users")
-      .select("role")
-      .eq("user_id", userId) // Updated to user_id
-      .single();
-
-    if (error) {
-      if (error.code === "PGRST116") { // No rows found
-        console.log(`User ${userId} not found in Supabase, defaulting to 'regular' role.`);
-      } else {
-        console.error("Error fetching role from Supabase:", error.message);
-      }
-    } else if (data) {
-      role = data.role.toLowerCase();
-    }
-  } catch (err) {
-    console.error("Unexpected error fetching role:", err);
+  if (!isPublicRoute(req)) {
+    if (debug) console.log('[Middleware] Protecting non-public route...');
+    await auth.protect();
+    return NextResponse.next();
   }
 
-  console.log("Debug - Fetched role from Supabase:", role);
-
-  if (isAdminRoute(req)) {
-    if (role !== "admin") {
-      console.log("Debug - Unauthorized admin access attempt, redirecting to /dashboard. Role:", role);
-      if (pathname.startsWith("/api/")) {
-        return new NextResponse(
-          JSON.stringify({ error: "Unauthorized" }),
-          { status: 401, headers: { "Content-Type": "application/json" } }
-        );
-      }
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
-  } else if (isClientOrAdminRoute(req)) {
-    if (role !== "client" && role !== "admin") {
-      console.log("Debug - Unauthorized client/admin access attempt, redirecting to /dashboard. Role:", role);
-      if (pathname.startsWith("/api/")) {
-        return new NextResponse(
-          JSON.stringify({ error: "Unauthorized" }),
-          { status: 401, headers: { "Content-Type": "application/json" } }
-        );
-      }
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
-  } else if (isDashboardRoute(req)) {
-    if (role === "admin") {
-      return NextResponse.redirect(new URL("/admin", req.url));
-    } else if (role === "client") {
-      return NextResponse.redirect(new URL("/admdashboard", req.url));
-    }
-  }
-
-  const token = await getToken();
-  const requestHeaders = new Headers(req.headers);
-  if (token) {
-    requestHeaders.set("Authorization", `Bearer ${token}`);
-  }
-
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
-});
+  if (debug) console.log('[Middleware] Allowing public route...');
+  return NextResponse.next();
+}, { debug: process.env.NODE_ENV === 'development' });
 
 export const config = {
   matcher: [
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    "/(api|trpc)(.*)",
+    '/((?!_next|favicon.ico|.*\\.(?:jpg|jpeg|png|gif|svg|webp|ico|ttf|woff|woff2|csv|docx|xlsx|zip|webmanifest)).*)',
+    '/(api|trpc)(.*)',
   ],
 };

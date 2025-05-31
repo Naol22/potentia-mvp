@@ -334,7 +334,7 @@ const Hero = (): React.ReactElement => {
               <span className={`text-sm ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-600'}`}>
                 Empowering your digital future with sustainable Bitcoin mining solutions that drive innovation, economic growth, and global impact.{' '}
                 <a
-                  href="https://t.me/zatmelomaniaz"
+                  href=""
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`underline transition ${
@@ -345,7 +345,7 @@ const Hero = (): React.ReactElement => {
                 </a>{' '}
                 |{' '}
                 <a
-                  href="https://t.me/abualiya"
+                  href=""
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`underline transition ${

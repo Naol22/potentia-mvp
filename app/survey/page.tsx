@@ -6,13 +6,8 @@ import { CheckCircleIcon, SunIcon, MoonIcon, PinIcon, CheckIcon, XIcon } from 'l
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useState, useEffect } from 'react';
-import { Poppins } from 'next/font/google';
 
-const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  display: 'swap',
-});
+
 
 // Define survey questions with Amharic labels
 const questions = [
@@ -36,7 +31,7 @@ const Particle = ({ left, delay, theme }: { left: string; delay: number; theme: 
     <motion.div
       className={`absolute w-3 h-3 rounded-full opacity-50 ${
         theme === 'dark' ? 'bg-gradient-to-b from-white to-black animate-gradient-shift' : 'bg-gradient-to-b from-black to-white animate-gradient-shift'
-      } ${poppins.className}`}
+      } `}
       style={{ top: '0%', left }}
       initial={{ y: randomYStart, x: 0, opacity: 0.5, scale: 1 }}
       animate={{

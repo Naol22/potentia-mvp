@@ -1,9 +1,19 @@
-import * as clerk from "@clerk/nextjs/server";
-
-declare module "@clerk/nextjs/server" {
-  interface SessionClaims {
-    public_metadata: {
-      role?: "regular" | "admin" | "client";
+// types/clerk.d.ts
+declare module '@clerk/nextjs/server' {
+  export interface SessionClaims {
+    o?: {
+      id: string;
+      rol: string;
+      slg: string;
     };
+    sub?: string;
+    exp?: number;
+    iat?: number;
+    iss?: string;
+  }
+
+  export interface AuthObject {
+    sessionClaims?: SessionClaims;
+    userId?: string;
   }
 }

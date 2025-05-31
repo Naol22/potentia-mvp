@@ -1036,3 +1036,167 @@ CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created
 
 
 
+-- USERS
+DROP POLICY IF EXISTS "Only organization admins can manage users" ON users;
+
+CREATE POLICY "Only organization admins can manage users"
+ON users
+FOR ALL
+USING (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+)
+WITH CHECK (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+);
+
+-- TRANSACTIONS
+DROP POLICY IF EXISTS "Admins can manage transactions" ON transactions;
+
+CREATE POLICY "Admins can manage transactions"
+ON transactions
+FOR ALL
+USING (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+)
+WITH CHECK (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+);
+
+-- SUBSCRIPTIONS
+DROP POLICY IF EXISTS "Admins can manage subscriptions" ON subscriptions;
+
+CREATE POLICY "Admins can manage subscriptions"
+ON subscriptions
+FOR ALL
+USING (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+)
+WITH CHECK (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+);
+
+-- ORDERS
+DROP POLICY IF EXISTS "Admins can manage orders" ON orders;
+
+CREATE POLICY "Admins can manage orders"
+ON orders
+FOR ALL
+USING (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+)
+WITH CHECK (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+);
+
+-- SUBSCRIPTION SESSIONS
+DROP POLICY IF EXISTS "Admins can manage sessions" ON subscription_sessions;
+
+CREATE POLICY "Admins can manage sessions"
+ON subscription_sessions
+FOR ALL
+USING (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+)
+WITH CHECK (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+);
+
+-- SUBSCRIPTION EVENTS
+DROP POLICY IF EXISTS "Admins can manage subscription events" ON subscription_events;
+
+CREATE POLICY "Admins can manage subscription events"
+ON subscription_events
+FOR ALL
+USING (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+)
+WITH CHECK (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+);
+
+-- FACILITIES
+DROP POLICY IF EXISTS "Only organization admins can manage facilities" ON facilities;
+
+CREATE POLICY "Only organization admins can manage facilities"
+ON facilities
+FOR ALL
+USING (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+)
+WITH CHECK (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+);
+
+-- MINERS
+DROP POLICY IF EXISTS "Only organization admins can manage miners" ON miners;
+
+CREATE POLICY "Only organization admins can manage miners"
+ON miners
+FOR ALL
+USING (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+)
+WITH CHECK (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+);
+
+-- PAYMENT METHODS
+DROP POLICY IF EXISTS "Only organization admins can manage payment methods" ON payment_methods;
+
+CREATE POLICY "Only organization admins can manage payment methods"
+ON payment_methods
+FOR ALL
+USING (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+)
+WITH CHECK (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+);
+
+-- HASHRATE PLANS
+DROP POLICY IF EXISTS "Only organization admins can manage hashrate plans" ON hashrate_plans;
+
+CREATE POLICY "Only organization admins can manage hashrate plans"
+ON hashrate_plans
+FOR ALL
+USING (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+)
+WITH CHECK (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+);
+
+-- HOSTING PLANS
+DROP POLICY IF EXISTS "Only organization admins can manage hosting plans" ON hosting_plans;
+
+CREATE POLICY "Only organization admins can manage hosting plans"
+ON hosting_plans
+FOR ALL
+USING (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+)
+WITH CHECK (
+  (auth.jwt()->'o'->>'rol' = 'admin') OR
+  (auth.jwt()->>'org_role' = 'org:admin')
+);

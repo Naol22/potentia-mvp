@@ -1,18 +1,14 @@
 'use client';
 
 import Image from 'next/image';
-import { motion, useScroll, useTransform, useMotionValue, useSpring, useAnimation, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform, useAnimation, AnimatePresence } from 'framer-motion';
 import { CheckCircleIcon, SunIcon, MoonIcon, PinIcon, CheckIcon, XIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useState, useEffect } from 'react';
-import { Poppins } from 'next/font/google';
 
-const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  display: 'swap',
-});
+
+
 // Define survey questions with Amharic labels
 const questions = [
   { id: 'satisfaction', type: 'rating', label: 'Rate your satisfaction', amharicLabel: 'እርካታዎ ምን ያህል ነው?' },
@@ -35,7 +31,7 @@ const Particle = ({ left, delay, theme }: { left: string; delay: number; theme: 
     <motion.div
       className={`absolute w-3 h-3 rounded-full opacity-50 ${
         theme === 'dark' ? 'bg-gradient-to-b from-white to-black animate-gradient-shift' : 'bg-gradient-to-b from-black to-white animate-gradient-shift'
-      } ${poppins.className}`}
+      } `}
       style={{ top: '0%', left }}
       initial={{ y: randomYStart, x: 0, opacity: 0.5, scale: 1 }}
       animate={{
@@ -72,71 +68,6 @@ const GlowingOrb = ({ left, delay, theme }: { left: string; delay: number; theme
         delay,
       }}
     />
-  );
-};
-
-// Cursor Trail component with cactus shape
-const CursorTrail = ({ theme }: { theme: 'dark' | 'light' }) => {
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const springX = useSpring(x, { stiffness: 800, damping: 10 });
-  const springY = useSpring(y, { stiffness: 800, damping: 5 });
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      x.set(e.clientX);
-      y.set(e.clientY);
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [x, y]);
-
-  return (
-    <motion.div
-      className="absolute w-8 h-8 pointer-events-none"
-      style={{ x: springX, y: springY, translateX: '-50%', translateY: '-50%' }}
-      animate={{
-        scale: [1, 1.15, 1],
-        boxShadow: theme === 'dark'
-          ? ['0 0 8px rgba(255,255,255,0.5)', '0 0 12px rgba(255,255,255,0.7)', '0 0 8px rgba(255,255,255,0.5)']
-          : ['0 0 8px rgba(0,0,0,0.5)', '0 0 12px rgba(0,0,0,0.7)', '0 0 8px rgba(0,0,0,0.5)']
-      }}
-      transition={{ duration: 1.5, repeat: Infinity, repeatType: 'loop' }}
-    >
-      <svg
-        width="32"
-        height="32"
-        viewBox="0 0 16 16"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M8 2C6.89543 2 6 2.89543 6 4V8C6 9.10457 6.89543 10 8 10C9.10457 10 10 9.10457 10 8V4C10 2.89543 9.10457 2 8 2Z"
-          fill={`url(#cactusGradient-${theme})`}
-        />
-        <path
-          d="M5 6H4C3.44772 6 3 6.44772 3 7V8H5V6Z"
-          fill={`url(#cactusGradient-${theme})`}
-        />
-        <path
-          d="M11 5H12C12.5523 5 13 5.44772 13 6V7H11V5Z"
-          fill={`url(#cactusGradient-${theme})`}
-        />
-        <defs>
-          <linearGradient id={`cactusGradient-${theme}`} x1="3" y1="2" x2="13" y2="10" gradientUnits="userSpaceOnUse">
-            <stop stopColor={theme === 'dark' ? '#ffffff' : '#000000'} />
-            <stop offset="1" stopColor={theme === 'dark' ? '#000000' : '#ffffff'} />
-          </linearGradient>
-          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-      </svg>
-    </motion.div>
   );
 };
 
@@ -190,7 +121,7 @@ const Hero = (): React.ReactElement => {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isAmharic, setIsAmharic] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null); // New state for error messages
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const ball1Controls = useAnimation();
   const ball2Controls = useAnimation();
   const lineControls = useAnimation();
@@ -239,10 +170,9 @@ const Hero = (): React.ReactElement => {
   // Handle survey submission
   const handleSubmit = async () => {
     setLoading(true);
-    setErrorMessage(null); // Clear previous errors
+    setErrorMessage(null);
     const finalResponses = { ...responses, [questions[step].id]: currentAnswer };
 
-    // Ensure responses match the expected API structure
     const payload = {
       satisfaction: Number(finalResponses.satisfaction),
       completed: Boolean(finalResponses.completed),
@@ -383,9 +313,6 @@ const Hero = (): React.ReactElement => {
         <Particle key={i} left={`${5 + i * 3.5}%`} delay={i * 0.15} theme={theme} />
       ))}
 
-      {/* Cursor Trail */}
-      <CursorTrail theme={theme} />
-
       {/* Left Section - Text Content or Survey Card */}
       <AnimatePresence mode="wait">
         {!showSurvey ? (
@@ -407,7 +334,7 @@ const Hero = (): React.ReactElement => {
               <span className={`text-sm ${theme === 'dark' ? 'text-zinc-400' : 'text-gray-600'}`}>
                 Empowering your digital future with sustainable Bitcoin mining solutions that drive innovation, economic growth, and global impact.{' '}
                 <a
-                  href="https://t.me/zatmelomaniaz"
+                  href=""
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`underline transition ${
@@ -418,7 +345,7 @@ const Hero = (): React.ReactElement => {
                 </a>{' '}
                 |{' '}
                 <a
-                  href="https://t.me/abualiya"
+                  href=""
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`underline transition ${
@@ -554,7 +481,7 @@ const Hero = (): React.ReactElement => {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.5, duration: 0.4 }}
                   >
-                    <p className="mb-2">&quot;Your input shapes our future.&quot;</p>
+                    <p className="mb-2">"Your input shapes our future."</p>
                     <p className="text-sm mb-4">- A Grateful Team</p>
                     <p className={`${theme === 'dark' ? 'text-white' : 'text-black'}`}>
                       Enter to win a $50 gift card!
@@ -962,7 +889,6 @@ const Hero = (): React.ReactElement => {
       <style jsx>{`
         @keyframes typewriter {
           from {
-            from {
             width: 0;
           }
           to {

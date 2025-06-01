@@ -2,7 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase";
-import { HashratePlans } from "@/types"; 
+import { HashratePlan } from "@/types"; 
 
 export async function GET() {
   const client = createServerSupabaseClient();
@@ -25,7 +25,7 @@ export async function GET() {
       throw new Error("Failed to fetch hashrate plans");
     }
 
-    const hashrate_plans: HashratePlans[] = data;
+    const hashrate_plans: HashratePlan[] = data;
     console.log("[Hashrate Plans API] Successfully fetched hashrate plans:", hashrate_plans);
     return NextResponse.json(hashrate_plans);
   } catch (error: unknown) {

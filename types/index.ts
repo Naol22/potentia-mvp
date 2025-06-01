@@ -16,6 +16,10 @@ export enum SubscriptionStatus {
   PastDue = "past_due",
   Canceled = "canceled",
   Unpaid = "unpaid",
+  Failed = "failed",
+  Expired = "expired",
+  Incomplete = "incomplete",
+  Trialing = "trialing"
 }
 
 /**
@@ -23,18 +27,17 @@ export enum SubscriptionStatus {
  */
 export enum OrderStatus {
   Pending = "pending",
-  Active = "active",
+  Completed = "completed",
   Canceled = "canceled",
-  Expired = "expired",
+  Failed = "failed"
 }
 
 /**
- * Enum for plan type values
+ * Enum for payment type values
  */
-export enum PlanType {
-  Hashrate = "hashrate",
-  Hosting = "hosting",
-  Custom = "custom",
+export enum PaymentType {
+  Subscription = "subscription",
+  OneTime = "one_time"
 }
 
 /**
@@ -73,16 +76,15 @@ export interface PaymentConfig {
  */
 export interface User {
   id: string;
-  user_id: string; // Unique user ID from Clerk authentication provider
+  user_id: string; // Maps to Clerk's `sub` claim
   first_name?: string | null;
   last_name?: string | null;
   full_name?: string | null;
   email?: string | null;
-  org_id?: string | null; // Added for organization affiliation (e.g., Potentia org)
-  stripe_customer_id?: string | null;
-  crypto_address?: string | null; // Must match regex ^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$, renamed from btc_address
-  created_at: string; // ISO 8601 timestamp (e.g., "2025-06-01T17:10:00.000Z")
-  updated_at?: string; // ISO 8601 timestamp
+  org_id?: string | null; // Links to Clerk organization
+  payment_provider_customer_id?: string | null; // Generic field for Stripe/NowPayments customer ID
+  crypto_address?: string | null; // Must match regex ^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$
+  created_at: string; // ISO 8601 timestamp
 }
 
 /**
@@ -93,7 +95,6 @@ export interface Facility {
   name: string;
   details?: Details | null; // JSONB
   created_at: string; // ISO 8601 timestamp
-  updated_at?: string; // ISO 8601 timestamp
 }
 
 /**
@@ -104,7 +105,6 @@ export interface Miner {
   name: string;
   details?: Details | null; // JSONB
   created_at: string; // ISO 8601 timestamp
-  updated_at?: string; // ISO 8601 timestamp
 }
 
 /**
@@ -122,25 +122,24 @@ export interface PaymentMethod {
 }
 
 /**
- * Defines hashrate-based mining plans with pricing and facility details
+ * Defines hashrate-based mining plans with pricing
  */
-export interface HashratePlans {
+export interface HashratePlan {
   id: string;
   hashrate: number; // Must be > 0
   price: number; // Must be > 0
   currency: CurrencyCode;
   duration: string;
   stripe_price_id?: string | null;
-  nowpayments_item_id?: string | null; // Renamed from bitpay_item_code to match schema
+  nowpayments_item_id?: string | null;
   is_subscription: boolean;
   created_at: string; // ISO 8601 timestamp
-  updated_at?: string; // ISO 8601 timestamp
 }
 
 /**
- * Stores hosting service details for miners
+ * Stores hosting service plans for miners
  */
-export interface Hosting {
+export interface HostingPlan {
   id: string;
   miner_id?: string | null; // References Miner
   facility_id?: string | null; // References Facility
@@ -148,9 +147,9 @@ export interface Hosting {
   currency: CurrencyCode;
   duration: string;
   stripe_price_id?: string | null;
-  nowpayments_item_code?: string | null; // Renamed from bitpay_item_code
+  nowpayments_item_id?: string | null;
+  is_subscription: boolean;
   created_at: string; // ISO 8601 timestamp
-  updated_at?: string; // ISO 8601 timestamp
 }
 
 /**
@@ -158,18 +157,18 @@ export interface Hosting {
  */
 export interface Transaction {
   id: string;
-  user_id: string; // References User, made required
-  plan_id?: string | null; // References Plan
-  subscription_id?: string | null; // References Subscription
+  user_id: string; // References User
+  plan_type: 'hashrate' | 'hosting';
+  plan_id: string; // References HashratePlan or HostingPlan
+  payment_type: PaymentType;
   amount: number; // Must be > 0
   currency: CurrencyCode;
   status: TransactionStatus;
-  description?: string | null;
   payment_method_id?: string | null; // References PaymentMethod
   payment_provider_reference?: string | null;
-  metadata?: Record<string, string | number | boolean> | null; // JSONB
+  subscription_id?: string | null; // References Subscription
+  metadata?: Record<string, unknown> | null; // JSONB
   created_at: string; // ISO 8601 timestamp
-  updated_at?: string; // ISO 8601 timestamp
 }
 
 /**
@@ -177,15 +176,18 @@ export interface Transaction {
  */
 export interface Subscription {
   id: string;
-  user_id: string; // References User, made required
-  plan_id?: string | null; // References Plan
+  user_id: string; // References User
+  plan_type: 'hashrate' | 'hosting';
+  plan_id: string; // References HashratePlan or HostingPlan
   status: SubscriptionStatus;
   payment_method_id?: string | null; // References PaymentMethod
-  provider_subscription_id?: string | null;
+  provider_subscription_id: string;
   current_period_start?: string | null; // ISO 8601 timestamp
-  current_period_end?: string | null; // ISO 8601 timestamp, must be >= current_period_start
+  current_period_end?: string | null; // ISO 8601 timestamp
   cancel_at_period_end: boolean;
   canceled_at?: string | null; // ISO 8601 timestamp
+  checkout_session_id?: string | null;
+  metadata?: Record<string, unknown> | null; // JSONB
   created_at: string; // ISO 8601 timestamp
   updated_at: string; // ISO 8601 timestamp
 }
@@ -195,19 +197,18 @@ export interface Subscription {
  */
 export interface Order {
   id: string;
-  user_id: string; // References User, made required
-  plan_id?: string | null; // References Plan
-  transaction_id?: string | null; // References Transaction
+  user_id: string; // References User
+  plan_type: 'hashrate' | 'hosting' | 'bundle';
+  plan_ids: string[]; // References HashratePlan or HostingPlan
+  transaction_ids: string[]; // References Transaction
   subscription_id?: string | null; // References Subscription
   crypto_address?: string | null; // Must match regex ^(bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}$
   status: OrderStatus;
   start_date?: string | null; // ISO 8601 timestamp
-  end_date?: string | null; // ISO 8601 timestamp, must be >= start_date
+  end_date?: string | null; // ISO 8601 timestamp
   is_active: boolean;
-  auto_renew: boolean;
   next_billing_date?: string | null; // ISO 8601 timestamp
   created_at: string; // ISO 8601 timestamp
-  updated_at?: string; // ISO 8601 timestamp
 }
 
 /**
@@ -215,14 +216,15 @@ export interface Order {
  */
 export interface SubscriptionSession {
   id: string;
-  user_id: string; // References User, made required
-  subscription_id: string; // References Subscription, made required
-  session_url: string; // Must be a valid URL
-  session_token: string;
+  user_id: string; // References User
+  subscription_id: string; // References Subscription
+  provider: 'stripe' | 'nowpayments';
+  session_id: string;
+  session_url: string;
   expires_at: string; // ISO 8601 timestamp
   is_used: boolean;
+  metadata?: Record<string, unknown> | null; // JSONB
   created_at: string; // ISO 8601 timestamp
-  updated_at?: string; // ISO 8601 timestamp
 }
 
 /**
@@ -232,9 +234,10 @@ export interface SubscriptionEvent {
   id: string;
   subscription_id: string; // References Subscription
   user_id: string; // References User
-  event_type: string; // e.g., "subscription.created", "subscription.updated"
-  data: Record<string, string | number | boolean | null | object>; // JSONB, varies based on event (e.g., Stripe payload)
-  status: string; // e.g., "success", "failed"
+  event_type: string;
+  provider: 'stripe' | 'nowpayments';
+  data: Record<string, unknown>; // JSONB
+  status: 'success' | 'failed';
   error_message?: string | null;
   created_at: string; // ISO 8601 timestamp
   updated_at: string; // ISO 8601 timestamp
@@ -247,14 +250,13 @@ export interface SurveyResponse {
   id: string;
   user_id?: string | null; // References User
   anonymous_user_id: string;
-  satisfaction: number; // Must be between 1 and 5
+  satisfaction: number; // 1-5
   completed: boolean;
   issue?: string | null;
   suggestion?: string | null;
-  nps?: number | null; // Must be between 0 and 10
-  metadata?: Record<string, string | number | boolean> | null; // JSONB
+  nps?: number | null; // 0-10
+  metadata?: Record<string, unknown> | null; // JSONB
   created_at: string; // ISO 8601 timestamp
-  updated_at?: string; // ISO 8601 timestamp
 }
 
 /**
@@ -262,27 +264,13 @@ export interface SurveyResponse {
  */
 export interface Notification {
   id: string;
-  user_id: string; // References User, made required
+  user_id: string; // References User
   subscription_id?: string | null; // References Subscription
-  type: string; // e.g., "payment_failed", "subscription_canceled"
-  message: string;
-  status: string; // e.g., "sent", "pending"
-  created_at: string; // ISO 8601 timestamp
-  sent_at?: string | null; // ISO 8601 timestamp
-  updated_at?: string; // ISO 8601 timestamp
-}
-
-/**
- * Stores payment attempt logs
- */
-export interface PaymentAttempt {
-  id: string;
-  subscription_id: string; // References Subscription, made required
   transaction_id?: string | null; // References Transaction
-  payment_method_id?: string | null; // References PaymentMethod
-  amount: number; // Must be > 0
-  status: string; // e.g., "success", "failed"
-  error_message?: string | null;
+  type: string;
+  message: string;
+  status: 'pending' | 'sent' | 'failed';
+  scheduled_at?: string | null; // ISO 8601 timestamp
+  sent_at?: string | null; // ISO 8601 timestamp
   created_at: string; // ISO 8601 timestamp
-  updated_at?: string; // ISO 8601 timestamp
 }

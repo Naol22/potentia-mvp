@@ -3,7 +3,6 @@ import { Webhook } from "svix";
 import { createServerSupabaseClient } from "@/lib/supabase";
 import { clerkClient } from "@clerk/clerk-sdk-node";
 
-
 interface ClerkWebhookEvent {
   type: string;
   data: ClerkUserData;
@@ -22,7 +21,12 @@ const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const potentiaOrgId = process.env.POTENTIA_ORG_ID; // e.g., 'org_123abc' from Clerk
 const clerkApiBaseUrl = process.env.CLERK_API_BASE_URL || "https://api.clerk.com/v1";
 
-if (!webhookSecret || !supabaseUrl || !supabaseServiceRoleKey || !potentiaOrgId) {
+if (
+  !webhookSecret ||
+  !supabaseUrl ||
+  !supabaseServiceRoleKey ||
+  !potentiaOrgId
+) {
   throw new Error("Missing required environment variables");
 }
 
@@ -68,8 +72,12 @@ const handler = async (req: Request) => {
 
   if (eventType === "user.created") {
     const { id, email_addresses, first_name, last_name } = event.data;
-    console.log("[Webhook] User created event data:", { id, email_addresses, first_name, last_name });
-
+    console.log("[Webhook] User created event data:", {
+      id,
+      email_addresses,
+      first_name,
+      last_name,
+    });
 
     //I'll fiish this later Clerk SDK be updating every hours its crazy
     // // try {
@@ -93,32 +101,48 @@ const handler = async (req: Request) => {
       email: email_addresses[0].email_address,
       first_name,
       last_name,
-      full_name: `${first_name || ''} ${last_name || ''}`.trim() || null,
+      full_name: `${first_name || ""} ${last_name || ""}`.trim() || null,
       org_id: potentiaOrgId,
       crypto_address: null,
     };
-    console.log("[Webhook] Preparing to upsert user data to Supabase:", upsertData);
+    console.log(
+      "[Webhook] Preparing to upsert user data to Supabase:",
+      upsertData
+    );
 
     try {
       console.log("[Webhook] Performing upsert operation on users table...");
-      const { error } = await client.from("users").upsert(upsertData, { onConflict: "user_id" });
+      const { error, data, status } = await client
+        .from("users")
+        .upsert(upsertData, { onConflict: "user_id" });
       if (error) {
         throw error;
       }
-      console.log(`[Webhook] Successfully synced user ${id} to Supabase users table`);
-    } catch{
-      console.error("[Webhook] Error syncing user to Supabase:");
-      return NextResponse.json(
-        { error: "Failed to sync user"},
-        { status: 200 }
+      console.log(
+        `[Webhook] Successfully synced user ${id} to Supabase users table`
       );
+      console.log(`[Webhook] Upsert response status: ${status}, data:`, data);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error(`Error syncing user ${id} to Supabase:`, error.message);
+        return NextResponse.json(
+          { error: "Failed to sync user", message: error.message },
+          { status: 500 }
+        );
+      } else {
+        console.error(`Unknown error syncing user ${id} to Supabase:`, error);
+        return NextResponse.json(
+          { error: "Unknown error", message: String(error) },
+          { status: 500 }
+        );
+      }
     }
   } else {
     console.log("[Webhook] Ignoring non-user.created event:", eventType);
   }
 
   console.log("[Webhook] Webhook processing completed");
-  return new Response("", { status: 200 });
+  return new Response("", { status: 200 }); 
 };
 
 export async function POST(req: Request) {

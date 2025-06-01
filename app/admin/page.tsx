@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UsersAdmin from '@/components/admin/UsersAdmin';
@@ -13,21 +12,16 @@ import TransactionsAdmin from '@/components/admin/TransactionsAdmin';
 
 export default function AdminDashboard() {
   const { user, isLoaded, isSignedIn } = useUser();
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState("users");
 
-  // Check if user is admin
-  const isAdmin = user?.publicMetadata?.role === 'admin';
-
-  // Redirect if not admin
-  if (isLoaded && (!isSignedIn || !isAdmin)) {
-    router.push('/');
+  if (!isLoaded || !isSignedIn) {
     return null;
   }
 
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+      <p className="mb-4 text-gray-300">Welcome, {user?.fullName || 'Admin'}!</p>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid grid-cols-7 mb-8">

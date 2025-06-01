@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@clerk/clerk-sdk-node": "^4.13.23",
     "@clerk/nextjs": "^6.20.2",
     "@clerk/themes": "^2.2.26",
     "@dnd-kit/core": "^6.3.1",

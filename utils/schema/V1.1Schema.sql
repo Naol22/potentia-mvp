@@ -853,6 +853,12 @@ CREATE POLICY "Users can view their own responses" ON survey_responses
   TO authenticated
   USING (user_id = (SELECT id FROM users WHERE user_id = auth.jwt()->>'sub'));
 
+CREATE POLICY "Users can insert their own responses" ON survey_responses
+  FOR INSERT
+  TO authenticated
+  USING (user_id = (SELECT id FROM users WHERE user_id = auth.jwt()->>'sub'));
+
+
 -- RLS Policy: Admins can manage all responses
 CREATE POLICY "Admins can manage responses" ON survey_responses
   FOR ALL

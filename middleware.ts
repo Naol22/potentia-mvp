@@ -20,9 +20,9 @@ export default clerkMiddleware(async (auth, req) => {
   const debug = process.env.NODE_ENV === 'development';
 
   if (debug) {
-    console.log(`[Middleware] Request URL: ${req.url}`);
+    // console.log(`[Middleware] Request URL: ${req.url}`);
     console.log(`[Middleware] User ID: ${userId || 'Not authenticated'}`);
-    console.log(`[Middleware] Session Claims: ${JSON.stringify(sessionClaims, null, 2)}`);
+    // console.log(`[Middleware] Session Claims: ${JSON.stringify(sessionClaims, null, 2)}`);
   }
 
   if (isAdminRoute(req)) {

@@ -1,11 +1,11 @@
 'use server'
 
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase";
+import { createClientSupabaseClient } from "@/lib/supabase";
 import { HashratePlan } from "@/types"; 
 
 export async function GET() {
-  const client = createServerSupabaseClient();
+  const client = createClientSupabaseClient();
 
   try {
     console.log("[Hashrate Plans API] Fetching hashrate plans from Supabase...");

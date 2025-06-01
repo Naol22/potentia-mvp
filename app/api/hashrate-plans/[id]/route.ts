@@ -1,14 +1,14 @@
 'use server'
 
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase";
+import { createClientSupabaseClient } from "@/lib/supabase";
 import { HashratePlan } from "@/types";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const client = createServerSupabaseClient();
+  const client = createClientSupabaseClient();
   const { id } = await params;
 
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -20,7 +20,7 @@ export async function GET(
     const { data, error} = await client
       .from("hashrate_plans")
       .select(
-        "id,hashrate, price, currency, duration, stripe_price_id, nowpayments_item_id, is_subscription, created_at"
+        "id, hashrate, price, currency, duration, stripe_price_id, nowpayments_item_id, is_subscription, created_at"
       )
       .eq("id", id)
       .single();

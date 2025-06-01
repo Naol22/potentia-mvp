@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { Webhook } from "svix";
 import { createServerSupabaseClient } from "@/lib/supabase";
-import { clerkClient } from "@clerk/clerk-sdk-node";
 
 interface ClerkWebhookEvent {
   type: string;
@@ -19,7 +18,6 @@ const webhookSecret = process.env.CLERK_WEBHOOK_SECRET;
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const potentiaOrgId = process.env.POTENTIA_ORG_ID; // e.g., 'org_123abc' from Clerk
-const clerkApiBaseUrl = process.env.CLERK_API_BASE_URL || "https://api.clerk.com/v1";
 
 if (
   !webhookSecret ||

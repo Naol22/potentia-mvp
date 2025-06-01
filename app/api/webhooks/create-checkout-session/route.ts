@@ -1,29 +1,27 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { createClient } from "@supabase/supabase-js";
-import { currentUser } from "@clerk/nextjs/server";
+import { createServerSupabaseClient } from "@/lib/supabase";
+import { auth } from "@clerk/nextjs/server";
+import { CurrencyCode, Transaction, TransactionStatus } from "@/types";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-04-30.basil",
 });
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 export async function POST(request: Request) {
   try {
-    const { planId, btcAddress } = await request.json();
+    const { userId } = await auth();
+    const client = createServerSupabaseClient();
+    const { planId, cryptoAddress } = await request.json();
 
-    const user = await currentUser();
-    if (!user) {
+    console.log("[Checkout API] Creating checkout session...");
+    console.log("[Checkout API] User ID:", userId);
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: plan, error: planError } = await supabase
-      .from("plans")
-      .select("*, facility_id (name), miner_id (name)")
+    const { data: plan, error: planError } = await client
+      .from("hashrate_plans")
+      .select("*")
       .eq("id", planId)
       .single();
 
@@ -31,29 +29,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Plan not found" }, { status: 404 });
     }
 
-    const { data: supabaseUser, error: userError } = await supabase
-      .from("users")
-      .select("id")
-      .eq("user_id", user.id)
-      .single();
+    const transaction: Partial<Transaction> = {
+      user_id: userId,
+      plan_id: planId,
+      amount: plan?.price,
+      currency: plan?.currency as CurrencyCode,
+      status: TransactionStatus.Pending,
+      payment_provider_reference: `Crypto payment for plan ${planId}`,
+      created_at: new Date().toISOString(),
+    };
 
-    if (userError || !supabaseUser) {
-      return NextResponse.json(
-        { error: "User not found in Supabase" },
-        { status: 404 }
-      );
-    }
-
-    const { data: transaction, error: transactionError } = await supabase
+    const { error: transactionError } = await client
       .from("transactions")
-      .insert({
-        user_id: supabaseUser.id,
-        plan_id: planId,
-        amount: plan.price,
-        status: "pending",
-        type: 'subscription', // Changed from 'one-time' to 'subscription'
-        description: `Subscription for ${plan.type} plan - ${plan.hashrate} TH/s`,
-      })
+      .insert(transaction)
       .select()
       .single();
 
@@ -75,7 +63,7 @@ export async function POST(request: Request) {
           price_data: {
             currency: "usd",
             recurring: {
-              interval: 'month', // Add recurring payment configuration
+              interval: "month", // Add recurring payment configuration
             },
             product_data: {
               name: `${
@@ -88,22 +76,22 @@ export async function POST(request: Request) {
           quantity: 1,
         },
       ],
-      mode: "subscription", // Changed from "payment" to "subscription"
+      mode: "subscription",
       success_url: `${request.headers.get(
         "origin"
       )}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${request.headers.get("origin")}/checkout?canceled=true`,
       metadata: {
-        user_id: supabaseUser.id,
+        user_id: userId,
         plan_id: planId,
-        btc_address: btcAddress,
+        cryptoAddress: cryptoAddress,
         transaction_id: transaction.id,
         start_date: startDate.toISOString(),
         end_date: endDate.toISOString(),
       },
     });
 
-    await supabase
+    await client
       .from("transactions")
       .update({ stripe_payment_id: session.id })
       .eq("id", transaction.id);

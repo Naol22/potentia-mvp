@@ -7,10 +7,10 @@ import Link from "next/link";
 import Image from "next/image";
 import GlobalLoadingScreen from "@/components/GlobalLoadingScreen";
 import { Zap, Plug, Clock, Snowflake, Network } from "lucide-react";
-import { HashratePlans } from "@/types"; 
+import { HashratePlan } from "@/types"; 
 
 const HashrateTab = () => {
-  const [plans, setPlans] = useState<HashratePlans[]>([]);
+  const [plans, setPlans] = useState<HashratePlan[]>([]);
   const [selectedHashrate, setSelectedHashrate] = useState<number>(0);
   const [selectedDuration, setSelectedDuration] = useState<string>("");
   const [animatedPrice, setAnimatedPrice] = useState<number>(0);
@@ -26,7 +26,7 @@ const HashrateTab = () => {
         if (!response.ok) {
           throw new Error("Failed to fetch plans");
         }
-        const data: HashratePlans[] = await response.json();
+        const data: HashratePlan[] = await response.json();
         console.log("[HashrateTab] Fetched plans:", data);
         setPlans(data);
 

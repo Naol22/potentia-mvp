@@ -1,21 +1,19 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClientSupabaseClient } from '@/lib/supabase';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!, 
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export async function GET(
   request: Request,
   context: { params: Promise<{ stripe_payment_id: string }> } 
 ) {
+  const client = createClientSupabaseClient();
   const { stripe_payment_id } = await context.params; 
 
   try {
-    const { data, error } = await supabase
+    console.log("[Hashrate Plans API] Fetching hashrate plans from Supabase...");
+    const { data, error } = await client
       .from('orders')
-      .select('*, plan_id (hashrate, price, type, facility_id (name), miner_id (name))')
+      .select('*, plan_ids (hashrate, price, type, facility_id (name), miner_id (name))')
       .eq('stripe_payment_id', stripe_payment_id)
       .single();
 

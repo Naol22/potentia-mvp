@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { Webhook } from "svix";
 import { createServerSupabaseClient } from "@/lib/supabase";
-import { clerkClient } from "@clerk/clerk-sdk-node";
+// import { clerkClient } from "@clerk/clerk-sdk-node";
 
 
 interface ClerkWebhookEvent {
@@ -46,6 +46,11 @@ const handler = async (req: Request) => {
     console.error("[Webhook] Missing Svix headers");
     return new Response("Error: Missing Svix headers", { status: 400 });
   }
+
+
+
+  // Decode the token to inspect its claims
+
 
   const wh = new Webhook(webhookSecret);
   let event: ClerkWebhookEvent;
@@ -106,10 +111,11 @@ const handler = async (req: Request) => {
         throw error;
       }
       console.log(`[Webhook] Successfully synced user ${id} to Supabase users table`);
-    } catch{
-      console.error("[Webhook] Error syncing user to Supabase:");
+    } catch (err: unknown) {
+      console.error("[Webhook] Error syncing user to Supabase:", err);
       return NextResponse.json(
-        { error: "Failed to sync user"},
+         {  error: "Failed to sync user to Supabase",
+      details: (err as Error)?.message || err, },
         { status: 200 }
       );
     }

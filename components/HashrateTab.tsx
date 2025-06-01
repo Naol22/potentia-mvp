@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -6,54 +7,39 @@ import Link from "next/link";
 import Image from "next/image";
 import GlobalLoadingScreen from "@/components/GlobalLoadingScreen";
 import { Zap, Plug, Clock, Snowflake, Network } from "lucide-react";
-
-interface Plan {
-  id: string;
-  type: string;
-  hashrate: number;
-  price: number;
-  currency: string;
-  duration: string;
-  miner_id: string | null; 
-  facility_id: string | null; 
-  stripe_price_id: string | null;
-  nowpayments_item_code: string | null;
-  is_subscription: boolean;
-}
+import { HashratePlans } from "@/types"; 
 
 const HashrateTab = () => {
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [selectedHashrate, setSelectedHashrate] = useState<number>(100);
-  const [selectedDuration, setSelectedDuration] = useState<string>("Monthly Recurring");
-  const [animatedPrice, setAnimatedPrice] = useState<number>(150);
-  const [animatedOutput, setAnimatedOutput] = useState<number>(0.05);
+  const [plans, setPlans] = useState<HashratePlans[]>([]);
+  const [selectedHashrate, setSelectedHashrate] = useState<number>(0);
+  const [selectedDuration, setSelectedDuration] = useState<string>("");
+  const [animatedPrice, setAnimatedPrice] = useState<number>(0);
+  const [animatedOutput, setAnimatedOutput] = useState<number>(0);
   const [loading, setLoading] = useState(true);
-
-  const durationOptions = ["Monthly Recurring"];
 
   useEffect(() => {
     async function fetchPlans() {
-      console.log("Starting to fetch plans...");
+      console.log("[HashrateTab] Starting to fetch plans...");
       try {
-        const response = await fetch("/api/plans");
-        console.log("Fetch response status:", response.status);
+        const response = await fetch("/api/hashrate-plans");
+        console.log("[HashrateTab] Fetch response status:", response.status);
         if (!response.ok) {
           throw new Error("Failed to fetch plans");
         }
-        const data: Plan[] = await response.json();
-        console.log("Fetched plans:", data);
-        const hashratePlans = data.filter((plan) => plan.type === "hashrate");
-        setPlans(hashratePlans);
+        const data: HashratePlans[] = await response.json();
+        console.log("[HashrateTab] Fetched plans:", data);
+        setPlans(data);
 
-        if (hashratePlans.length > 0) {
-          setSelectedHashrate(hashratePlans[0].hashrate);
-          setAnimatedPrice(hashratePlans[0].price);
-          setAnimatedOutput(hashratePlans[0].hashrate * 0.0005);
+        if (data.length > 0) {
+          setSelectedHashrate(data[0].hashrate);
+          setSelectedDuration(data[0].duration);
+          setAnimatedPrice(data[0].price);
+          setAnimatedOutput(calculateEstimatedOutput(data[0].hashrate));
         }
       } catch (error) {
-        console.error("Error fetching plans:", error);
+        console.error("[HashrateTab] Error fetching plans:", error);
       } finally {
-        console.log("Fetch completed, setting loading to false");
+        console.log("[HashrateTab] Fetch completed, setting loading to false");
         setLoading(false);
       }
     }
@@ -70,13 +56,21 @@ const HashrateTab = () => {
     );
   };
 
+  const calculateEstimatedOutput = (hashrate: number): number => {
+    const btcPerThsPerDay = 0.000015;
+    return hashrate * btcPerThsPerDay * 30;
+  };
+
   const selectedPlan = plans.find((plan) => plan.hashrate === selectedHashrate);
 
-  const totalPrice = selectedPlan ? selectedPlan.price : 150;
+  const totalPrice = selectedPlan ? selectedPlan.price : 0;
+  const duration = selectedPlan ? selectedPlan.duration : "";
   const machinesLit = selectedPlan
     ? calculateMachinesLit(selectedPlan.hashrate)
     : 1;
-  const estimatedOutput = selectedHashrate * 0.0005;
+  const estimatedOutput = selectedPlan
+    ? calculateEstimatedOutput(selectedPlan.hashrate)
+    : 0;
 
   useEffect(() => {
     const priceTimeout = setTimeout(() => setAnimatedPrice(totalPrice), 100);
@@ -94,7 +88,7 @@ const HashrateTab = () => {
   const queryParams = new URLSearchParams({
     planId: selectedPlanId,
     hashrate: selectedHashrate.toString(),
-    duration: selectedDuration,
+    duration: duration,
   }).toString();
 
   const containerVariants = {
@@ -161,7 +155,14 @@ const HashrateTab = () => {
                 </label>
                 <motion.select
                   value={selectedHashrate}
-                  onChange={(e) => setSelectedHashrate(Number(e.target.value))}
+                  onChange={(e) => {
+                    const hashrate = Number(e.target.value);
+                    setSelectedHashrate(hashrate);
+                    const plan = plans.find((p) => p.hashrate === hashrate);
+                    if (plan) {
+                      setSelectedDuration(plan.duration);
+                    }
+                  }}
                   className="w-full p-3 bg-black border border-neutral-700 rounded-lg text-white focus:ring-2 focus:ring-white/20"
                   whileHover={{ scale: 1.02 }}
                 >
@@ -173,7 +174,7 @@ const HashrateTab = () => {
                 </motion.select>
               </div>
 
-              {/* Duration Selection */}
+              {/* Duration Display (Read-Only) */}
               <div className="relative group">
                 <label className="block text-sm font-medium mb-2">
                   Duration
@@ -181,25 +182,16 @@ const HashrateTab = () => {
                     Plan Duration
                   </span>
                   <div className="absolute hidden group-hover:block bg-black text-white text-xs p-2 rounded-lg -top-10 left-0 w-48 z-10">
-                    Choose the duration of your mining plan. Monthly plans renew
-                    automatically.
+                    The duration of your mining plan, set based on the selected
+                    hashrate.
                   </div>
                 </label>
-                <motion.select
-                  value={selectedDuration}
-                  onChange={(e) => setSelectedDuration(e.target.value)}
-                  className="w-full p-3 bg-black border border-neutral-700 rounded-lg text-white focus:ring-2 focus:ring-white/20"
-                  whileHover={{ scale: 1.02 }}
-                >
-                  {durationOptions.map((duration) => (
-                    <option key={duration} value={duration}>
-                      {duration}
-                    </option>
-                  ))}
-                </motion.select>
+                <div className="w-full p-3 bg-black border border-neutral-700 rounded-lg text-white">
+                  {selectedDuration}
+                </div>
               </div>
 
-              {/* Plan Details (removed miner/facility references) */}
+              {/* Plan Details */}
               <div className="bg-black p-6 rounded-lg shadow-md">
                 <h3 className="text-lg font-semibold mb-4">
                   Plan Specifications
@@ -322,7 +314,7 @@ const HashrateTab = () => {
                 </motion.p>
               </div>
               <div className="text-center">
-                <p className="text-sm text-gray-400">Est. Output</p>
+                <p className="text-sm text-gray-400">Est. Monthly Output</p>
                 <motion.p
                   className="text-2xl font-bold"
                   key={animatedOutput}
@@ -330,7 +322,7 @@ const HashrateTab = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  {animatedOutput.toFixed(4)} BTC
+                  {animatedOutput.toFixed(6)} BTC
                 </motion.p>
               </div>
 
@@ -381,7 +373,7 @@ const HashrateTab = () => {
         </div>
       </motion.div>
 
-      {/* Info Section (Removed facility references) */}
+      {/* Info Section */}
       <motion.section
         className="max-w-5xl mx-auto mt-16 bg-neutral-800 p-8 rounded-xl shadow-lg"
         initial={{ opacity: 0, y: 20 }}
@@ -452,7 +444,8 @@ const HashrateTab = () => {
               Can I change my hashrate later?
             </h3>
             <p className="text-sm text-gray-300">
-              Yes, our monthly plans allow you to scale up or down anytime.
+              Yes, our plans allow you to scale up or down after the current
+              term ends.
             </p>
           </div>
         </div>

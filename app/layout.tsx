@@ -9,13 +9,13 @@ import { Analytics } from "@vercel/analytics/react";
 import { ClerkProvider } from "@clerk/nextjs";
 import ClientLayout from "./ClientLayout";
 import { dark } from "@clerk/themes";
-import { Inter} from 'next/font/google';
+// import { Inter} from 'next/font/google';
 
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  weight: ['400', '500', '600', '700'],
-});
+// const inter = Inter({
+//   subsets: ['latin'],
+//   display: 'swap',
+//   weight: ['400', '500', '600', '700'],
+// });
 
 
 
@@ -54,7 +54,7 @@ export default function RootLayout({
         },
       }}
     >
-      <html lang="en" className={`${inter.className} dark`} suppressHydrationWarning>
+      <html lang="en" className={` dark`} suppressHydrationWarning>
         <head>
           <link rel="icon" href="/O.png" />
         </head>

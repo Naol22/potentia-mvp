@@ -51,6 +51,11 @@ const handler = async (req: Request) => {
     return new Response("Error: Missing Svix headers", { status: 400 });
   }
 
+
+
+  // Decode the token to inspect its claims
+
+
   const wh = new Webhook(webhookSecret);
   let event: ClerkWebhookEvent;
 

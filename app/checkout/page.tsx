@@ -19,6 +19,7 @@ const CheckoutPage: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<"stripe" | "nowpayments" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isAddressConfirmed, setIsAddressConfirmed] = useState(false); // New state for checkbox
 
   const planId: string | undefined = searchParams.get("planId") ?? undefined;
 
@@ -75,7 +76,7 @@ const CheckoutPage: React.FC = () => {
           cryptoAddress,
           paymentMethod,
         }),
-        credentials: "include", 
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -126,7 +127,7 @@ const CheckoutPage: React.FC = () => {
         transition={{ duration: 0.5 }}
         className="mt-[150px] bg-neutral-800 rounded-xl shadow-lg p-8 max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-8"
       >
-        {/* Plan Overview Section (unchanged) */}
+        {/* Plan Overview Section */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -201,37 +202,40 @@ const CheckoutPage: React.FC = () => {
               </p>
             </div>
 
+            {/* Checkbox for Address Confirmation */}
             <div>
-              <label className="block text-lg font-medium text-white mb-2">Price Summary</label>
-              <div className="bg-black p-4 rounded-lg border border-neutral-700">
-                <p className="text-lg">
-                  Total: <span className="text-white font-semibold">${plan.price || "0.00"} {plan.currency || "USD"}</span>
-                </p>
-                <p className="text-sm text-gray-400">One-time payment</p>
-              </div>
+              <label className="flex items-center space-x-2 text-sm text-gray-400">
+                <input
+                  type="checkbox"
+                  checked={isAddressConfirmed}
+                  onChange={(e) => setIsAddressConfirmed(e.target.checked)}
+                  className="form-checkbox h-4 w-4 text-white border-gray-600 focus:ring-2 focus:ring-white"
+                />
+                <span>I confirm this is my Bitcoin address</span>
+              </label>
             </div>
 
             <div>
               <label className="block text-lg font-medium text-white mb-2">Select Payment Method</label>
               <div className="flex space-x-4">
                 <motion.button
-                  whileHover={{ scale: 1.05, backgroundColor: "#ffffff" }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 1.20 }}
                   type="button"
                   onClick={() => setPaymentMethod("stripe")}
                   className={`px-6 py-3 rounded-lg font-medium transition duration-300 ${
-                    paymentMethod === "stripe" ? "bg-black text-white border-4 border-white" : "bg-white text-black"
+                    paymentMethod === "stripe" ? "bg-white text-black border-4 border-black" : "bg-white text-black"
                   }`}
                 >
                   Stripe (Card)
                 </motion.button>
                 <motion.button
-                  whileHover={{ scale: 1.05, backgroundColor: "#ffffff" }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 1.20 }}
                   type="button"
                   onClick={() => setPaymentMethod("nowpayments")}
                   className={`px-6 py-3 rounded-lg font-medium transition duration-300 ${
-                    paymentMethod === "nowpayments" ? "bg-black text-white border-4 border-white" : "bg-white text-black"
+                    paymentMethod === "nowpayments" ? "bg-white text-black border-4 border-black" : "bg-white text-black"
                   }`}
                 >
                   NowPayments (Crypto)
@@ -242,12 +246,14 @@ const CheckoutPage: React.FC = () => {
             {error && <p className="text-red-400 text-sm">{error}</p>}
 
             <motion.button
-              whileHover={{ scale: 1.05, backgroundColor: "#ffffff" }}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               type="submit"
-              disabled={!paymentMethod || loading}
+              disabled={!paymentMethod || !isAddressConfirmed || loading}
               className={`w-full py-3 rounded-lg font-bold transition duration-300 ${
-                !paymentMethod || loading ? "bg-neutral-600 cursor-not-allowed text-gray-400" : "bg-white text-black hover:bg-gray-200"
+                !paymentMethod || !isAddressConfirmed || loading
+                  ? "bg-neutral-600 cursor-not-allowed text-gray-400"
+                  : "bg-white text-black hover:bg-gray-200"
               }`}
             >
               {loading ? "Processing..." : "Proceed to Payment"}

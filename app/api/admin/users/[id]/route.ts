@@ -1,94 +1,154 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { supabase } from "@/utils/supaBaseClient";
+import { createClient } from "@supabase/supabase-js";
 
-interface SessionClaims {
-  role?: string;
-  [key: string]: unknown;
-}
-
-async function isAdmin(userId: string | null): Promise<boolean> {
-  if (!userId) return false;
-  const { sessionClaims } = await auth();
-  const userRole = sessionClaims ? (sessionClaims as SessionClaims).role : undefined;
-  return userRole === "admin";
+function createServiceRoleClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const supabaseServiceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY || '';
+  return createClient(supabaseUrl, supabaseServiceKey);
 }
 
 export async function GET(
-  { params }: { params: { id: string } }
-): Promise<NextResponse> {
-  const { userId } = await auth();
-  if (!(await isAdmin(userId))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  if (!id) {
+    console.error("GET Error: Missing or invalid user ID");
+    return NextResponse.json({ error: "Missing or invalid user ID" }, { status: 400 });
   }
-  const { data, error } = await supabase
-    .from("users")
-    .select(`
-      *,
-      orders (
-        id, 
-        status, 
-        start_date, 
-        end_date, 
-        btc_address,
-        plans (id, type, hashrate, price),
-        miners (id, name),
-        facilities (id, name)
-      ),
-      transactions (
-        id,
-        amount,
-        status,
-        description,
-        created_at
-      )
-    `)
-    .eq("id", params.id)
-    .single();
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const supabase = createServiceRoleClient();
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .select("id, full_name, email, crypto_address")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      console.error(`GET Error for user ID ${id}:`, {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      return NextResponse.json({ error: "Failed to fetch user" }, { status: 500 });
+    }
+
+    if (!data) {
+      console.error(`GET Error: No user found for ID ${id}`);
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(data);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error(`GET Unexpected Error for user ID ${id}:`, {
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
-  return NextResponse.json(data);
 }
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
-): Promise<NextResponse> {
-  const { userId } = await auth();
-  if (!(await isAdmin(userId))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  if (!id) {
+    console.error("PUT Error: Missing or invalid user ID");
+    return NextResponse.json({ error: "Missing or invalid user ID" }, { status: 400 });
   }
+
+  const supabase = createServiceRoleClient();
   try {
     const userData = await req.json();
+    if (!userData.full_name && !userData.email && !userData.crypto_address) {
+      console.error(`PUT Error for user ID ${id}: No valid fields provided for update`);
+      return NextResponse.json({ error: "No valid fields provided for update" }, { status: 400 });
+    }
+
     const { data, error } = await supabase
       .from("users")
-      .update(userData)
-      .eq("id", params.id)
-      .select()
+      .update({
+        full_name: userData.full_name,
+        email: userData.email,
+        crypto_address: userData.crypto_address,
+      })
+      .eq("id", id)
+      .select("id, full_name, email, crypto_address")
       .single();
+
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error(`PUT Error for user ID ${id}:`, {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
     }
+
+    if (!data) {
+      console.error(`PUT Error: No user found for ID ${id}`);
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
     return NextResponse.json(data);
-  } catch {
-    return NextResponse.json({ error: "Invalid request data" }, { status: 400 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error(`PUT Unexpected Error for user ID ${id}:`, {
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    return NextResponse.json(
+      { error: "Invalid request data or server error" },
+      { status: 400 }
+    );
   }
 }
 
 export async function DELETE(
-  { params }: { params: { id: string } }
-): Promise<NextResponse> {
-  const { userId } = await auth();
-  if (!(await isAdmin(userId))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  if (!id) {
+    console.error("DELETE Error: Missing or invalid user ID");
+    return NextResponse.json({ error: "Missing or invalid user ID" }, { status: 400 });
   }
-  const { error } = await supabase
-    .from("users")
-    .delete()
-    .eq("id", params.id);
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const supabase = createServiceRoleClient();
+  try {
+    const { error } = await supabase
+      .from("users")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error(`DELETE Error for user ID ${id}:`, {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      return NextResponse.json({ error: "Failed to delete user" }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error(`DELETE Unexpected Error for user ID ${id}:`, {
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
-  return NextResponse.json({ success: true });
 }

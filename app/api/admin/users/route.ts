@@ -1,51 +1,63 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { supabase } from "@/utils/supaBaseClient";
+import { createServerSupabaseClient } from "@/lib/supabase";
 
-interface SessionClaims {
-  role?: string;
-  [key: string]: unknown;
+
+export async function GET() {
+  const supabase = createServerSupabaseClient();
+  try {
+    console.log("[Users API] Fetching users...");
+    const { data, error } = await supabase
+      .from("users")
+      .select("id, full_name, email, crypto_address")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("[Users API] Error fetching users:", error.message);
+      return NextResponse.json(
+        { error: "Failed to fetch users", details: error.message },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(data);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("[Users API] Error:", error.message);
+      return NextResponse.json(
+        { error: "Internal Server Error", details: error.message },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json(
+      { error: "Internal Server Error", details: "Unknown error" },
+      { status: 500 }
+    );
+  }
 }
 
-async function isAdmin(userId: string | null): Promise<boolean> {
-  if (!userId) return false;
-  const { sessionClaims } = await auth();
-  const userRole = sessionClaims ? (sessionClaims as SessionClaims).role : undefined;
-  return userRole === "admin";
-}
-
-export async function GET(): Promise<NextResponse> {
-  const { userId } = await auth();
-  if (!(await isAdmin(userId))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const { data, error } = await supabase
-    .from("users")
-    .select("*")
-    .order("created_at", { ascending: false });
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-  return NextResponse.json(data);
-}
-
-export async function POST(req: NextRequest): Promise<NextResponse> {
-  const { userId } = await auth();
-  if (!(await isAdmin(userId))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export async function POST(req: NextRequest) {
+  const supabase = createServerSupabaseClient();
   try {
     const userData = await req.json();
     const { data, error } = await supabase
       .from("users")
-      .insert(userData)
-      .select()
+      .insert({
+        full_name: userData.full_name,
+        email: userData.email,
+        crypto_address: userData.crypto_address,
+      })
+      .select("id, full_name, email, crypto_address")
       .single();
+
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
     return NextResponse.json(data);
-  } catch {
-    return NextResponse.json({ error: "Invalid request data" }, { status: 400 });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: "Invalid request data or server error" },
+      { status: 400 }
+    );
   }
 }

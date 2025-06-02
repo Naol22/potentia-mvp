@@ -1,103 +1,78 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/utils/supaBaseClient";
-import { getAuth } from "@clerk/nextjs/server";
+import { createServerSupabaseClient } from "@/lib/supabase";
 
-interface Facility {
-  id: string;
-  name: string;
-  location: string;
-  capacity: number;
-  electricity_cost: number;
-  created_at: string;
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const supabase = createServerSupabaseClient();
+  try {
+    const { data, error } = await supabase
+      .from("facilities")
+      .select("*")
+      .eq("id", params.id)
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json(data);
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: "Internal Server Error", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
+  }
 }
 
-async function isAdmin(userId: string) {
-  const { data: user, error } = await supabase
-    .from("users")
-    .select("is_admin")
-    .eq("id", userId)
-    .single();
-  if (error) {
-    throw new Error(error.message);
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const supabase = createServerSupabaseClient();
+  try {
+    const facilityData = await req.json();
+    const { data, error } = await supabase
+      .from("facilities")
+      .update(facilityData)
+      .eq("id", params.id)
+      .select("*")
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json(data);
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: "Invalid request data or server error" },
+      { status: 400 }
+    );
   }
-  return user?.is_admin ?? false;
 }
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  const { userId } = getAuth(request);
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const supabase = createServerSupabaseClient();
+  try {
+    const { error } = await supabase
+      .from("facilities")
+      .delete()
+      .eq("id", params.id);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: "Internal Server Error", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
   }
-
-  const isAdminUser = await isAdmin(userId);
-  if (!isAdminUser) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  const { data, error } = await supabase
-    .from("facilities")
-    .select("*")
-    .eq("id", params.id)
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-  if (!data) {
-    return NextResponse.json({ error: "Facility not found" }, { status: 404 });
-  }
-
-  return NextResponse.json(data as Facility);
-}
-
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  const { userId } = getAuth(request);
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const isAdminUser = await isAdmin(userId);
-  if (!isAdminUser) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  const body = await request.json();
-  const { data, error } = await supabase
-    .from("facilities")
-    .update(body)
-    .eq("id", params.id)
-    .select()
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-  if (!data) {
-    return NextResponse.json({ error: "Facility not found" }, { status: 404 });
-  }
-
-  return NextResponse.json(data as Facility);
-}
-
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  const { userId } = getAuth(request);
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const isAdminUser = await isAdmin(userId);
-  if (!isAdminUser) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  const { error } = await supabase
-    .from("facilities")
-    .delete()
-    .eq("id", params.id);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json({ message: "Facility deleted successfully" });
 }

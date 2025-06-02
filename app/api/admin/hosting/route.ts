@@ -1,55 +1,46 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { supabase } from "@/utils/supaBaseClient";
+import { createServerSupabaseClient } from "@/lib/supabase";
 
-interface SessionClaims {
-  role?: string;
-  [key: string]: unknown;
+export async function GET() {
+  const supabase = createServerSupabaseClient();
+  try {
+    const { data, error } = await supabase
+      .from("hosting")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json(data);
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: "Internal Server Error", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
+  }
 }
 
-async function isAdmin(userId: string | null): Promise<boolean> {
-  if (!userId) return false;
-  const { sessionClaims } = await auth();
-  const userRole = sessionClaims ? (sessionClaims as SessionClaims).role : undefined;
-  return userRole === "admin";
-}
-
-export async function GET(): Promise<NextResponse> {
-  const { userId } = await auth();
-  if (!(await isAdmin(userId))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const { data, error } = await supabase
-    .from("hosting")
-    .select(`
-      *,
-      miners (id, name),
-      facilities (id, name)
-    `)
-    .order("created_at", { ascending: false });
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-  return NextResponse.json(data);
-}
-
-export async function POST(req: NextRequest): Promise<NextResponse> {
-  const { userId } = await auth();
-  if (!(await isAdmin(userId))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export async function POST(req: NextRequest) {
+  const supabase = createServerSupabaseClient();
   try {
     const hostingData = await req.json();
     const { data, error } = await supabase
       .from("hosting")
       .insert(hostingData)
-      .select()
+      .select("*")
       .single();
+
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
     return NextResponse.json(data);
-  } catch {
-    return NextResponse.json({ error: "Invalid request data" }, { status: 400 });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: "Invalid request data or server error" },
+      { status: 400 }
+    );
   }
 }

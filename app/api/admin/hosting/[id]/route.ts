@@ -1,66 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { supabase } from "@/utils/supaBaseClient";
-
-interface SessionClaims {
-  role?: string;
-  [key: string]: unknown;
-}
-
-async function isAdmin(userId: string | null): Promise<boolean> {
-  if (!userId) return false;
-
-  const { sessionClaims } = await auth();
-
-  const userRole = sessionClaims ? (sessionClaims as SessionClaims).role : undefined;
-  return userRole === "admin";
-}
+import { createServerSupabaseClient } from "@/lib/supabase";
 
 export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
-): Promise<NextResponse> {
-  const { userId } = await auth();
-
-  if (!(await isAdmin(userId))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { data, error } = await supabase
-    .from("hosting")
-    .select(`
-      *,
-      miners (id, name),
-      facilities (id, name)
-    `)
-    .eq("id", params.id)
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json(data);
-}
-
-export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
-): Promise<NextResponse> {
-  const { userId } = await auth();
-
-  if (!(await isAdmin(userId))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+) {
+  const supabase = createServerSupabaseClient();
   try {
-    const hostingData = await req.json();
-
     const { data, error } = await supabase
       .from("hosting")
-      .update(hostingData)
+      .select("*")
       .eq("id", params.id)
-      .select()
       .single();
 
     if (error) {
@@ -68,29 +18,61 @@ export async function PUT(
     }
 
     return NextResponse.json(data);
-  } catch {
-    return NextResponse.json({ error: "Invalid request data" }, { status: 400 });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: "Internal Server Error", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const supabase = createServerSupabaseClient();
+  try {
+    const hostingData = await req.json();
+    const { data, error } = await supabase
+      .from("hosting")
+      .update(hostingData)
+      .eq("id", params.id)
+      .select("*")
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json(data);
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: "Invalid request data or server error" },
+      { status: 400 }
+    );
   }
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: { id: string } }
-): Promise<NextResponse> {
-  const { userId } = await auth();
+) {
+  const supabase = createServerSupabaseClient();
+  try {
+    const { error } = await supabase
+      .from("hosting")
+      .delete()
+      .eq("id", params.id);
 
-  if (!(await isAdmin(userId))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: "Internal Server Error", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
   }
-
-  const { error } = await supabase
-    .from("hosting")
-    .delete()
-    .eq("id", params.id);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json({ success: true });
 }

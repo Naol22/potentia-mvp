@@ -129,7 +129,7 @@ export default function MinersAdmin() {
       </div>
 
       {isCreating && (
-        <div className="bg-gray-100 p-6 rounded-lg mb-6">
+        <div className="bg-black p-6 rounded-lg mb-6">
           <h3 className="text-xl font-semibold mb-4">Add New Miner</h3>
           <div className="grid gap-4 mb-4">
             <div>
@@ -158,7 +158,7 @@ export default function MinersAdmin() {
       )}
 
       {editingMiner && (
-        <div className="bg-gray-100 p-6 rounded-lg mb-6">
+        <div className="bg-black p-6 rounded-lg mb-6">
           <h3 className="text-xl font-semibold mb-4">Edit Miner</h3>
           <div className="grid gap-4 mb-4">
             <div>

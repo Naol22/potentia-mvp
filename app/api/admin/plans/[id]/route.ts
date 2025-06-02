@@ -1,88 +1,78 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { supabase } from "@/utils/supaBaseClient";
-
-interface SessionClaims {
-  role?: string;
-  [key: string]: unknown;
-}
-
-async function isAdmin(userId: string | null): Promise<boolean> {
-  if (!userId) return false;
-  const { sessionClaims } = await auth();
-  const userRole = sessionClaims ? (sessionClaims as SessionClaims).role : undefined;
-  return userRole === "admin";
-}
+import { createServerSupabaseClient } from "@/lib/supabase";
 
 export async function GET(
+  req: NextRequest,
   { params }: { params: { id: string } }
-): Promise<NextResponse> {
-  const { userId } = await auth();
-  if (!(await isAdmin(userId))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+) {
+  const supabase = createServerSupabaseClient();
+  try {
+    const { data, error } = await supabase
+      .from("hashrate_plans")
+      .select("*")
+      .eq("id", params.id)
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json(data);
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: "Internal Server Error", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
   }
-  const { data, error } = await supabase
-    .from("plans")
-    .select("*")
-    .eq("id", params.id)
-    .single();
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-  return NextResponse.json(data);
 }
 
 export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
-): Promise<NextResponse> {
-  const { userId } = await auth();
-  if (!(await isAdmin(userId))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+) {
+  const supabase = createServerSupabaseClient();
   try {
-    const planData = await req.json();
+    const hashrateData = await req.json();
     const { data, error } = await supabase
-      .from("plans")
-      .update(planData)
+      .from("hashrate_plans")
+      .update(hashrateData)
       .eq("id", params.id)
-      .select()
+      .select("*")
       .single();
+
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
     return NextResponse.json(data);
-  } catch {
-    return NextResponse.json({ error: "Invalid request data" }, { status: 400 });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: "Invalid request data or server error" },
+      { status: 400 }
+    );
   }
 }
 
 export async function DELETE(
+  req: NextRequest,
   { params }: { params: { id: string } }
-): Promise<NextResponse> {
-  const { userId } = await auth();
-  if (!(await isAdmin(userId))) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+) {
+  const supabase = createServerSupabaseClient();
+  try {
+    const { error } = await supabase
+      .from("hashrate_plans")
+      .delete()
+      .eq("id", params.id);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: "Internal Server Error", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
   }
-  const { data: orderData, error: checkError } = await supabase
-    .from("orders")
-    .select("id")
-    .eq("plan_id", params.id)
-    .limit(1);
-  if (checkError) {
-    return NextResponse.json({ error: checkError.message }, { status: 500 });
-  }
-  if (orderData && orderData.length > 0) {
-    return NextResponse.json({ 
-      error: "Cannot delete plan that is in use by orders" 
-    }, { status: 400 });
-  }
-  const { error } = await supabase
-    .from("plans")
-    .delete()
-    .eq("id", params.id);
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-  return NextResponse.json({ success: true });
 }

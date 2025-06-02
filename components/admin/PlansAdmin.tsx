@@ -149,7 +149,7 @@ export default function PlansAdmin() {
       </div>
 
       {(editingPlan || isCreating) && (
-        <div className="bg-gray-100 p-6 rounded-lg mb-6">
+        <div className="bg-black p-6 rounded-lg mb-6">
           <h3 className="text-xl font-semibold mb-4">
             {isCreating ? "Create New Plan" : "Edit Plan"}
           </h3>
@@ -247,7 +247,7 @@ export default function PlansAdmin() {
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-gray-100">
+            <tr className="bg-black">
               <th className="p-2 text-left">Type</th>
               <th className="p-2 text-left">Hashrate (TH/s)</th>
               <th className="p-2 text-left">Price (USD)</th>

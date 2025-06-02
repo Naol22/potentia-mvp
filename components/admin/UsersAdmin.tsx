@@ -10,8 +10,8 @@ import { useAuth } from "@clerk/nextjs";
 interface User {
   id: string;
   email: string;
-  created_at: string;
-  updated_at: string;
+  full_name: string;
+  crypto_address: string;
 }
 
 export default function UsersAdmin() {
@@ -105,7 +105,7 @@ export default function UsersAdmin() {
       </div>
 
       {editingUser && (
-        <div className="bg-gray-100 p-6 rounded-lg mb-6">
+        <div className="bg-black p-6 rounded-lg mb-6">
           <h3 className="text-xl font-semibold mb-4">Edit User</h3>
           <div className="grid grid-cols-1 gap-4 mb-4">
             <div>
@@ -134,10 +134,10 @@ export default function UsersAdmin() {
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-gray-100">
+            <tr className="bg-black">
               <th className="p-2 text-left">Email</th>
-              <th className="p-2 text-left">Created</th>
-              <th className="p-2 text-left">Updated</th>
+              <th className="p-2 text-left">Full Name</th>
+              <th className="p-2 text-left">Crypto Address</th>
               <th className="p-2 text-left">Actions</th>
             </tr>
           </thead>
@@ -146,10 +146,10 @@ export default function UsersAdmin() {
               <tr key={user.id} className="border-b">
                 <td className="p-2">{user.email}</td>
                 <td className="p-2">
-                  {user.created_at ? format(new Date(user.created_at), "MMM d, yyyy") : 'N/A'}
+                 {user.full_name}
                 </td>
                 <td className="p-2">
-                  {user.updated_at ? format(new Date(user.updated_at), "MMM d, yyyy") : 'N/A'}
+                  {user.crypto_address || "Not set"}
                 </td>
                 <td className="p-2">
                   <div className="flex space-x-2">

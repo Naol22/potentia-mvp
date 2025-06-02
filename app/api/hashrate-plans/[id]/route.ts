@@ -11,10 +11,10 @@ export async function GET(
   const client = createClientSupabaseClient();
   const { id } = await params;
 
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(id)) {
-    return NextResponse.json({ error: "Invalid plan ID format" }, { status: 400 });
-  }
+  // const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  // if (!uuidRegex.test(id)) {
+  //   return NextResponse.json({ error: "Invalid plan ID format" }, { status: 400 });
+  // }
 
   try {
     const { data, error} = await client

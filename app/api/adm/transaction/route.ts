@@ -9,7 +9,7 @@ export async function GET() {
     console.log("[Transactions API] Fetching transactions from Supabase...");
     const { data, error } = await client
       .from("transactions")
-      .select("id, user_id, plan_id, subscription_id, amount, currency, status, description, payment_method_id, payment_provider_reference, metadata, created_at")
+      .select("id, user_id, plan_id, plan_type, subscription_id, amount, currency, status, payment_method_id, payment_provider_reference, created_at")
       .order("created_at", { ascending: true });
     if (error) {
       console.error("[Transactions API] Error fetching transactions:", { message: error.message, details: error.details, code: error.code });

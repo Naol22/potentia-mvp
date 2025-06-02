@@ -1,28 +1,21 @@
-
 'use server'
-
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase";
 
 export async function GET() {
-  const client = createServerSupabaseClient();
+  const supabase = createServerSupabaseClient();
   try {
-    console.log("[Orders API] Fetching orders from Supabase...");
-    const { data, error } = await client
+    const { data, error } = await supabase
       .from("orders")
-      .select("id, user_id, plan_id, transaction_id, subscription_id, crypto_address, status, start_date, end_date, is_active, auto_renew, next_billing_date, created_at")
-      .order("created_at", { ascending: true });
+      .select("id, user_id, plan_ids, status, created_at, plan_type , transaction_ids");
     if (error) {
-      console.error("[Orders API] Error fetching orders:", { message: error.message, details: error.details, code: error.code });
-      throw new Error("Failed to fetch orders");
+      console.error("Error fetching orders:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    console.log("[Orders API] Successfully fetched orders:", data);
+    console.log("Fetched orders:", data);
     return NextResponse.json(data);
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error("[Orders API] Error fetching orders:", { message: error.message, stack: error.stack });
-      return NextResponse.json({ error: "Internal Server Error", details: error.message }, { status: 500 });
-    }
-    return NextResponse.json({ error: "Internal Server Error", details: "Unknown Error" }, { status: 500 });
+  } catch (err) {
+    console.error("Unexpected error in orders route:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -10,7 +10,7 @@ export async function GET() {
     console.log("[Users API] Fetching users from Supabase...");
     const { data, error } = await client
       .from("users")
-      .select("id, user_id, first_name, last_name, full_name, email, stripe_customer_id, btc_address, created_at")
+      .select("id, user_id, first_name, last_name, full_name, email, crypto_address, created_at")
       .order("created_at", { ascending: true });
     if (error) {
       console.error("[Users API] Error fetching users:", { message: error.message, details: error.details, code: error.code });

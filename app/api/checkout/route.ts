@@ -9,7 +9,10 @@ export async function POST(request: Request) {
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const { planId, cryptoAddress, paymentMethod } = await request.json();
+
+  const requestBody = await request.json();
+  const { planId, cryptoAddress, paymentMethod } = requestBody;
+
   if (!planId || !cryptoAddress || !paymentMethod) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
@@ -26,6 +29,17 @@ export async function POST(request: Request) {
     }
     const client = createClientSupabaseClient();
 
+    // Fetch plan details
+    const { data: plan, error: planError } = await client
+      .from("hashrate_plans")
+      .select("*")
+      .eq("id", planId)
+      .single();
+
+    if (planError || !plan) {
+      return NextResponse.json({ error: "Plan not found" }, { status: 404 });
+    }
+
     const { error: updateError } = await client
       .from("users")
       .update({ crypto_address: cryptoAddress })
@@ -33,12 +47,6 @@ export async function POST(request: Request) {
     if (updateError) {
       throw new Error(`Failed to update crypto address: ${updateError.message}`);
     }
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/hashrate-plans/${planId}`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch plan details");
-    }
-    const plan = await response.json();
 
     if (paymentMethod === "stripe") {
       const stripeResponse = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/webhooks/create-checkout-session`, {
@@ -59,6 +67,7 @@ export async function POST(request: Request) {
       const { sessionId } = await stripeResponse.json();
       return NextResponse.json({ sessionId });
     } else if (paymentMethod === "nowpayments") {
+      console.log("Creating NowPayments invoice with plan:", plan);
       const nowPaymentsResponse = await fetch("https://api.nowpayments.io/v1/invoice", {
         method: "POST",
         headers: {
@@ -68,7 +77,7 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           price_amount: plan.price,
           price_currency: plan.currency.toLowerCase(),
-          order_id: `order_${userId}_${planId}`,
+          order_id: `order_${userId}_${plan.id}`,
           order_description: `Payment for plan hashrate ${plan.hashrate} TH/s`,
           ipn_callback_url: `${process.env.NEXT_PUBLIC_URL}/api/webhooks/nowpayments-webhook`,
           success_url: `${process.env.NEXT_PUBLIC_URL}/payment/success`,
@@ -79,15 +88,15 @@ export async function POST(request: Request) {
       const nowPaymentsData = await nowPaymentsResponse.json();
       if (nowPaymentsResponse.ok && nowPaymentsData.invoice_url) {
         // Record transaction in Supabase
-        const transaction: Partial<Transaction>  = {
-            user_id: userId,
-            plan_id: planId,
-            amount: plan?.price,
-            currency: plan?.currency as CurrencyCode,
-            status: TransactionStatus.Pending,
-            payment_method_id: nowPaymentsData.payment_id,
-            payment_provider_reference: `Crypto payment for plan ${planId}`,
-            created_at: new Date().toISOString(),
+        const transaction: Partial<Transaction> = {
+          user_id: userId,
+          plan_id: plan.id,
+          amount: plan.price,
+          currency: plan.currency as CurrencyCode,
+          status: TransactionStatus.Pending,
+          payment_method_id: nowPaymentsData.payment_id,
+          payment_provider_reference: `Crypto payment for plan ${plan.id}`,
+          created_at: new Date().toISOString(),
         };
 
         const { error: transactionError } = await client

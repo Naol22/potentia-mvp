@@ -23,6 +23,6 @@ export async function GET() {
       console.error("[Orders API] Error fetching orders:", { message: error.message, stack: error.stack });
       return NextResponse.json({ error: "Internal Server Error", details: error.message }, { status: 500 });
     }
-    return NextResponse.json({ error: "Internal Server Error", details: "Unknown error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal Server Error", details: "Unknown Error" }, { status: 500 });
   }
 }

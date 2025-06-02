@@ -22,6 +22,6 @@ export async function GET() {
       console.error("[Transactions API] Error fetching transactions:", { message: error.message, stack: error.stack });
       return NextResponse.json({ error: "Internal Server Error", details: error.message }, { status: 500 });
     }
-    return NextResponse.json({ error: "Internal Server Error", details: "Unknown error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal Server Error", details: "Unknown Error" }, { status: 500 });
   }
 }

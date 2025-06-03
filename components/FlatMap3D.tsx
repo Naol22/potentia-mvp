@@ -431,7 +431,7 @@ const MapboxMap: React.FC = () => {
               {country === "Ethiopia" ? (
                 <Link
                   href={{
-                    pathname: "/details",
+                    pathname: "/Hostingdetails",
                     query: { country: country }
                   }}
                   passHref

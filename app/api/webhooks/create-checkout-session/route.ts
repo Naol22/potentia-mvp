@@ -2,11 +2,17 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createServerSupabaseClient } from "@/lib/supabase";
 import { auth } from "@clerk/nextjs/server";
-import { CurrencyCode, Transaction, TransactionStatus } from "@/types";
+import {
+  CurrencyCode,
+  PaymentType,
+  Transaction,
+  TransactionStatus,
+} from "@/types";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-04-30.basil",
 });
+
 export async function POST(request: Request) {
   try {
     const { userId } = await auth();
@@ -32,9 +38,11 @@ export async function POST(request: Request) {
     const transaction: Partial<Transaction> = {
       user_id: userId,
       plan_id: planId,
+      plan_type: "hashrate",
       amount: plan?.price,
       currency: plan?.currency as CurrencyCode,
       status: TransactionStatus.Pending,
+      payment_type: PaymentType.Subscription,
       payment_provider_reference: `Crypto payment for plan ${planId}`,
       created_at: new Date().toISOString(),
     };
@@ -69,7 +77,7 @@ export async function POST(request: Request) {
               name: `${
                 plan.type === "hashrate" ? "Hashrate" : "Hosting"
               } Plan - ${plan.hashrate} TH/s`,
-              description: `Facility: ${plan.facility_id.name}, Miner: ${plan.miner_id.name}, Duration: ${plan.duration}`,
+              description: `Duration: ${plan.duration}`,
             },
             unit_amount: Math.round(plan.price * 100),
           },

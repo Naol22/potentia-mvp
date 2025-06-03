@@ -2,24 +2,24 @@
 
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { HashratePlan } from "@/types";
 import { motion } from "framer-motion";
 import GlobalLoadingScreen from "@/components/GlobalLoadingScreen";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import { Zap } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
+import { HashratePlan } from "@/types";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 const CheckoutPage: React.FC = () => {
   const searchParams = useSearchParams();
-  const [plan, setPlan] = useState<HashratePlan | null>(null);
+  const [plan, setPlan] = useState<HashratePlan | null> (null);
   const [cryptoAddress, setCryptoAddress] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"stripe" | "nowpayments" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [isAddressConfirmed, setIsAddressConfirmed] = useState(false); // New state for checkbox
+  const [isAddressConfirmed, setIsAddressConfirmed] = useState(false);
 
   const planId: string | undefined = searchParams.get("planId") ?? undefined;
 
@@ -64,20 +64,41 @@ const CheckoutPage: React.FC = () => {
       return;
     }
 
+    if (!isAddressConfirmed) {
+      setError("Please confirm your Bitcoin address");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          planId,
-          cryptoAddress,
-          paymentMethod,
-        }),
-        credentials: "include",
-      });
+      let response;
+      if (paymentMethod === "stripe") {
+        response = await fetch("/api/checkout-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            planId,
+            cryptoAddress,
+            paymentMethod,
+          }),
+        });
+      } else if (paymentMethod === "nowpayments") {
+        response = await fetch("/api/nowpayments-checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            planId,
+            cryptoAddress,
+            paymentMethod,
+          }),
+        });
+      }
+
+      if (!response) {
+        throw new Error("No response from payment processor");
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -149,14 +170,18 @@ const CheckoutPage: React.FC = () => {
             <div className="bg-black p-6 rounded-lg">
               <h3 className="text-lg font-semibold mb-4 text-white">Plan Specifications</h3>
               <div className="grid grid-cols-1 gap-4 text-sm">
-                <motion.div className="flex items-center space-x-3" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3, duration: 0.3 }}>
+                <motion.div
+                  className="flex items-center space-x-3"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3, duration: 0.3 }}
+                >
                   <Zap className="text-white h-5 w-5" />
                   <div>
                     <p className="font-medium text-white">Power Efficiency</p>
                     <p className="text-gray-400">17.5 J/TH - Industry-leading performance</p>
                   </div>
                 </motion.div>
-                {/* Other specification items remain unchanged */}
               </div>
             </div>
             <Tooltip id="plan-tooltip" place="right" className="solid" />

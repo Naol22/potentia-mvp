@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import { createClientSupabaseClient } from "@/lib/supabase";
 import { Transaction, PaymentType, TransactionStatus, CurrencyCode, PlanType } from "@/types";
+import { auth } from "@clerk/nextjs/server";
 
 type TransactionRequest = {
   action: "create" | "update";
@@ -10,6 +11,10 @@ type TransactionRequest = {
 };
 
 export async function POST(request: Request) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   const client = createClientSupabaseClient();
 
   try {

@@ -2,6 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { createClientSupabaseClient } from "@/lib/supabase";
+import { auth } from "@clerk/nextjs/server";
 
 type UserUpdate = {
   userId: string;
@@ -9,6 +10,11 @@ type UserUpdate = {
 };
 
 export async function POST(request: Request) {
+  const { userId } = await auth();
+  
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   const client = createClientSupabaseClient();
 
   try {
@@ -27,7 +33,7 @@ export async function POST(request: Request) {
     const { error } = await client
       .from("users")
       .update({ crypto_address: cryptoAddress })
-      .eq("id", userId);
+      .eq("user_id", userId);
 
     if (error) {
       console.error("[Update User API] Error updating user crypto address:", {

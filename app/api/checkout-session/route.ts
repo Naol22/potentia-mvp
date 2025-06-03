@@ -12,11 +12,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(request: Request) {
   const client = createClientSupabaseClient();
-
   try {
     console.log("[Checkout Session API] Initiating checkout session in Supabase...");
     const { planId, cryptoAddress, paymentMethod } = await request.json();
-
     if (paymentMethod !== "stripe") {
       console.error("[Checkout Session API] Error initiating checkout session:", {
         message: "Invalid payment method",
@@ -25,7 +23,6 @@ export async function POST(request: Request) {
       });
       throw new Error("This route is for Stripe payments only");
     }
-
     if (!planId || !cryptoAddress) {
       console.error("[Checkout Session API] Error initiating checkout session:", {
         message: "Missing required fields",
@@ -34,14 +31,12 @@ export async function POST(request: Request) {
       });
       throw new Error("Missing planId or cryptoAddress");
     }
-
     console.log("[Checkout Session API] Fetching plan from Supabase...");
     const { data: plan, error: planError } = await client
-      .from("hashrate-plans")
+      .from("hashrate_plans")
       .select("*")
       .eq("id", planId)
       .single();
-
     if (planError || !plan) {
       console.error("[Checkout Session API] Error fetching plan:", {
         message: planError?.message || "Plan not found",
@@ -50,9 +45,9 @@ export async function POST(request: Request) {
       });
       throw new Error("Plan not found");
     }
-
     console.log("[Checkout Session API] Fetching authenticated user...");
-    const { userId } = await auth();
+    const { userId, getToken } = await auth();
+    const sessionToken = await getToken();
     const user = await currentUser()
     if (!userId) {
       console.error("[Checkout Session API] Error initiating checkout session:", {
@@ -62,17 +57,16 @@ export async function POST(request: Request) {
       });
       throw new Error("User not authenticated");
     }
-
     console.log("[Checkout Session API] Updating user crypto address...");
     const updateUserResponse = await fetch(`${request.headers.get("origin")}/api/update-user`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      credentials: 'include',
+      headers: { 'Authorization': `Bearer ${sessionToken}`,"Content-Type": "application/json" },
       body: JSON.stringify({
         userId: userId,
         cryptoAddress,
       }),
     });
-
     if (!updateUserResponse.ok) {
       const errorData = await updateUserResponse.json();
       console.error("[Checkout Session API] Error updating user crypto address:", {
@@ -82,7 +76,6 @@ export async function POST(request: Request) {
       });
       throw new Error("Failed to update user crypto address");
     }
-
     console.log("[Checkout Session API] Creating pending transaction...");
     const transaction: Partial<Transaction> = {
       user_id: userId,
@@ -95,16 +88,15 @@ export async function POST(request: Request) {
       payment_provider_reference: `Stripe checkout for plan ${plan.id}`,
       created_at: new Date().toISOString(),
     };
-
     const createTransactionResponse = await fetch(`${request.headers.get("origin")}/api/update-transaction`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      credentials: 'include',
+      headers: { 'Authorization': `Bearer ${sessionToken}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "create",
         transaction,
       }),
     });
-
     if (!createTransactionResponse.ok) {
       const errorData = await createTransactionResponse.json();
       console.error("[Checkout Session API] Error creating transaction:", {
@@ -114,9 +106,7 @@ export async function POST(request: Request) {
       });
       throw new Error("Failed to create transaction");
     }
-
     const { transaction: createdTransaction } = await createTransactionResponse.json();
-
     console.log("[Checkout Session API] Creating Stripe Checkout session...");
     const mode = plan.is_subscription ? "subscription" : "payment";
     const lineItems = [
@@ -126,7 +116,6 @@ export async function POST(request: Request) {
         adjustable_quantity: { enabled: false },
       },
     ];
-
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
@@ -141,7 +130,6 @@ export async function POST(request: Request) {
         transactionId: createdTransaction.id,
       },
     });
-
     console.log("[Checkout Session API] Successfully created Stripe Checkout session:", {
       sessionId: session.id,
       planId: plan.id,
@@ -162,7 +150,6 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
-
     return NextResponse.json(
       {
         error: "Internal Server Error",

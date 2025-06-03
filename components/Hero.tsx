@@ -19,7 +19,7 @@ const Hero = () => {
     <>
       <Head>
         {" "}
-        <title>Potentia | Sustainable Bitcoin Mining Startup</title>
+        <title>potentia | Sustainable Bitcoin Mining Startup</title>
         <meta
           name="description"
           content="Potentia pioneers sustainable Bitcoin mining in Africa and beyond. Join our journey to revolutionize crypto with eco-friendly solutions."
@@ -39,7 +39,7 @@ const Hero = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 1.5 }}
         >
-          {/* <motion.div 
+          <motion.div 
             className="bg-gradient-to-r from-black/50 via-white/60 to-black/50 blur-[20rem] w-[40rem] h-[49rem] rotate-[-60deg] transform -translate-x-[10rem]"
             animate={{
               x: [0, -15, 5, -10, 0],
@@ -53,8 +53,8 @@ const Hero = () => {
               ease: [0.30, 0.67, 0.83, 0.40],
               times: [0, 0.25, 0.5, 0.75, 1]
             }}
-          /> */}
-          {/* <motion.div 
+          />
+          <motion.div 
             className="bg-gradient-to-tr from-black/70 via-white/20 to-black/50 blur-[3rem] w-[90rem] h-[80rem] rounded-full origin-bottom-right -rotate-12 -translate-x-[15rem]"
             animate={{
               x: [0, 20, -5, 10, 0],
@@ -68,10 +68,10 @@ const Hero = () => {
               ease: "easeInOut",
               delay: 0.5
             }}
-          /> */}
+          />
           
           {/* Additional animated element for more dynamic feel */}
-          {/* <motion.div
+          <motion.div
             className="absolute bg-gradient-to-b4 from-white/10 via-white/5 to-transparent blur-[3rem] w-[60rem] h-[30rem] rounded-full"
             initial={{ opacity: 0, x: -50, y: 100 }}
             animate={{ 
@@ -86,7 +86,7 @@ const Hero = () => {
               ease: "easeInOut",
               times: [0, 0.2, 0.5, 0.8, 1]
             }}
-          /> */}
+          />
         </motion.div>
 
         {/* Overlay Content with Animation */}
@@ -104,7 +104,7 @@ const Hero = () => {
             transformation, and empowers economies.
           </p>
           <div>
-            <Link href="" passHref>
+            <Link href="/Bitcoin_Financial_Transformation" passHref>
               <Button
                 variant="ghost"
                 size="lg"

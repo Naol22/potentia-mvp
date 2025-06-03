@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button"; // Assuming ShadCN Button component
+// import emailjs from 'emailjs-com';
 // import dynamic from "next/dynamic";
 
 // Dynamically import MapContainer, TileLayer, and Marker with SSR disabled
@@ -43,46 +44,39 @@ const ContactUs: React.FC = () => {
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const sendEmail = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormStatus({ isSubmitting: true, isSuccess: false, error: null });
 
-    // Uncomment and adjust your form submission logic as needed
+    // EmailJS configuration - replace with your actual credentials
     /*
-    try {
-      const response = await fetch("https://formsubmit.co/ajax/contact@potentia.com", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          message: formData.message,
-          _subject: `New contact from ${formData.name} - Potentia Inquiry`,
-        }),
+    emailjs.sendForm('service_m8bok1s', 'YOUR_TEMPLATE_ID', e.target, 'YOUR_USER_ID')
+      .then((result) => {
+        console.log(result.text);
+        setFormStatus({ isSubmitting: false, isSuccess: true, error: null });
+        setFormData({ name: "", email: "", message: "" });
+      }, (error) => {
+        console.log(error.text);
+        setFormStatus({
+          isSubmitting: false,
+          isSuccess: false,
+          error: error.text || "An error occurred",
+        });
       });
+    */
 
-      if (!response.ok) throw new Error("Failed to send message");
-
+    // Temporary simulation for testing
+    setTimeout(() => {
       setFormStatus({ isSubmitting: false, isSuccess: true, error: null });
       setFormData({ name: "", email: "", message: "" });
-    } catch (error) {
-      setFormStatus({
-        isSubmitting: false,
-        isSuccess: false,
-        error: error instanceof Error ? error.message : "An error occurred",
-      });
-    }
-    */
+    }, 1000);
   };
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-40 bg-zinc-900/20 backdrop-blur-xl overflow-hidden">
       {/* Gradient Overlay with Subtle Noise */}
-      <div className="absolute inset-0 bg-gradient-to-b from-zinc-700/60 via-zinc-900/40 to-black pointer-events-none" />
-      <div className="absolute inset-0 opacity-10" style={{ background: "url('/noise.png') repeat" }} />
+      <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/60 via-zinc-900/40 to-zinc-800/80 pointer-events-none" />
+      <div className="absolute inset-0 opacity-10"  />
 
       {/* Main Content */}
       <motion.div
@@ -103,7 +97,7 @@ const ContactUs: React.FC = () => {
           className="text-lg md:text-xl text-center text-zinc-300 max-w-2xl mx-auto mb-12"
           variants={fadeInUp}
         >
-          Reach out to Potentia for inquiries about Bitcoin mining, high-performance computing, or grid support. We’re here to help you pioneer the future.
+          Reach out to Potentia for inquiries about Bitcoin mining, high-performance computing, or grid support. We&apos;re here to help you pioneer the future.
         </motion.p>
 
         {/* Contact Grid */}
@@ -114,7 +108,7 @@ const ContactUs: React.FC = () => {
             className="bg-zinc-900 rounded-xl p-6 md:p-8 shadow-lg border border-zinc-800"
           >
             <h2 className="text-2xl font-semibold text-white mb-6">Send Us a Message</h2>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={sendEmail} className="space-y-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-zinc-400 mb-2">
                   Name
@@ -122,6 +116,7 @@ const ContactUs: React.FC = () => {
                 <input
                   type="text"
                   id="name"
+                  name="name"
                   value={formData.name}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-zinc-500"
@@ -136,6 +131,7 @@ const ContactUs: React.FC = () => {
                 <input
                   type="email"
                   id="email"
+                  name="email"
                   value={formData.email}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-zinc-500"
@@ -149,6 +145,7 @@ const ContactUs: React.FC = () => {
                 </label>
                 <textarea
                   id="message"
+                  name="message"
                   value={formData.message}
                   onChange={handleInputChange}
                   rows={4}
@@ -180,11 +177,23 @@ const ContactUs: React.FC = () => {
             <div className="bg-zinc-900 rounded-xl p-6 md:p-8 shadow-lg border border-zinc-800">
               <h2 className="text-2xl font-semibold text-white mb-4">Contact Information</h2>
               <p className="text-zinc-300 text-base leading-relaxed">
-                <strong>Address:</strong> *Coming Soon*<br />
-                <strong>Phone:</strong> *Coming Soon*<br />
-                <strong>Email:</strong> info@potentia.digital<br />
+                <strong>Email:</strong>info@potentia.digital<br />
               </p>
             </div>
+            {/* <div className="bg-zinc-900 rounded-xl p-2 md:p-4 shadow-lg border border-zinc-800 h-64">
+              <MapContainer
+                center={[32.7767, -96.7970]} // Dallas, TX coordinates
+                zoom={13}
+                style={{ height: "100%", width: "100%", borderRadius: "0.75rem" }}
+                className="rounded-lg"
+              >
+                <TileLayer
+                  url="https://stamen-tiles.a.ssl.fastly.net/toner-background/{z}/{x}/{y}.png"
+                  className="invert"
+                />
+                <Marker position={[32.7767, -96.7970]} />
+              </MapContainer>
+            </div> */}
           </motion.div>
         </div>
       </motion.div>

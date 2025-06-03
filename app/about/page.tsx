@@ -2,8 +2,8 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Head from "next/head";
+import SolutionsByProduct from "@/components/SolutionsByProduct";
 import {
-  Globe,
   Bitcoin,
   HandCoins,
   Handshake,
@@ -13,9 +13,11 @@ import {
   Cpu,
   Shrub,
 } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import Team from "@/components/Team";
+import { Button } from "@/components/ui/button"; 
+import Link from "next/link";
+
+
 
 const features = [
   {
@@ -27,7 +29,7 @@ const features = [
   {
     title: "Economic Empowerment",
     description:
-      "Potentia fosters financial inclusion by making Bitcoin mining accessible, unlocking economic opportunities in emerging markets.",
+      "potentia fosters financial inclusion by making Bitcoin mining accessible, unlocking economic opportunities in emerging markets.",
     icon: HandCoins,
   },
   {
@@ -86,14 +88,14 @@ const About = () => {
     <div className="bg-zinc-500 text-white overflow-hidden mt-[210px]">
       {/* Head for SEO */}
       <Head>
-        <title>About Potentia | Sustainable Bitcoin Mining in Africa</title>
+        <title>About potentia | Sustainable Bitcoin Mining in Africa</title>
         <meta
           name="description"
-          content="Learn about Potentia, a startup revolutionizing Bitcoin mining with sustainable solutions in Africa and beyond. Discover our mission, vision, and impact."
+          content="Learn about potentia, a startup revolutionizing Bitcoin mining with sustainable solutions in Africa and beyond. Discover our mission, vision, and impact."
         />
         <meta
           name="keywords"
-          content="Bitcoin mining Africa, sustainable mining, Potentia startup, eco-friendly crypto, VOA interview"
+          content="Bitcoin mining Africa, sustainable mining, potentia startup, eco-friendly crypto, VOA interview"
         />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://potentia-web.vercel.app/about" />
@@ -107,7 +109,7 @@ const About = () => {
         whileInView="visible"
         viewport={{ once: true }}
       >
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10">
           <motion.div variants={fadeInUp}>
             <h2
               className="text-4xl md:text-5xl font-bold mb-6 text-white"
@@ -115,26 +117,42 @@ const About = () => {
             >
               Our Mission
             </h2>
-            <p className="text-zinc-300 text-lg leading-relaxed">
-              To harness Bitcoin mining as a force for economic empowerment and
-              energy innovation, delivering sustainable, accessible solutions
-              worldwide through cutting-edge tech and strategic alliances.
+            <p className="text-zinc-300 text-lg leading-relaxed text-justify">
+             potentia&apos;s mission is to make Bitcoin mining accessible, impactful, and inclusive by offering, 
+            subscription-based mining services, environmentally responsible and renewable powered hosting infrastructure, and strategic
+             consulting that empowers individuals, institutions, and governments to efficiently transform surplus energy 
+             into sustainable economic opportunity through the power of decentralized finance.
+              </p>
+              <p className="text-zinc-300 text-lg leading-relaxed mt-5 text-justify">
+               
+              By connecting global consumers to mining operations in Africa, we create a model
+                where individual participation drives collective progress. This enables African
+                nations to build sustainable digital economies, reducing foreign aid dependence
+                while fostering economic resilience through decentralized finance.
             </p>
           </motion.div>
           <motion.div variants={fadeInUp}>
             <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
               Our Vision
             </h2>
-            <p className="text-zinc-300 text-lg leading-relaxed">
-              To lead the world in sustainable Bitcoin mining, fostering
-              financial freedom, economic growth, and a greener future where
-              crypto powers progress.
+            <p className="text-zinc-300 text-lg leading-relaxed text-justify">
+            potentia envisions a world where access to economic sovereignty, digital infrastructure,
+             and energy monetization is no longer limited by geography or capital. Our vision is to
+              democratize Bitcoin mining by transforming it into a tool for global inclusion, allowing individuals,
+               institutions, and governments especially across Africa to harness the power of decentralized finance 
+               to build resilient, self-directed economies. 
+               </p>
+               <p className="text-zinc-300 text-lg leading-relaxed mt-5 text-justify">
+               Through our unique blend of mining access, renewable energy 
+               infrastructure, and strategic consulting, potentia aims to lead a new wave of digital empowerment one where
+                Bitcoin becomes a bridge between capital and impact, innovation and equity, and between the Global South and 
+                the future of finance.
             </p>
           </motion.div>
         </div>
       </motion.section>
-
-      <Team />
+     <SolutionsByProduct/>
+      <Team /> 
 
       {/* Features Showcase */}
       <motion.section
@@ -171,103 +189,19 @@ const About = () => {
           </div>
         </div>
       </motion.section>
-
       {/* History Timeline */}
       <motion.section
-        className="py-20 px-6 bg-white text-black"
+        className="py-20 px-6 bg-zinc-900 text-black"
         variants={staggerChildren}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
       >
-        <div className="max-w-6xl mx-auto">
-          <motion.h1
-            className="text-4xl md:text-5xl font-extrabold text-center mb-16 text-zinc-900 tracking-tight"
-            variants={fadeInUp}
-          >
-            Potentia&apos;s Journey
-          </motion.h1>
-          <div className="relative space-y-16">
-            {/* Event: 2025 - Africa&apos;s Bitcoin Frontier */}
-            <motion.div
-              variants={fadeInUp}
-              className="relative flex flex-col items-center gap-8 max-w-2xl mx-auto"
-              whileHover={{ scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <motion.div
-                className="flex-shrink-0 w-24 h-24 bg-gradient-to-br from-zinc-900 to-zinc-700 rounded-full flex items-center justify-center shadow-xl z-10"
-                whileHover={{ rotate: 10, scale: 1.1 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Globe size={40} className="text-white" />
-              </motion.div>
-              <div className="bg-zinc-50 p-8 rounded-xl shadow-lg border border-zinc-200 w-full text-center transition-all hover:shadow-2xl hover:border-zinc-300">
-                <h2 className="text-3xl font-bold text-zinc-900 mb-4 bg-gradient-to-r from-zinc-900 to-zinc-600 bg-clip-text text-transparent">
-                  2025 - Africa&apos;s Bitcoin Frontier
-                </h2>
-                <p className="text-zinc-700 text-lg leading-relaxed font-medium">
-                  In 2025, CEO Robert Luft launched Potentia&apos;s bold vision
-                  on Voice of America, spotlighting sustainable Bitcoin mining
-                  in Africa. We&apos;re sparking innovation and economic
-                  empowerment—see how it all began.<br />
-                  <Link
-                    href="https://www.voaafrica.com/africa-54"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <span className="text-blue-600 hover:underline font-semibold transition-all hover:text-blue-800">
-                      Watch the VOA Interview
-                    </span>
-                  </Link>
-                </p>
-              </div>
-              {/* Vertical Connecting Line */}
-              <div className="absolute top-24 left-1/2 transform -translate-x-1/2 w-1 h-16 bg-gradient-to-b from-zinc-700 to-zinc-200 z-0"></div>
-            </motion.div>
-
-            {/* Event: 2026 - Unlock Ethiopia Potential */}
-            <motion.div
-              variants={fadeInUp}
-              className="relative flex flex-col items-center gap-8 max-w-2xl mx-auto"
-              whileHover={{ scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <motion.div
-                className="flex-shrink-0 w-24 h-24 bg-gradient-to-br from-zinc-900 to-zinc-700 rounded-full flex items-center justify-center shadow-xl z-10"
-                whileHover={{ rotate: 10, scale: 1.1 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Globe size={40} className="text-white" />
-              </motion.div>
-              <div className="bg-zinc-50 p-8 rounded-xl shadow-lg border border-zinc-200 w-full text-center transition-all hover:shadow-2xl hover:border-zinc-300">
-                <h2 className="text-3xl font-bold text-zinc-900 mb-4 bg-gradient-to-r from-zinc-900 to-zinc-600 bg-clip-text text-transparent">
-                  2025 - Unlock Ethiopia Potential
-                </h2>
-                <p className="text-zinc-700 text-lg leading-relaxed font-medium">
-                  Potentia&apos;s CEO delved into Ethiopia&apos;s rising crypto
-                  mining sector, highlighting untapped opportunities and
-                  sustainable growth. Watch the discussion to explore how
-                  we&apos;re unlocking Ethiopia&apos;s potential.{" "}
-                  <Link
-                    href="https://youtu.be/OVkS9tU9Drw?si=TQXlafR9U_60Cijw"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <span className="text-blue-600 hover:underline font-semibold transition-all hover:text-blue-800">
-                      Watch the Video
-                    </span>
-                  </Link>
-                </p>
-              </div>
-              <div className="absolute top-24 left-1/2 transform -translate-x-1/2 w-1 h-16 bg-gradient-to-b from-zinc-700 to-zinc-200 z-0"></div>
-            </motion.div>
-          </div>
-        </div>
+       
       </motion.section>
 
       {/* Global Impact */}
-      <motion.section
+      {/* <motion.section
         className="py-20 px-6 bg-gradient-to-b from-neutral-600 via-neutral-900 to-black relative overflow-hidden"
         variants={staggerChildren}
         initial="hidden"
@@ -297,16 +231,10 @@ const About = () => {
             className="text-zinc-200 text-lg text-center leading-relaxed max-w-4xl mx-auto"
             variants={fadeInUp}
           >
-            Potentia is redefining Bitcoin mining with a global mission. We
-            empower emerging markets—like Africa—by creating jobs, boosting
-            infrastructure, and championing renewable energy. Through strategic
-            partnerships, we shape forward-thinking mining policies, ensuring
-            sustainability and accessibility. Our commitment to efficiency and
-            transparency drives not just the Bitcoin network, but a future where
-            digital assets fuel economic progress worldwide.
+         We empower emerging Africa markets by creating jobs and boosting infrastructure
           </motion.p>
         </div>
-      </motion.section>
+      </motion.section> */}
 
       {/* CTA */}
       <motion.section
@@ -320,8 +248,7 @@ const About = () => {
           Build Now
         </h2>
         <p className="text-zinc-200 max-w-2xl mx-auto mb-10 text-lg">
-          Ready to join Potentia&apos;s sustainable mining revolution?
-          Let&apos;s build a greener, wealthier tomorrow together.
+        We empower emerging African markets by creating jobs and boosting infrastructure.
         </p>
         <Link href="/contact" passHref>
           <Button

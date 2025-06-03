@@ -1,5 +1,5 @@
 "use client";
-import { Twitter, Github, Linkedin } from "lucide-react";
+import { LinkedinIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import Image from "next/image";
@@ -10,36 +10,41 @@ interface TeamMember {
   role: string;
   bio: string;
   image: string;
+  linkedinUrl?: string;
 }
 
 const team: TeamMember[] = [
   {
-    name: "David Forren",
-    role: "Founder / CEO",
-    bio: "I am an ambitious workaholic, but apart from that, pretty simple person.",
+    name: "Robert Luft",
+    role: "Chief Exectuive Officer",
+    bio: "",
     image:
-      "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=533&q=80",
+      "/Robert.jpeg",
+    linkedinUrl: "https://www.linkedin.com/in/robluft/",
   },
   {
-    name: "Amil Evara",
-    role: "UI/UX Designer",
-    bio: "I am an ambitious workaholic, but apart from that, pretty simple person.",
+    name: "John Chain",
+    role: "Chief Technology Officer",
+    bio: "",
     image:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=533&q=80",
+      "/john.jpeg",
+    linkedinUrl: "https://www.linkedin.com/in/john-chain/",
   },
   {
-    name: "Ebele Egbuna",
-    role: "Support Consultant",
-    bio: "I am an ambitious workaholic, but apart from that, pretty simple person.",
+    name: "Arlan Abdullin",
+    role: "Director of Business Dev.",
+    bio: "",
     image:
-      "https://images.unsplash.com/photo-1548142813-c348350df52b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=533&q=80",
+      "/Arlanpng.png",
+    linkedinUrl: "https://www.linkedin.com/in/arlanabdullin/",
   },
   {
-    name: "Maria Powers",
-    role: "Director of sales",
-    bio: "I am an ambitious workaholic, but apart from that, pretty simple person.",
+    name: "Abmelek Daniel",
+    role: "Director of Africa Strategy",
+    bio: "",
     image:
-      "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=533&q=80",
+      "/Abmelek.jpeg",
+    linkedinUrl: "https://www.linkedin.com/in/abemelek-daniel/",
   },
 ];
 
@@ -50,11 +55,11 @@ const Team: React.FC = () => {
         {/* Title */}
         <div className="max-w-2xl mx-auto text-center mb-10 lg:mb-14">
           <h2 className="text-3xl font-bold md:text-4xl md:leading-tight text-white">
-            Our Board Members
+            Team Members
           </h2>
-          <p className="mt-1 text-lg text-white">
+          {/* <p className="mt-1 text-lg text-white">
             The amazing people behind the scenes
-          </p>
+          </p> */}
         </div>
         {/* End Title */}
 
@@ -94,15 +99,19 @@ const Team: React.FC = () => {
                 <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition">
                   <p className="text-sm">{member.bio}</p>
                   <div className="mt-3 flex gap-1">
-                    <Button size="icon" variant="secondary">
+                    {/* <Button size="icon" variant="secondary">
                       <Twitter className="size-4" />
                     </Button>
                     <Button size="icon" variant="secondary">
                       <Github className="size-4" />
-                    </Button>
-                    <Button size="icon" variant="secondary">
-                      <Linkedin className="size-4" />
-                    </Button>
+                    </Button> */}
+                    {member.linkedinUrl && (
+                      <Button size="icon" variant="secondary" asChild>
+                        <a href={member.linkedinUrl} target="_blank" rel="noopener noreferrer">
+                          <LinkedinIcon className="size-4" />
+                        </a>
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>

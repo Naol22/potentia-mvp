@@ -95,7 +95,7 @@ const Header = () => {
           >
             Home
           </Link>
-          <Link href="/product" className={linkClassName}>
+          <Link href="/Productsdescription" className={linkClassName}>
             Products
           </Link>
         </div>
@@ -129,8 +129,15 @@ const Header = () => {
             className={`${linkClassName} ${pathname === "/about" ? "font-bold" : ""}`}
           >
             About
+
           </Link>
-          <div
+             <Link
+            href="/learn"
+            className={`${linkClassName} ${pathname === "/learn" ? "font-bold" : ""}`}
+          >
+            Learn
+          </Link>
+          {/* <div
             className="relative"
             onMouseEnter={handleDropdownEnter}
             onMouseLeave={handleDropdownLeave}
@@ -185,7 +192,7 @@ const Header = () => {
                 </Link>
               </motion.div>
             )}
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -272,19 +279,19 @@ const Header = () => {
             About Us
           </Link>
           <Link
-            href="/product"
+            href="/Productsdescription"
             className={`${mobileLinkClassName} ${pathname === "/product" ? "font-bold" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
             Products
           </Link>
-          <Link
+          {/* <Link
             href="/facilities"
             className={`${mobileLinkClassName} ${pathname === "/facilities" ? "font-bold" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
             Facilities
-          </Link>
+          </Link> */}
           <Link
             href="/learn"
             className={`${mobileLinkClassName} ${pathname === "/learn" ? "font-bold" : ""}`}
@@ -292,13 +299,13 @@ const Header = () => {
           >
             Learn
           </Link>
-          <Link
+          {/* <Link
             href="/resources"
             className={`${mobileLinkClassName} ${pathname === "/faq" ? "font-bold" : ""}`}
             onClick={() => setMenuOpen(false)}
           >
             Resources
-          </Link>
+          </Link> */}
 
           {/* Mobile Profile Section with Clerk Integration */}
           <div className="relative w-full">

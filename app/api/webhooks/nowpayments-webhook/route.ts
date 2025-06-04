@@ -7,202 +7,62 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const NOWPAYMENTS_API_KEY = process.env.NOWPAYMENTS_API_KEY;
+const NOWPAYMENTS_API_KEY = process.env.NOWPAYMENTS_SECRET_KEY;
 const NOWPAYMENTS_API_URL = 'https://api.nowpayments.io/v1';
-
-// Initialize NOWPayments API client
-const nowpayments = axios.create({
-  baseURL: NOWPAYMENTS_API_URL,
-  headers: {
-    'x-api-key': NOWPAYMENTS_API_KEY!,
-    'Content-Type': 'application/json',
-  },
-});
+const NOWPAYMENTS_AUTH_TOKEN = process.env.NOWPAYMENTS_AUTH_TOKEN; // You must set this in your env
 
 export async function POST(request: Request) {
   try {
-    console.log('🔔 NOWPayments Webhook Received');
-    
-    const body = await request.json();
-    console.log('📦 Webhook Payload:', JSON.stringify(body, null, 2));
-    
-    const signature = request.headers.get('x-nowpayments-sig');
-    console.log('🔑 Webhook Signature:', signature);
-
-    // Skip signature verification in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🛠️ Development mode: Skipping signature verification');
+    const { payment_id, email, subscription_plan_id } = await request.json();
+    if (!payment_id || !email || !subscription_plan_id) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const { event_type, data } = body;
-    console.log(`🎯 Processing event: ${event_type}`);
+    // 1. Check payment status
+    const paymentStatusRes = await axios.get(
+      `${NOWPAYMENTS_API_URL}/payment/${payment_id}`,
+      {
+        headers: {
+          'x-api-key': NOWPAYMENTS_API_KEY!,
+        },
+      }
+    );
+    const paymentStatus = paymentStatusRes.data;
 
-    switch (event_type) {
-      case 'subscription_created':
-        await handleSubscriptionCreated(data);
-        break;
+    if (paymentStatus.payment_status === 'finished' || paymentStatus.payment_status === 'confirmed') {
+      // 2. Update transaction in Supabase
+      const { error: updateError } = await supabase
+        .from('transactions')
+        .update({ status: 'successful' })
+        .eq('payment_method_id', payment_id)
+        .eq('status', 'pending');
+      if (updateError) {
+        return NextResponse.json({ error: 'Failed to update transaction', details: updateError.message }, { status: 500 });
+      }
 
-      case 'subscription_canceled':
-        await handleSubscriptionCanceled(data);
-        break;
+      // 3. Create email subscription in NowPayments
+      const subscriptionRes = await axios.post(
+        `${NOWPAYMENTS_API_URL}/subscriptions`,
+        {
+          subscription_plan_id,
+          email,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${NOWPAYMENTS_AUTH_TOKEN}`,
+            'x-api-key': NOWPAYMENTS_API_KEY!,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      const subscriptionData = subscriptionRes.data;
 
-      case 'subscription_renewed':
-        await handleSubscriptionRenewed(data);
-        break;
-
-      default:
-        console.log(`⚠️ Unhandled event type: ${event_type}`);
+      return NextResponse.json({ success: true, subscription: subscriptionData });
+    } else {
+      return NextResponse.json({ status: paymentStatus.payment_status, message: 'Payment not successful yet' }, { status: 200 });
     }
-
-    console.log('✅ Webhook processed successfully');
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('❌ Error processing webhook:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
-
-async function handleSubscriptionCreated(data: any) {
-  console.log('📝 Processing subscription creation:', data);
-  
-  const { subscription_id, customer_id, plan_id } = data;
-
-  try {
-    // Find user by NOWPayments customer ID
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('clerk_user_id')
-      .eq('nowpayments_customer_id', customer_id)
-      .single();
-
-    if (userError) {
-      console.error('❌ Error finding user:', userError);
-      return;
-    }
-
-    if (!user) {
-      console.error('❌ User not found for customer ID:', customer_id);
-      return;
-    }
-
-    console.log('👤 Found user:', user);
-
-    // Create transaction record
-    const { data: transaction, error: transactionError } = await supabase
-      .from('transactions')
-      .insert({
-        clerk_user_id: user.clerk_user_id,
-        stripe_transaction_id: subscription_id,
-        amount: data.price_amount || 0,
-        status: 'active',
-      })
-      .select()
-      .single();
-
-    if (transactionError) {
-      console.error('❌ Error creating transaction:', transactionError);
-      return;
-    }
-
-    console.log('💳 Created transaction:', transaction);
-
-    // Log subscription event
-    console.log('📊 Subscription created successfully:', {
-      subscription_id,
-      customer_id,
-      plan_id,
-      transaction_id: transaction.id
-    });
-
-  } catch (error) {
-    console.error('❌ Error in handleSubscriptionCreated:', error);
-  }
-}
-
-async function handleSubscriptionCanceled(data: any) {
-  console.log('📝 Processing subscription cancellation:', data);
-  
-  const { subscription_id } = data;
-
-  try {
-    // First, try to cancel the subscription via NOWPayments API
-    const cancelResponse = await nowpayments.post(`/subscription/${subscription_id}/cancel`);
-    console.log('🔗 NOWPayments cancel response:', cancelResponse.data);
-
-    // Update transaction status
-    const { data: transaction, error: transactionError } = await supabase
-      .from('transactions')
-      .update({ 
-        status: 'canceled',
-        updated_at: new Date().toISOString()
-      })
-      .eq('stripe_transaction_id', subscription_id)
-      .select()
-      .single();
-
-    if (transactionError) {
-      console.error('❌ Error updating transaction:', transactionError);
-      return;
-    }
-
-    console.log('💳 Updated transaction:', transaction);
-    console.log('📊 Subscription canceled successfully:', {
-      subscription_id,
-      transaction_id: transaction.id
-    });
-
-  } catch (error) {
-    console.error('❌ Error in handleSubscriptionCanceled:', error);
-  }
-}
-
-async function handleSubscriptionRenewed(data: any) {
-  console.log('📝 Processing subscription renewal:', data);
-  
-  const { subscription_id, price_amount } = data;
-
-  try {
-    // Find the original transaction
-    const { data: existingTransaction, error: findError } = await supabase
-      .from('transactions')
-      .select('clerk_user_id')
-      .eq('stripe_transaction_id', subscription_id)
-      .single();
-
-    if (findError) {
-      console.error('❌ Error finding existing transaction:', findError);
-      return;
-    }
-
-    if (!existingTransaction) {
-      console.error('❌ Existing transaction not found');
-      return;
-    }
-
-    // Create new transaction for renewal
-    const { data: newTransaction, error: createError } = await supabase
-      .from('transactions')
-      .insert({
-        clerk_user_id: existingTransaction.clerk_user_id,
-        stripe_transaction_id: `${subscription_id}_renewal_${Date.now()}`,
-        amount: price_amount || 0,
-        status: 'active',
-      })
-      .select()
-      .single();
-
-    if (createError) {
-      console.error('❌ Error creating renewal transaction:', createError);
-      return;
-    }
-
-    console.log('💳 Created renewal transaction:', newTransaction);
-    console.log('📊 Subscription renewed successfully:', {
-      subscription_id,
-      renewal_transaction_id: newTransaction.id
-    });
-
-  } catch (error) {
-    console.error('❌ Error in handleSubscriptionRenewed:', error);
+  } catch (error: any) {
+    console.error('Error in NowPayments webhook:', error?.response?.data || error.message);
+    return NextResponse.json({ error: 'Internal server error', details: error?.response?.data || error.message }, { status: 500 });
   }
 } 

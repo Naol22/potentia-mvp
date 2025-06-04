@@ -1,17 +1,15 @@
 import { NextResponse } from 'next/server';
 import { currentUser } from "@clerk/nextjs/server";
 import { createClient } from '@supabase/supabase-js';
-import Stripe from 'stripe';
 import crypto from 'crypto';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-03-31.basil',
-});
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+
+// Stripe Customer Portal sharable link (replace with your live link in production)
+const STRIPE_PORTAL_LINK = 'https://billing.stripe.com/p/login/test_dRmfZa4PD2tPgw28rkak000';
 
 export async function POST(request: Request) {
   try {
@@ -39,69 +37,57 @@ export async function POST(request: Request) {
       .from('subscriptions')
       .select('id, payment_method_id, provider_subscription_id, payment_methods(name)')
       .eq('id', subscriptionId)
-      .eq('user_id', userData.id) // Security: ensure subscription belongs to user
+      .eq('user_id', userData.id)
       .single();
       
     if (subscriptionError || !subscription) {
       return NextResponse.json({ error: "Subscription not found" }, { status: 404 });
     }
     
-    // Generate secure token with expiration for all payment methods
-    const sessionToken = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 30); // Session expires in 30 minutes
-    
-    let sessionUrl = '';
-    
-    // Extract payment method name from the response
     const paymentMethodName = subscription.payment_methods?.[0]?.name;
     
-    // Handle different payment methods
     if (paymentMethodName === 'stripe') {
-      // Create Stripe customer portal session
-      const portalSession = await stripe.billingPortal.sessions.create({
-        customer: subscription.provider_subscription_id,
-        return_url: `${process.env.NEXT_PUBLIC_URL}/dashboard`,
-      });
-      
-      // For Stripe, we'll still use their portal but track the session with our token
-      sessionUrl = portalSession.url;
+      // For Stripe, return the sharable customer portal link
+      return NextResponse.json({ url: STRIPE_PORTAL_LINK });
     } else if (paymentMethodName === 'nowpayments') {
-      // For NOWPayments, we need a custom management page
-      sessionUrl = `${process.env.NEXT_PUBLIC_URL}/dashboard/subscriptions/${subscriptionId}/manage?token=${sessionToken}`;
+      // For NowPayments, generate a session token and custom management URL
+      //Everything under this block is specific to NowPayments management and it is a placeholder for the actual implementation.
+      const sessionToken = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date();
+      expiresAt.setMinutes(expiresAt.getMinutes() + 30);
+      
+      const sessionUrl = `${process.env.NEXT_PUBLIC_URL}/dashboard/subscriptions/${subscriptionId}/manage?token=${sessionToken}`;
+      
+      const { error: sessionError } = await supabase
+        .from('subscription_sessions')
+        .insert({
+          user_id: userData.id,
+          subscription_id: subscriptionId,
+          provider: 'nowpayments',
+          session_id: sessionToken,
+          session_url: sessionUrl,
+          expires_at: expiresAt,
+          is_used: false,
+        });
+        
+      if (sessionError) {
+        return NextResponse.json({ error: "Failed to create session" }, { status: 500 });
+      }
+      
+      return NextResponse.json({ 
+        url: sessionUrl,
+        token: sessionToken,
+        expiresAt
+      });
     } else {
       return NextResponse.json({ error: "Unsupported payment method" }, { status: 400 });
     }
-    
-    // Create a secure session record for all payment methods
-    const { error: sessionError } = await supabase
-      .from('subscription_sessions')
-      .insert({
-        user_id: userData.id,
-        subscription_id: subscriptionId,
-        session_url: sessionUrl,
-        session_token: sessionToken,
-        expires_at: expiresAt,
-        payment_method: paymentMethodName
-      });
-      
-    if (sessionError) {
-      return NextResponse.json({ error: "Failed to create session" }, { status: 500 });
-    }
-    
-    // Return the session URL and token information
-    return NextResponse.json({ 
-      url: sessionUrl,
-      token: sessionToken,
-      expiresAt
-    });
   } catch (error) {
     console.error('Error creating subscription management session:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
-// Add a new GET endpoint to validate tokens and retrieve subscription data
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
@@ -112,12 +98,12 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Missing token or subscription ID" }, { status: 400 });
     }
     
-    // Verify the token is valid and not expired
+    // Verify the token is valid and not expired (only for NowPayments)
     const now = new Date();
     const { data: session, error: sessionError } = await supabase
       .from('subscription_sessions')
-      .select('user_id, subscription_id, expires_at, payment_method')
-      .eq('session_token', token)
+      .select('user_id, subscription_id, expires_at, provider')
+      .eq('session_id', token)
       .eq('subscription_id', subscriptionId)
       .gt('expires_at', now.toISOString())
       .single();
@@ -137,7 +123,7 @@ export async function GET(request: Request) {
         payment_method_id,
         provider_subscription_id,
         payment_methods(name),
-        user_id (id, first_name, last_name, email)
+        user_id(id, first_name, last_name, email)
       `)
       .eq('id', subscriptionId)
       .eq('user_id', session.user_id)

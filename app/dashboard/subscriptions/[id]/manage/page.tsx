@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button'; // Fixed import
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, CheckCircle, XCircle } from 'lucide-react';
-import { formatDate, formatCurrency } from '@/lib/utils';
+import { AlertCircle } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
 
 interface Subscription {
   id: string;
@@ -38,29 +38,51 @@ export default function ManageSubscriptionPage() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [actionStatus, setActionStatus] = useState<{
-    type: 'success' | 'error' | null;
-    message: string | null;
-  }>({ type: null, message: null });
+  const [managementUrl, setManagementUrl] = useState<string | null>(null);
   
   useEffect(() => {
-    if (!token) {
-      setError('Missing authentication token');
-      setLoading(false);
-      return;
-    }
-    
-    async function validateAndFetchSubscription() {
+    async function fetchSubscriptionAndManagementUrl() {
       try {
-        const response = await fetch(`/api/subscriptions/manage?token=${token}&subscriptionId=${subscriptionId}`);
+        // Fetch the management URL
+        const manageResponse = await fetch('/api/subscriptions/manage', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ subscriptionId }),
+        });
         
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to validate session');
+        if (!manageResponse.ok) {
+          const errorData = await manageResponse.json();
+          throw new Error(errorData.error || 'Failed to fetch management URL');
         }
         
-        const data = await response.json();
-        setSubscription(data.subscription);
+        const manageData = await manageResponse.json();
+        setManagementUrl(manageData.url);
+
+        // For NowPayments, validate the token
+        if (manageData.token) {
+          const validateResponse = await fetch(`/api/subscriptions/manage?token=${manageData.token}&subscriptionId=${subscriptionId}`);
+          
+          if (!validateResponse.ok) {
+            const errorData = await validateResponse.json();
+            throw new Error(errorData.error || 'Failed to validate session');
+          }
+          
+          const validateData = await validateResponse.json();
+          setSubscription(validateData.subscription);
+        } else {
+          // For Stripe, fetch subscription details directly
+          const subResponse = await fetch(`/api/subscriptions/details/${subscriptionId}`);
+          
+          if (!subResponse.ok) {
+            const errorData = await subResponse.json();
+            throw new Error(errorData.error || 'Failed to fetch subscription');
+          }
+          
+          const subData = await subResponse.json();
+          setSubscription(subData.subscription);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unknown error occurred');
       } finally {
@@ -68,54 +90,13 @@ export default function ManageSubscriptionPage() {
       }
     }
     
-    validateAndFetchSubscription();
-  }, [token, subscriptionId]);
+    fetchSubscriptionAndManagementUrl();
+  }, [subscriptionId, token]);
   
-  const handleCancelSubscription = async () => {
-    if (!confirm('Are you sure you want to cancel this subscription? This action cannot be undone.')) {
-      return;
+  const handleManageSubscription = () => {
+    if (managementUrl) {
+      window.location.href = managementUrl; // Redirect to the management URL
     }
-    
-    setActionStatus({ type: null, message: null });
-    
-    try {
-      const response = await fetch('/api/subscriptions/cancel', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          subscriptionId,
-          token,
-        }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to cancel subscription');
-      }
-      
-      setActionStatus({
-        type: 'success',
-        message: 'Your subscription has been successfully cancelled.',
-      });
-      
-      // Refresh subscription data
-      const updatedResponse = await fetch(`/api/subscriptions/manage?token=${token}&subscriptionId=${subscriptionId}`);
-      const updatedData = await updatedResponse.json();
-      setSubscription(updatedData.subscription);
-    } catch (err) {
-      setActionStatus({
-        type: 'error',
-        message: err instanceof Error ? err.message : 'Failed to cancel subscription',
-      });
-    }
-  };
-  
-  const handleUpdatePaymentMethod = async () => {
-    // This would typically redirect to a payment method update page
-    // For NOWPayments, this might involve generating a new invoice or payment link
-    router.push(`/dashboard/subscriptions/${subscriptionId}/payment?token=${token}`);
   };
   
   if (loading) {
@@ -182,7 +163,7 @@ export default function ManageSubscriptionPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Manage Your Subscription</CardTitle>
+              <CardTitle>Subscription Details</CardTitle>
               <CardDescription>
                 Subscription ID: {subscription.id}
               </CardDescription>
@@ -200,23 +181,6 @@ export default function ManageSubscriptionPage() {
         </CardHeader>
         
         <CardContent>
-          {actionStatus.message && (
-            <Alert 
-              variant={actionStatus.type === 'success' ? 'default' : 'destructive'}
-              className="mb-6"
-            >
-              {actionStatus.type === 'success' ? (
-                <CheckCircle className="h-4 w-4" />
-              ) : (
-                <XCircle className="h-4 w-4" />
-              )}
-              <AlertTitle>
-                {actionStatus.type === 'success' ? 'Success' : 'Error'}
-              </AlertTitle>
-              <AlertDescription>{actionStatus.message}</AlertDescription>
-            </Alert>
-          )}
-          
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-medium">Subscription Details</h3>
@@ -266,33 +230,13 @@ export default function ManageSubscriptionPage() {
             Return to Dashboard
           </Button>
           
-          <div className="space-x-2">
-            {subscription.status === 'active' && (
-              <>
-                <Button 
-                  variant="outline" 
-                  onClick={handleUpdatePaymentMethod}
-                >
-                  Update Payment Method
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  onClick={handleCancelSubscription}
-                >
-                  Cancel Subscription
-                </Button>
-              </>
-            )}
-            
-            {subscription.status === 'canceled' && (
-              <Button 
-                variant="default" 
-                onClick={() => router.push('/plans')}
-              >
-                Subscribe Again
-              </Button>
-            )}
-          </div>
+          <Button 
+            variant="default" 
+            onClick={handleManageSubscription}
+            disabled={!managementUrl}
+          >
+            Manage Subscription
+          </Button>
         </CardFooter>
       </Card>
     </div>

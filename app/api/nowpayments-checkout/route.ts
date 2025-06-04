@@ -132,15 +132,9 @@ export async function POST(request: Request) {
         order_id: `order_${userId}_${plan.id}_${Date.now()}`,
         order_description: `Payment for plan hashrate ${plan.hashrate} TH/s`,
         ipn_callback_url: `${process.env.NEXT_PUBLIC_URL}/api/webhooks/nowpayments-webhook`,
-        success_url: `${request.headers.get("origin")}/success?payment_id={CHECKOUT_PAYMENT_ID}`,
-        cancel_url: `${request.headers.get("origin")}/checkout`,
-        partially_paid_url: `${request.headers.get("origin")}/payment/partial`,
-        metadata: {
-          planId: plan.id,
-          cryptoAddress,
-          paymentMethod,
-          transactionId: createdTransaction.id,
-        },
+        success_url: `${process.env.NEXT_PUBLIC_URL}/checkout/success`,
+        cancel_url: `${process.env.NEXT_PUBLIC_URL}/checkout`,
+        partially_paid_url: `${process.env.NEXT_PUBLIC_URL}/checkout`,
       }),
     });
 

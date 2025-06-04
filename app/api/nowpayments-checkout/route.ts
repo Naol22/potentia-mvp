@@ -1,149 +1,201 @@
-import { createClientSupabaseClient } from "@/lib/supabase";
+"use server";
+
 import { NextResponse } from "next/server";
-import { CurrencyCode, Transaction, TransactionStatus, PaymentType } from "@/types";
+import { createClientSupabaseClient } from "@/lib/supabase";
+import { Transaction, PaymentType, TransactionStatus, CurrencyCode, PlanType } from "@/types";
 import { auth } from "@clerk/nextjs/server";
 
 export async function POST(request: Request) {
-  const { userId, getToken } = await auth();
-  const sessionToken = await getToken();
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const requestBody = await request.json();
-  const { planId, cryptoAddress, paymentMethod } = requestBody;
-
-  if (!planId || !cryptoAddress || !paymentMethod) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-  }
-
-  const btcRegex = /^(1[a-km-zA-HJ-NP-Z1-9]{25,34}|3[a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-zA-HJ-NP-Z0-9]{25,59})$/;
-  if (!btcRegex.test(cryptoAddress)) {
-    return NextResponse.json({ error: "Invalid cryptocurrency address" }, { status: 400 });
-  }
+  const client = createClientSupabaseClient();
 
   try {
-    const token = await getToken();
-    if (!token) {
-      throw new Error("Failed to retrieve authentication token");
-    }
-    const client = createClientSupabaseClient();
+    console.log("[Checkout Session API] Initiating NOWPayments checkout session...");
 
-    // Fetch plan details
+    const { planId, cryptoAddress, paymentMethod } = await request.json();
+    if (paymentMethod !== "nowpayments") {
+      console.error("[Checkout Session API] Error initiating checkout session:", {
+        message: "Invalid payment method",
+        details: "This route supports NOWPayments payments only",
+        code: "INVALID_PAYMENT_METHOD",
+      });
+      throw new Error("This route is for NOWPayments payments only");
+    }
+    if (!planId || !cryptoAddress) {
+      console.error("[Checkout Session API] Error initiating checkout session:", {
+        message: "Missing required fields",
+        details: "planId and cryptoAddress are required",
+        code: "MISSING_FIELDS",
+      });
+      throw new Error("Missing planId or cryptoAddress");
+    }
+
+    const btcRegex = /^(1[a-km-zA-HJ-NP-Z1-9]{25,34}|3[a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-zA-HJ-NP-Z0-9]{25,59})$/;
+    if (!btcRegex.test(cryptoAddress)) {
+      console.error("[Checkout Session API] Error initiating checkout session:", {
+        message: "Invalid cryptocurrency address",
+        details: "Crypto address does not match expected format",
+        code: "INVALID_CRYPTO_ADDRESS",
+      });
+      throw new Error("Invalid cryptocurrency address");
+    }
+
+    console.log("[Checkout Session API] Fetching plan from Supabase...");
     const { data: plan, error: planError } = await client
       .from("hashrate_plans")
       .select("*")
       .eq("id", planId)
       .single();
-
     if (planError || !plan) {
-      return NextResponse.json({ error: "Plan not found" }, { status: 404 });
-    }
-
-    const { error: updateError } = await client
-      .from("users")
-      .update({ crypto_address: cryptoAddress })
-      .eq("user_id", userId);
-    if (updateError) {
-      throw new Error(`Failed to update crypto address: ${updateError.message}`);
-    }
-
-    if (paymentMethod === "stripe") {
-      const stripeResponse = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/webhooks/create-checkout-session`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${sessionToken}`, // Pass session token
-        },
-        body: JSON.stringify({ planId, cryptoAddress }),
-        credentials: "include", // Add this to include cookies
+      console.error("[Checkout Session API] Error fetching plan:", {
+        message: planError?.message || "Plan not found",
+        details: planError?.details,
+        code: planError?.code,
       });
+      throw new Error("Plan not found");
+    }
 
-      if (!stripeResponse.ok) {
-        const errorText = await stripeResponse.text();
-        throw new Error(`Failed to create checkout session: ${errorText}`);
-      }
+    console.log("[Checkout Session API] Fetching authenticated user...");
+    const { userId, getToken } = await auth();
+    const sessionToken = await getToken();
+    if (!userId) {
+      console.error("[Checkout Session API] Error initiating checkout session:", {
+        message: "User not authenticated",
+        details: "No authenticated user found",
+        code: "UNAUTHENTICATED",
+      });
+      throw new Error("User not authenticated");
+    }
 
-      const { sessionId } = await stripeResponse.json();
-      return NextResponse.json({ sessionId });
-    } else if (paymentMethod === "nowpayments") {
-      console.log("Creating NowPayments invoice with plan:", plan);
-      console.log("plan.price:",{
+    console.log("[Checkout Session API] Updating user crypto address...");
+    const updateUserResponse = await fetch(`${request.headers.get("origin")}/api/update-user`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Authorization": `Bearer ${sessionToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: userId,
+        cryptoAddress,
+      }),
+    });
+    if (!updateUserResponse.ok) {
+      const errorData = await updateUserResponse.json();
+      console.error("[Checkout Session API] Error updating user crypto address:", {
+        message: errorData.error || "Failed to update user",
+        details: errorData.details,
+        code: "USER_UPDATE_FAILED",
+      });
+      throw new Error("Failed to update user crypto address");
+    }
+
+    console.log("[Checkout Session API] Creating pending transaction...");
+    const transaction: Partial<Transaction> = {
+      user_id: userId,
+      plan_type: "hashrate" as PlanType,
+      plan_id: plan.id,
+      payment_type: plan.is_subscription ? ("subscription" as PaymentType) : ("one_time" as PaymentType),
+      amount: plan.price,
+      currency: plan.currency as CurrencyCode || "USD",
+      status: "pending" as TransactionStatus,
+      payment_provider_reference: `NOWPayments checkout for plan ${plan.id}`,
+      created_at: new Date().toISOString(),
+    };
+    const createTransactionResponse = await fetch(`${request.headers.get("origin")}/api/update-transaction`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Authorization": `Bearer ${sessionToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "create",
+        transaction,
+      }),
+    });
+    if (!createTransactionResponse.ok) {
+      const errorData = await createTransactionResponse.json();
+      console.error("[Checkout Session API] Error creating transaction:", {
+        message: errorData.error || "Failed to create transaction",
+        details: errorData.details,
+        code: "TRANSACTION_CREATE_FAILED",
+      });
+      throw new Error("Failed to create transaction");
+    }
+    const { transaction: createdTransaction } = await createTransactionResponse.json();
+
+    console.log("[Checkout Session API] Creating NOWPayments invoice...");
+    const nowPaymentsResponse = await fetch("https://api.nowpayments.io/v1/invoice", {
+      method: "POST",
+      headers: {
+        "x-api-key": process.env.NOWPAYMENTS_SECRET_KEY!,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
         price_amount: plan.price,
         price_currency: plan.currency.toLowerCase(),
-        pay_currency: "btc", // Default to BTC, can be made dynamic based on user preference
-        order_id: `order_${userId}_${plan.id}_${Date.now()}`, // Add timestamp to ensure uniqueness
+        pay_currency: "btc",
+        order_id: `order_${userId}_${plan.id}_${Date.now()}`,
         order_description: `Payment for plan hashrate ${plan.hashrate} TH/s`,
         ipn_callback_url: `${process.env.NEXT_PUBLIC_URL}/api/webhooks/nowpayments-webhook`,
-        success_url: `${process.env.NEXT_PUBLIC_URL}/payment/success`,
-        cancel_url: `${process.env.NEXT_PUBLIC_URL}/payment/cancel`,
-        partially_paid_url: `${process.env.NEXT_PUBLIC_URL}/payment/partial`,
-      });
-      const nowPaymentsResponse = await fetch("https://api.nowpayments.io/v1/invoice", {
-        method: "POST",
-        headers: {
-          "x-api-key": process.env.NOWPAYMENTS_SECRET_KEY!,
-          "Content-Type": "application/json",
+        success_url: `${request.headers.get("origin")}/success?payment_id={CHECKOUT_PAYMENT_ID}`,
+        cancel_url: `${request.headers.get("origin")}/checkout`,
+        partially_paid_url: `${request.headers.get("origin")}/payment/partial`,
+        metadata: {
+          planId: plan.id,
+          cryptoAddress,
+          paymentMethod,
+          transactionId: createdTransaction.id,
         },
-        body: JSON.stringify({
-          price_amount: plan.price,
-          price_currency: plan.currency.toLowerCase(),
-          pay_currency: "btc", // Default to BTC, can be made dynamic based on user preference
-          order_id: `order_${userId}_${plan.id}_${Date.now()}`, // Add timestamp to ensure uniqueness
-          order_description: `Payment for plan hashrate ${plan.hashrate} TH/s`,
-          ipn_callback_url: `${process.env.NEXT_PUBLIC_URL}/api/webhooks/nowpayments-webhook`,
-          success_url: `${process.env.NEXT_PUBLIC_URL}/payment/success`,
-          cancel_url: `${process.env.NEXT_PUBLIC_URL}/payment/cancel`,
-          partially_paid_url: `${process.env.NEXT_PUBLIC_URL}/payment/partial`,
-        }),
+      }),
+    });
+
+    if (!nowPaymentsResponse.ok) {
+      const errorData = await nowPaymentsResponse.json();
+      console.error("[Checkout Session API] Error creating NOWPayments invoice:", {
+        message: errorData.message || "Unknown error",
+        details: errorData,
+        code: "NOWPAYMENTS_INVOICE_FAILED",
       });
-
-      if (!nowPaymentsResponse.ok) {
-        const errorData = await nowPaymentsResponse.json();
-        throw new Error(`NowPayments API error: ${errorData.message || 'Unknown error'}`);
-      }
-
-      const nowPaymentsData = await nowPaymentsResponse.json();
-      
-      if (nowPaymentsData.invoice_url) {
-        // Record transaction in Supabase with more detailed information
-        const transaction: Partial<Transaction> = {
-          user_id: 'user_2xufgBatem6qMATl3fD58qSw8Os',
-          plan_type: "hashrate",
-          plan_id: plan.id,
-          payment_type: plan.is_subscription ? PaymentType.Subscription : PaymentType.OneTime,
-          amount: plan.price,
-          currency: plan.currency as CurrencyCode,
-          status: TransactionStatus.Pending,
-          payment_method_id: nowPaymentsData.payment_id,
-          payment_provider_reference: nowPaymentsData.order_id,
-          created_at: new Date().toISOString(),
-        };
-
-        const { error: transactionError } = await client
-          .from("transactions")
-          .insert(transaction);
-        if (transactionError) {
-          throw new Error(`Failed to record transaction: ${transactionError.message}`);
-        }
-
-        return NextResponse.json({ 
-          invoiceUrl: nowPaymentsData.invoice_url,
-          paymentId: nowPaymentsData.payment_id,
-          paymentAddress: nowPaymentsData.pay_address,
-          paymentAmount: nowPaymentsData.pay_amount,
-          paymentCurrency: nowPaymentsData.pay_currency
-        });
-      } else {
-        throw new Error("Invalid response from NowPayments API");
-      }
-    } else {
-      return NextResponse.json({ error: "Invalid payment method" }, { status: 400 });
+      throw new Error(`NOWPayments API error: ${errorData.message || "Unknown error"}`);
     }
-  } catch (err) {
-    console.error(err);
+
+    const nowPaymentsData = await nowPaymentsResponse.json();
+    if (!nowPaymentsData.invoice_url) {
+      console.error("[Checkout Session API] Error creating NOWPayments invoice:", {
+        message: "Invalid response from NOWPayments API",
+        details: "Missing invoice_url in response",
+        code: "INVALID_RESPONSE",
+      });
+      throw new Error("Invalid response from NOWPayments API");
+    }
+
+    console.log("[Checkout Session API] Successfully created NOWPayments invoice:", {
+      invoiceId: nowPaymentsData.id,
+      planId: plan.id,
+      transactionId: createdTransaction.id,
+    });
+
+    return NextResponse.json({
+      invoiceUrl: nowPaymentsData.invoice_url,
+      paymentId: nowPaymentsData.payment_id,
+      paymentAddress: nowPaymentsData.pay_address,
+      paymentAmount: nowPaymentsData.pay_amount,
+      paymentCurrency: nowPaymentsData.pay_currency,
+    });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("[Checkout Session API] Error initiating checkout session:", {
+        message: error.message,
+        stack: error.stack,
+      });
+      return NextResponse.json(
+        {
+          error: "Internal Server Error",
+          details: error.message,
+        },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Server error" },
+      {
+        error: "Internal Server Error",
+        details: "Unknown error",
+      },
       { status: 500 }
     );
   }

@@ -1206,3 +1206,22 @@ WITH CHECK (
   (auth.jwt()->'o'->>'rol' = 'admin') OR
   (auth.jwt()->>'org_role' = 'org:admin')
 );
+
+CREATE POLICY "Allow individual insert access for transactions"
+ON public.transactions
+FOR INSERT
+TO authenticated
+WITH CHECK (user_id = auth.jwt()->>'sub');
+
+GRANT USAGE ON SCHEMA public TO authenticated; -- If not already granted
+GRANT ALL ON TABLE public.transactions TO authenticated; -- Or be more specific:
+-- GRANT SELECT ON public.transactions TO authenticated;
+-- GRANT INSERT ON public.transactions TO authenticated;
+-- GRANT UPDATE ON public.transactions TO authenticated;
+-- GRANT DELETE ON public.transactions TO authenticated;
+
+-- Also ensure the sequence (if you have auto-incrementing IDs) is usable
+-- Replace your_table_id_seq with the actual sequence name for your transactions table's primary key if it's a serial type
+-- You can find the sequence name by looking at the table definition or in the Postgres docs for serial types.
+-- Often it's public.transactions_id_seq if your primary key column is named 'id'.
+GRANT USAGE, SELECT ON SEQUENCE public.transactions_id_seq TO authenticated; -- (Replace with actual sequence name)

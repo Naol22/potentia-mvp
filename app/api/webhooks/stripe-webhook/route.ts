@@ -6,7 +6,7 @@ import { createServerSupabaseClient } from "@/lib/supabase";
 import { TransactionStatus, CurrencyCode } from "@/types";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-04-30.basil",
+  apiVersion: "2025-05-28.basil",
 });
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
@@ -137,7 +137,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     };
 
     const { error: orderError } = await client.from("orders").insert(order);
-
     if (orderError) {
       console.error("[Webhook Stripe API] Error creating order:", {
         message: orderError.message,
@@ -146,7 +145,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       });
       throw new Error("Failed to create order");
     }
-
     console.log("[Webhook Stripe API] Successfully processed checkout completion:", {
       transactionId,
       orderId: (await client.from("orders").select("id").eq("transaction_id", transactionId).single()).data?.id,
@@ -229,7 +227,6 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       throw new Error("Missing transactionId in metadata");
     }
 
-    // Update transaction to cancelled or failed
     console.log("[Webhook Stripe API] Updating transaction for subscription deletion...");
     const updateTransactionResponse = await fetch(
       `${subscription.metadata.success_url!.split("?")[0]}/api/update-transaction`,
@@ -256,7 +253,6 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       });
       throw new Error("Failed to update transaction");
     }
-
     console.log("[Webhook Stripe API] Successfully processed subscription deletion:", {
       transactionId,
       subscriptionId: subscription.id,
@@ -266,7 +262,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       message: (error as Error).message,
       stack: (error as Error).stack,
     });
-    throw error; // Stripe will retry on failure
+    throw error; 
   }
 }
 

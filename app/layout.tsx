@@ -17,7 +17,19 @@ import { dark } from "@clerk/themes";
 //   weight: ['400', '500', '600', '700'],
 // });
 
+// In your app/layout.tsx
+import localFont from 'next/font/local';
 
+const inter = localFont({
+  src: [
+    {
+      path: '../public/fonts/Inter-Regular.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    // Add other weights as needed
+  ],
+});
 
 export const metadata: Metadata = {
   title: "Potentia",
@@ -54,7 +66,7 @@ export default function RootLayout({
         },
       }}
     >
-      <html lang="en" className={`dark`} suppressHydrationWarning>
+      <html lang="en" className={`${inter.className} dark`} suppressHydrationWarning>
         <head>
           <link rel="icon" href="/O.png" />
         </head>

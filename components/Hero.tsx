@@ -1,24 +1,23 @@
 "use client";
 import React from "react";
-import { motion } from "framer-motion";
+// import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Head from "next/head";
 
 const Hero = () => {
-  const overlayVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 1, ease: "easeOut" },
-    },
-  };
+  // const overlayVariants = {
+  //   hidden: { opacity: 0, y: 20 },
+  //   visible: {
+  //     opacity: 1,
+  //     y: 0,
+  //     transition: { duration: 1, ease: "easeOut" },
+  //   },
+  // };
 
   return (
     <>
       <Head>
-        {" "}
         <title>potentia | Sustainable Bitcoin Mining Startup</title>
         <meta
           name="description"
@@ -32,14 +31,18 @@ const Hero = () => {
 
       <section className="relative h-screen w-full overflow-hidden pt-40">
         {/* Custom Gradient Background */}
-        <motion.div
+        {/* <motion.div
           aria-hidden="true"
           className="flex absolute -top-96 start-1/2 transform -translate-x-1/2"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1.5 }}
+        > */}
+        <div
+          aria-hidden="true"
+          className="flex absolute -top-96 start-1/2 transform -translate-x-1/2"
         >
-          <motion.div 
+          {/* <motion.div 
             className="bg-gradient-to-r from-black/50 via-white/60 to-black/50 blur-[20rem] w-[40rem] h-[49rem] rotate-[-60deg] transform -translate-x-[10rem]"
             animate={{
               x: [0, -15, 5, -10, 0],
@@ -53,8 +56,10 @@ const Hero = () => {
               ease: [0.30, 0.67, 0.83, 0.40],
               times: [0, 0.25, 0.5, 0.75, 1]
             }}
-          />
-          <motion.div 
+          /> */}
+          <div className="bg-gradient-to-r from-black/50 via-white/60 to-black/50 blur-[20rem] w-[40rem] h-[49rem] rotate-[-60deg] transform -translate-x-[10rem]" />
+
+          {/* <motion.div 
             className="bg-gradient-to-tr from-black/70 via-white/20 to-black/50 blur-[3rem] w-[90rem] h-[80rem] rounded-full origin-bottom-right -rotate-12 -translate-x-[15rem]"
             animate={{
               x: [0, 20, -5, 10, 0],
@@ -68,10 +73,10 @@ const Hero = () => {
               ease: "easeInOut",
               delay: 0.5
             }}
-          />
-          
-          {/* Additional animated element for more dynamic feel */}
-          <motion.div
+          /> */}
+          <div className="bg-gradient-to-tr from-black/70 via-white/20 to-black/50 blur-[3rem] w-[90rem] h-[80rem] rounded-full origin-bottom-right -rotate-12 -translate-x-[15rem]" />
+
+          {/* <motion.div
             className="absolute bg-gradient-to-b4 from-white/10 via-white/5 to-transparent blur-[3rem] w-[60rem] h-[30rem] rounded-full"
             initial={{ opacity: 0, x: -50, y: 100 }}
             animate={{ 
@@ -86,16 +91,18 @@ const Hero = () => {
               ease: "easeInOut",
               times: [0, 0.2, 0.5, 0.8, 1]
             }}
-          />
-        </motion.div>
+          /> */}
+          <div className="absolute bg-gradient-to-b4 from-white/10 via-white/5 to-transparent blur-[3rem] w-[60rem] h-[30rem] rounded-full" />
+        </div>
 
-        {/* Overlay Content with Animation */}
-        <motion.div
+        {/* Overlay Content */}
+        {/* <motion.div
           variants={overlayVariants}
           initial="hidden"
           animate="visible"
           className="relative z-10 flex h-full flex-col items-center justify-center text-center text-white px-4 sm:px-6"
-        >
+        > */}
+        <div className="relative z-10 flex h-full flex-col items-center justify-center text-center text-white px-4 sm:px-6">
           <h1 className="mb-6 text-4xl font-bold font-sans sm:text-5xl md:text-5xl">
             Bitcoin Mining: Building Digital Transformation
           </h1>
@@ -124,7 +131,8 @@ const Hero = () => {
               </Button>
             </Link>
           </div>
-        </motion.div>
+        </div>
+        {/* </motion.div> */}
       </section>
     </>
   );

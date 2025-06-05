@@ -1225,3 +1225,203 @@ GRANT ALL ON TABLE public.transactions TO authenticated; -- Or be more specific:
 -- You can find the sequence name by looking at the table definition or in the Postgres docs for serial types.
 -- Often it's public.transactions_id_seq if your primary key column is named 'id'.
 GRANT USAGE, SELECT ON SEQUENCE public.transactions_id_seq TO authenticated; -- (Replace with actual sequence name)
+
+-- Drop existing table with CASCADE to handle any dependencies
+DROP TABLE IF EXISTS public.survey_responses CASCADE;
+
+-- Drop the index if it exists
+DROP INDEX IF EXISTS public.idx_survey_responses_user_id;
+
+-- Recreate the survey_responses table with user_id as text
+CREATE TABLE public.survey_responses (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id text NULL,
+  anonymous_user_id uuid NULL DEFAULT uuid_generate_v4(),
+  satisfaction integer NOT NULL,
+  completed boolean NOT NULL DEFAULT true,
+  issue text NULL,
+  suggestion text NULL,
+  nps integer NULL,
+  metadata jsonb NULL,
+  created_at timestamp with time zone NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT survey_responses_pkey PRIMARY KEY (id),
+  CONSTRAINT survey_responses_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL,
+  CONSTRAINT valid_nps CHECK (
+    ((nps IS NULL) OR ((nps >= 0) AND (nps <= 10)))
+  ),
+  CONSTRAINT valid_satisfaction CHECK (
+    ((satisfaction >= 1) AND (satisfaction <= 5))
+  )
+) TABLESPACE pg_default;
+
+-- Recreate the index
+CREATE INDEX IF NOT EXISTS idx_survey_responses_user_id 
+ON public.survey_responses USING btree (user_id, created_at) 
+TABLESPACE pg_default;
+
+-- Enable Row Level Security on the table
+ALTER TABLE public.survey_responses ENABLE ROW LEVEL SECURITY;
+
+-- SELECT policy: Allow authenticated users to read their own survey responses
+CREATE POLICY select_own_survey_responses
+ON public.survey_responses
+FOR SELECT
+TO authenticated
+USING (
+  user_id = (auth.jwt() ->> 'sub') OR
+  anonymous_user_id IS NOT NULL
+);
+
+-- INSERT policy: Allow authenticated users to create survey responses only for themselves
+CREATE POLICY insert_own_survey_responses
+ON public.survey_responses
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  user_id = (auth.jwt() ->> 'sub')
+);
+
+-- UPDATE policy: Allow authenticated users to update their own survey responses
+CREATE POLICY update_own_survey_responses
+ON public.survey_responses
+FOR UPDATE
+TO authenticated
+USING (
+  user_id = (auth.jwt() ->> 'sub')
+)
+WITH CHECK (
+  user_id = (auth.jwt() ->> 'sub')
+);
+
+-- DELETE policy: Allow authenticated users to delete their own survey responses
+CREATE POLICY delete_own_survey_responses
+ON public.survey_responses
+FOR DELETE
+TO authenticated
+USING (
+  user_id = (auth.jwt() ->> 'sub')
+);
+
+-- Drop existing tables with CASCADE to handle dependencies
+DROP TRIGGER IF EXISTS set_timestamp_subscription_events ON public.subscription_events CASCADE;
+DROP TABLE IF EXISTS public.subscription_events CASCADE;
+
+DROP TRIGGER IF EXISTS set_timestamp_subscriptions ON public.subscriptions CASCADE;
+DROP TRIGGER IF EXISTS validate_plan_ids_trigger ON public.subscriptions CASCADE;
+DROP TABLE IF EXISTS public.subscriptions CASCADE;
+
+DROP TABLE IF EXISTS public.subscription_sessions CASCADE;
+
+-- Recreate tables with updated user_id as text and foreign key references
+
+-- Subscriptions table
+CREATE TABLE public.subscriptions (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id text NULL,
+  plan_type text NOT NULL,
+  plan_id uuid NOT NULL,
+  status public.subscription_status NOT NULL DEFAULT 'active'::subscription_status,
+  payment_method_id uuid NULL,
+  provider_subscription_id text NOT NULL,
+  current_period_start timestamp with time zone NULL,
+  current_period_end timestamp with time zone NULL,
+  cancel_at_period_end boolean NULL DEFAULT false,
+  canceled_at timestamp with time zone NULL,
+  metadata jsonb NULL,
+  created_at timestamp with time zone NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone NULL DEFAULT CURRENT_TIMESTAMP,
+  checkout_session_id text NULL,
+  CONSTRAINT subscriptions_pkey PRIMARY KEY (id),
+  CONSTRAINT subscriptions_payment_method_id_fkey FOREIGN KEY (payment_method_id) REFERENCES payment_methods (id) ON DELETE SET NULL,
+  CONSTRAINT valid_plan_reference_hosting FOREIGN KEY (plan_id) REFERENCES hosting_plans (id) ON DELETE CASCADE,
+  CONSTRAINT valid_plan_reference_hashrate FOREIGN KEY (plan_id) REFERENCES hashrate_plans (id) ON DELETE CASCADE,
+  CONSTRAINT fk_plan_id FOREIGN KEY (plan_id) REFERENCES hashrate_plans (id) ON DELETE SET NULL DEFERRABLE INITIALLY DEFERRED,
+  CONSTRAINT subscriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+  CONSTRAINT subscriptions_plan_type_check CHECK (
+    (plan_type = ANY (ARRAY['hashrate'::text, 'hosting'::text]))
+  ),
+  CONSTRAINT valid_period_dates CHECK (
+    ((current_period_start IS NULL)
+    OR (current_period_end IS NULL)
+    OR (current_period_start <= current_period_end))
+)
+TABLESPACE pg_default;
+
+-- Recreate triggers for subscriptions
+CREATE TRIGGER set_timestamp_subscriptions BEFORE
+UPDATE ON subscriptions FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER validate_plan_ids_trigger BEFORE INSERT OR
+UPDATE ON subscriptions FOR EACH ROW
+EXECUTE FUNCTION check_valid_plan_ids();
+
+-- Subscription sessions table
+CREATE TABLE public.subscription_sessions (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id text NULL,
+  subscription_id uuid NULL,
+  provider text NOT NULL,
+  session_id text NOT NULL,
+  session_url text NOT NULL,
+  expires_at timestamp with time zone NOT NULL,
+  is_used boolean NULL DEFAULT false,
+  metadata jsonb NULL DEFAULT '{}'::jsonb,
+  created_at timestamp with time zone NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT subscription_sessions_pkey PRIMARY KEY (id),
+  CONSTRAINT unique_session_id UNIQUE (session_id),
+  CONSTRAINT subscription_sessions_subscription_id_fkey FOREIGN KEY (subscription_id) REFERENCES subscriptions (id) ON DELETE CASCADE,
+  CONSTRAINT subscription_sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+  CONSTRAINT subscription_sessions_provider_check CHECK (
+    (provider = ANY (ARRAY['stripe'::text, 'nowpayments'::text]))
+)
+TABLESPACE pg_default;
+
+-- Subscription events table
+CREATE TABLE public.subscription_events (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  subscription_id uuid NOT NULL,
+  user_id text NOT NULL,
+  event_type text NOT NULL,
+  provider text NOT NULL,
+  data jsonb NOT NULL,
+  status text NOT NULL DEFAULT 'success'::text,
+  error_message text NULL,
+  created_at timestamp with time zone NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT subscription_events_pkey PRIMARY KEY (id),
+  CONSTRAINT subscription_events_subscription_id_fkey FOREIGN KEY (subscription_id) REFERENCES subscriptions (id) ON DELETE CASCADE,
+  CONSTRAINT subscription_events_user_id_fkey FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+  CONSTRAINT subscription_events_event_type_check CHECK (
+    (event_type = ANY (
+      ARRAY[
+        'created'::text,
+        'updated'::text,
+        'canceled'::text,
+        'renewed'::text,
+        'payment_failed'::text,
+        'payment_succeeded'::text
+      ]
+    ))
+  ),
+  CONSTRAINT subscription_events_provider_check CHECK (
+    (provider = ANY (ARRAY['stripe'::text, 'nowpayments'::text]))
+  ),
+  CONSTRAINT subscription_events_status_check CHECK (
+    (status = ANY (ARRAY['success'::text, 'failed'::text]))
+)
+TABLESPACE pg_default;
+
+-- Recreate trigger for subscription_events
+CREATE TRIGGER set_timestamp_subscription_events BEFORE
+UPDATE ON subscription_events FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+-- Recreate the foreign key constraints for dependent tables
+ALTER TABLE public.transactions 
+ADD CONSTRAINT transactions_subscription_id_fkey 
+FOREIGN KEY (subscription_id) REFERENCES public.subscriptions (id);
+
+ALTER TABLE public.orders 
+ADD CONSTRAINT orders_subscription_id_fkey 
+FOREIGN KEY (subscription_id) REFERENCES public.subscriptions (id);

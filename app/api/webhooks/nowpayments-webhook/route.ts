@@ -184,6 +184,63 @@ async function handleCheckoutCompleted(payment: {
       transactionId,
       orderId: (await supabase.from("orders").select("id").eq("transaction_id", transactionId).single()).data?.id,
     });
+
+    // Create subscription record
+    const subscription = {
+      user_id: updatedTransaction.user_id,
+      plan_type: "hashrate",
+      plan_id: planId,
+      status: "active",
+      provider_subscription_id: payment.payment_id,
+      payment_method_id: updatedTransaction.payment_method_id,
+      current_period_start: new Date().toISOString(),
+      current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+      cancel_at_period_end: false,
+      metadata: {
+        transaction_id: transactionId,
+        crypto_address: cryptoAddress
+      },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    const { error: subError } = await supabase.from("subscriptions").insert(subscription);
+    if (subError) {
+      console.error("[Webhook NOWPayments API] Error creating subscription:", {
+        message: subError.message,
+        details: subError.details,
+        code: subError.code,
+      });
+      throw new Error("Failed to create subscription");
+    }
+
+    // Create subscription event
+    const subscriptionEvent = {
+      subscription_id: (await supabase.from("subscriptions")
+        .select("id")
+        .eq("provider_subscription_id", payment.payment_id)
+        .single()).data?.id,
+      user_id: updatedTransaction.user_id,
+      event_type: "subscription_created",
+      provider: "nowpayments",
+      data: {
+        payment_id: payment.payment_id,
+        amount: payment.pay_amount,
+        currency: payment.pay_currency
+      },
+      status: "success",
+      created_at: new Date().toISOString()
+    };
+
+    const { error: eventError } = await supabase.from("subscription_events").insert(subscriptionEvent);
+    if (eventError) {
+      console.error("[Webhook NOWPayments API] Error creating subscription event:", {
+        message: eventError.message,
+        details: eventError.details,
+        code: eventError.code,
+      });
+      throw new Error("Failed to create subscription event");
+    }
   } catch (error) {
     console.error("[Webhook NOWPayments API] Error handling checkout completion:", {
       message: (error as Error).message,

@@ -10,7 +10,7 @@ export async function GET() {
     console.log("[Survey Responses API] Fetching survey responses from Supabase...");
     const { data, error } = await client
       .from("survey_responses")
-      .select("id, user_id, anonymous_user_id, satisfaction, completed, issue, suggestion, nps, metadata, created_at")
+      .select("*")
       .order("created_at", { ascending: true });
     if (error) {
       console.error("[Survey Responses API] Error fetching survey responses:", { message: error.message, details: error.details, code: error.code });

@@ -35,6 +35,7 @@ interface Order {
 interface Subscription {
   id: string;
   user_id: string;
+  plan_type: string;
   plan_id: string;
   status: string;
   payment_method_id: string;
@@ -45,6 +46,7 @@ interface Subscription {
   canceled_at: string;
   created_at: string;
   updated_at: string;
+  checkout_session_id: string;
 }
 
 interface SurveyResponse {
@@ -64,6 +66,7 @@ interface Transaction {
   id: string;
   user_id: string;
   plan_id: string;
+  plan_type: string;
   subscription_id: string;
   amount: number;
   currency: string;
@@ -83,7 +86,7 @@ interface User {
   full_name: string;
   email: string;
   stripe_customer_id: string;
-  btc_address: string;
+  crypto_address: string;
   created_at: string;
 }
 
@@ -106,13 +109,21 @@ export default function DashboardHome() {
                         section === 'users' ? 'user' : section;
       const response = await fetch(`/api/adm/${apiSection}`);
       const data = await response.json();
-      if (section === 'orders') setOrders(data);
-      if (section === 'subscriptions') setSubscriptions(data);
-      if (section === 'survey-responses') setSurveyResponses(data);
-      if (section === 'transactions') setTransactions(data);
-      if (section === 'users') setUsers(data);
+      // Ensure data is an array, default to empty array if not
+      const safeData = Array.isArray(data) ? data : [];
+      if (section === 'orders') setOrders(safeData);
+      if (section === 'subscriptions') setSubscriptions(safeData);
+      if (section === 'survey-responses') setSurveyResponses(safeData);
+      if (section === 'transactions') setTransactions(safeData);
+      if (section === 'users') setUsers(safeData);
     } catch (error) {
       console.error(`Error fetching ${section}:`, error);
+      // Set empty array on error to prevent undefined or non-array data
+      if (section === 'orders') setOrders([]);
+      if (section === 'subscriptions') setSubscriptions([]);
+      if (section === 'survey-responses') setSurveyResponses([]);
+      if (section === 'transactions') setTransactions([]);
+      if (section === 'users') setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -158,7 +169,7 @@ export default function DashboardHome() {
         data = subscriptions.map(sub => ({
           id: sub.id,
           user_id: sub.user_id,
-          plan_id: sub.plan_id,
+          plan_type: sub.plan_type,
           status: sub.status,
           period_start: new Date(sub.current_period_start).toLocaleDateString(),
           period_end: new Date(sub.current_period_end).toLocaleDateString(),
@@ -179,14 +190,15 @@ export default function DashboardHome() {
         filename = 'SurveyResponses.csv';
         break;
       case 'transactions':
-        headers = ['ID', 'User ID', 'Amount', 'Currency', 'Status', 'Description', 'Created At'];
+        headers = ['ID', 'User ID', 'Amount', 'Currency', 'Status', 'PlanType' , 'Created At'];
         data = transactions.map(t => ({
           id: t.id,
           user_id: t.user_id,
           amount: t.amount,
           currency: t.currency,
           status: t.status,
-          description: t.description,
+          plan_type: t.plan_type,
+          payment_provider_reference: t.payment_provider_reference,
           created_at: new Date(t.created_at).toLocaleDateString(),
         }));
         filename = 'Transactions.csv';
@@ -198,7 +210,7 @@ export default function DashboardHome() {
           name: user.full_name,
           email: user.email,
           stripe: user.stripe_customer_id,
-          btc: user.btc_address,
+          crypto_address: user.crypto_address,
           created_at: new Date(user.created_at).toLocaleDateString(),
         }));
         filename = 'Users.csv';
@@ -235,7 +247,7 @@ export default function DashboardHome() {
 
   const getSubscriptionAnalytics = () => {
     const activeSubs = subscriptions.filter(s => s.status === 'active').length;
-    const canceledSubs = subscriptions.filter(s => s.canceled_at).length;
+    const canceledSubs = subscriptions.filter(s => s.status === 'incomplete').length;
     const churnRate = subscriptions.length ? (canceledSubs / subscriptions.length * 100).toFixed(2) : '0.00';
     const statusCounts = subscriptions.reduce((acc, s) => {
       acc[s.status] = (acc[s.status] || 0) + 1;
@@ -712,7 +724,8 @@ export default function DashboardHome() {
                     <TableHead className="font-semibold text-black">Amount</TableHead>
                     <TableHead className="font-semibold text-black">Currency</TableHead>
                     <TableHead className="font-semibold text-black">Status</TableHead>
-                    <TableHead className="font-semibold text-black">Description</TableHead>
+                    <TableHead className="font-semibold text-black">Plan Type</TableHead>
+                    <TableHead className="font-semibold text-black">Payment Provider</TableHead>
                     <TableHead className="font-semibold text-black">Created</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -731,7 +744,8 @@ export default function DashboardHome() {
                           {transaction.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-black">{transaction.description}</TableCell>
+                      <TableCell className="text-black">{transaction.plan_type}</TableCell>
+                      <TableCell className="text-black">{transaction.payment_provider_reference}</TableCell>
                       <TableCell className="text-black">{new Date(transaction.created_at).toLocaleDateString()}</TableCell>
                     </TableRow>
                   ))}
@@ -810,7 +824,7 @@ export default function DashboardHome() {
                     <TableHead className="font-semibold text-black">Name</TableHead>
                     <TableHead className="font-semibold text-black">Email</TableHead>
                     <TableHead className="font-semibold text-black">Stripe</TableHead>
-                    <TableHead className="font-semibold text-black">BTC</TableHead>
+                    <TableHead className="font-semibold text-black">BTC Address</TableHead>
                     <TableHead className="font-semibold text-black">Created</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -821,7 +835,7 @@ export default function DashboardHome() {
                       <TableCell className="text-black">{user.full_name}</TableCell>
                       <TableCell className="text-black">{user.email}</TableCell>
                       <TableCell className="text-black">{user.stripe_customer_id}</TableCell>
-                      <TableCell className="text-black">{user.btc_address}</TableCell>
+                      <TableCell className="text-black">{user.crypto_address}</TableCell>
                       <TableCell className="text-black">{new Date(user.created_at).toLocaleDateString()}</TableCell>
                     </TableRow>
                   ))}

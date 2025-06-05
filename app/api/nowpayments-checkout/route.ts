@@ -45,6 +45,7 @@ export async function POST(request: Request) {
       .select("*")
       .eq("id", planId)
       .single();
+    
     if (planError || !plan) {
       console.error("[Checkout Session API] Error fetching plan:", {
         message: planError?.message || "Plan not found",

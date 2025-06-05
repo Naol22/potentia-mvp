@@ -9,7 +9,7 @@ export async function GET() {
     console.log("[Subscriptions API] Fetching subscriptions from Supabase...");
     const { data, error } = await client
       .from("subscriptions")
-      .select("id, user_id, plan_id, status, payment_method_id, provider_subscription_id, current_period_start, current_period_end, cancel_at_period_end, canceled_at, created_at, updated_at")
+      .select("id,user_id,plan_type,plan_id,status,created_at,payment_method_id,provider_subscription_id,cancel_at_period_end")
       .order("created_at", { ascending: true });
     if (error) {
       console.error("[Subscriptions API] Error fetching subscriptions:", { message: error.message, details: error.details, code: error.code });

@@ -1,19 +1,19 @@
-"use server";
-
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createServerSupabaseClient } from "@/lib/supabase";
 import { TransactionStatus, CurrencyCode } from "@/types";
+import { auth } from "@clerk/nextjs/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-05-28.basil",
 });
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
-
 export async function POST(request: Request) {
   try {
-    console.log("[Webhook Stripe API] Verifying and processing Stripe webhook event...");
+    console.log(
+      "[Webhook Stripe API] Verifying and processing Stripe webhook event..."
+    );
     const sig = request.headers.get("stripe-signature")!;
     const body = await request.text();
 
@@ -26,18 +26,27 @@ export async function POST(request: Request) {
         details: (err as Error).message,
         code: "INVALID_SIGNATURE",
       });
-      return NextResponse.json({ error: `Webhook Error: ${(err as Error).message}` }, { status: 400 });
+      return NextResponse.json(
+        { error: `Webhook Error: ${(err as Error).message}` },
+        { status: 400 }
+      );
     }
 
     switch (event.type) {
       case "checkout.session.completed":
-        await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+        await handleCheckoutCompleted(
+          event.data.object as Stripe.Checkout.Session
+        );
         break;
       case "customer.subscription.updated":
-        await handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
+        await handleSubscriptionUpdated(
+          event.data.object as Stripe.Subscription
+        );
         break;
       case "customer.subscription.deleted":
-        await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+        await handleSubscriptionDeleted(
+          event.data.object as Stripe.Subscription
+        );
         break;
       default:
         console.log("[Webhook Stripe API] Unhandled event type:", {
@@ -76,41 +85,60 @@ export async function POST(request: Request) {
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-
   if (!session.metadata) {
-    throw new Error('Metadata is null');
+    throw new Error("Metadata is null");
   }
-  const { planId, cryptoAddress, paymentMethod, transactionId } = session.metadata;
+  const { planId, cryptoAddress, paymentMethod, transactionId } =
+    session.metadata;
   try {
-    console.log("[Webhook Stripe API] Handling checkout session completed event...");
+    console.log(
+      "[Webhook Stripe API] Handling checkout session completed event..."
+    );
     if (!transactionId) {
-      console.error("[Webhook Stripe API] Error handling checkout completion:", {
-        message: "Missing transactionId in metadata",
-        details: "Transaction ID is required to update transaction",
-        code: "MISSING_TRANSACTION_ID",
-      });
+      console.error(
+        "[Webhook Stripe API] Error handling checkout completion:",
+        {
+          message: "Missing transactionId in metadata",
+          details: "Transaction ID is required to update transaction",
+          code: "MISSING_TRANSACTION_ID",
+        }
+      );
       throw new Error("Missing transactionId in metadata");
     }
 
     const client = createServerSupabaseClient();
+    const { getToken } = await auth();
+    const sessionToken = await getToken();
 
     console.log("[Webhook Stripe API] Updating transaction to completed...");
-    const updateTransactionResponse = await fetch(`${session.success_url!.split("?")[0]}/api/update-transaction`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "update",
-        transaction: {
-          id: transactionId,
-          status: "completed" as TransactionStatus,
-          payment_method_id: session.payment_intent ? session.payment_intent.toString() : null,
-          payment_provider_reference: `Stripe session ${session.id}`,
-          checkout_session_id: session.id,
-          amount: session.amount_total ? session.amount_total / 100 : undefined, 
-          currency: session.currency as CurrencyCode || "USD",
+    const baseUrl = process.env.NEXT_PUBLIC__URL || "http://localhost:3000";
+    const updateTransactionResponse = await fetch(
+      `${baseUrl}/api/update-transaction`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${sessionToken}`,
+          "Content-Type": "application/json",
         },
-      }),
-    });
+        body: JSON.stringify({
+          action: "update",
+          transaction: {
+            id: transactionId,
+            status: "completed" as TransactionStatus,
+            payment_method_id: session.payment_intent
+              ? session.payment_intent.toString()
+              : null,
+            payment_provider_reference: `Stripe session ${session.id}`,
+            checkout_session_id: session.id,
+            amount: session.amount_total
+              ? session.amount_total / 100
+              : undefined,
+            currency: (session.currency as CurrencyCode) || "USD",
+          },
+        }),
+      }
+    );
 
     if (!updateTransactionResponse.ok) {
       const errorData = await updateTransactionResponse.json();
@@ -122,16 +150,26 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       throw new Error("Failed to update transaction");
     }
 
-    const { transaction: updatedTransaction } = await updateTransactionResponse.json();
+    const { transaction: updatedTransaction } =
+      await updateTransactionResponse.json();
     console.log("[Webhook Stripe API] Creating order in orders table...");
     const order = {
       user_id: session.customer_details?.email
-        ? (await client.from("users").select("id").eq("email", session.customer_details.email).single()).data?.id
+        ? (
+            await client
+              .from("users")
+              .select("id")
+              .eq("email", session.customer_details.email)
+              .single()
+          ).data?.id
         : null,
       plan_id: planId,
       transaction_id: transactionId,
-      amount: session.amount_total ? session.amount_total / 100 : updatedTransaction.amount,
-      currency: session.currency as CurrencyCode || updatedTransaction.currency,
+      amount: session.amount_total
+        ? session.amount_total / 100
+        : updatedTransaction.amount,
+      currency:
+        (session.currency as CurrencyCode) || updatedTransaction.currency,
       status: "active",
       created_at: new Date().toISOString(),
     };
@@ -145,10 +183,19 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       });
       throw new Error("Failed to create order");
     }
-    console.log("[Webhook Stripe API] Successfully processed checkout completion:", {
-      transactionId,
-      orderId: (await client.from("orders").select("id").eq("transaction_id", transactionId).single()).data?.id,
-    });
+    console.log(
+      "[Webhook Stripe API] Successfully processed checkout completion:",
+      {
+        transactionId,
+        orderId: (
+          await client
+            .from("orders")
+            .select("id")
+            .eq("transaction_id", transactionId)
+            .single()
+        ).data?.id,
+      }
+    );
   } catch (error) {
     console.error("[Webhook Stripe API] Error handling checkout completion:", {
       message: (error as Error).message,
@@ -163,19 +210,31 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     console.log("[Webhook Stripe API] Handling subscription updated event...");
     const transactionId = subscription.metadata.transactionId;
     if (!transactionId) {
-      console.error("[Webhook Stripe API] Error handling subscription update:", {
-        message: "Missing transactionId in metadata",
-        details: "Transaction ID is required to update transaction",
-        code: "MISSING_TRANSACTION_ID",
-      });
+      console.error(
+        "[Webhook Stripe API] Error handling subscription update:",
+        {
+          message: "Missing transactionId in metadata",
+          details: "Transaction ID is required to update transaction",
+          code: "MISSING_TRANSACTION_ID",
+        }
+      );
       throw new Error("Missing transactionId in metadata");
     }
-    console.log("[Webhook Stripe API] Updating transaction with subscription details...");
+    console.log(
+      "[Webhook Stripe API] Updating transaction with subscription details..."
+    );
+    const baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
+    const { getToken } = await auth();
+    const sessionToken = await getToken();
     const updateTransactionResponse = await fetch(
-      `${subscription.metadata.success_url!.split("?")[0]}/api/update-transaction`,
+      `${baseUrl}/api/update-transaction`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${sessionToken}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           action: "update",
           transaction: {
@@ -183,7 +242,9 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
             status: "completed" as TransactionStatus,
             subscription_id: subscription.id,
             payment_provider_reference: `Stripe subscription ${subscription.id}`,
-            amount: subscription.items.data[0]?.plan?.amount ? subscription.items.data[0].plan.amount / 100 : 0, // Convert from cents
+            amount: subscription.items.data[0]?.plan?.amount
+              ? subscription.items.data[0].plan.amount / 100
+              : 0, // Convert from cents
             currency: subscription.currency as CurrencyCode,
           },
         }),
@@ -200,16 +261,19 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       throw new Error("Failed to update transaction");
     }
 
-    console.log("[Webhook Stripe API] Successfully processed subscription update:", {
-      transactionId,
-      subscriptionId: subscription.id,
-    });
+    console.log(
+      "[Webhook Stripe API] Successfully processed subscription update:",
+      {
+        transactionId,
+        subscriptionId: subscription.id,
+      }
+    );
   } catch (error) {
     console.error("[Webhook Stripe API] Error handling subscription update:", {
       message: (error as Error).message,
       stack: (error as Error).stack,
     });
-    throw error; // Stripe will retry on failure
+    throw error;
   }
 }
 
@@ -219,20 +283,32 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     const transactionId = subscription.metadata.transactionId;
 
     if (!transactionId) {
-      console.error("[Webhook Stripe API] Error handling subscription deletion:", {
-        message: "Missing transactionId in metadata",
-        details: "Transaction ID is required to update transaction",
-        code: "MISSING_TRANSACTION_ID",
-      });
+      console.error(
+        "[Webhook Stripe API] Error handling subscription deletion:",
+        {
+          message: "Missing transactionId in metadata",
+          details: "Transaction ID is required to update transaction",
+          code: "MISSING_TRANSACTION_ID",
+        }
+      );
       throw new Error("Missing transactionId in metadata");
     }
 
-    console.log("[Webhook Stripe API] Updating transaction for subscription deletion...");
+    console.log(
+      "[Webhook Stripe API] Updating transaction for subscription deletion..."
+    );
+    const baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
+    const { getToken } = await auth();
+    const sessionToken = await getToken();
     const updateTransactionResponse = await fetch(
-      `${subscription.metadata.success_url!.split("?")[0]}/api/update-transaction`,
+      `${baseUrl}/api/update-transaction`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${sessionToken}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           action: "update",
           transaction: {
@@ -253,16 +329,22 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       });
       throw new Error("Failed to update transaction");
     }
-    console.log("[Webhook Stripe API] Successfully processed subscription deletion:", {
-      transactionId,
-      subscriptionId: subscription.id,
-    });
+    console.log(
+      "[Webhook Stripe API] Successfully processed subscription deletion:",
+      {
+        transactionId,
+        subscriptionId: subscription.id,
+      }
+    );
   } catch (error) {
-    console.error("[Webhook Stripe API] Error handling subscription deletion:", {
-      message: (error as Error).message,
-      stack: (error as Error).stack,
-    });
-    throw error; 
+    console.error(
+      "[Webhook Stripe API] Error handling subscription deletion:",
+      {
+        message: (error as Error).message,
+        stack: (error as Error).stack,
+      }
+    );
+    throw error;
   }
 }
 

@@ -1,22 +1,23 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { TransactionStatus, PaymentType, CurrencyCode, PlanType } from "../types"
 
 export type Transaction = {
   id: string;
-  user_id: string;
-  plan_type: string;
+  user_id: string | null;
+  plan_type: PlanType;
   plan_id: string;
-  payment_type: string;
+  payment_type: PaymentType;
   amount: number;
-  currency: string;
-  status: string;
-  payment_method_id?: string;
-  payment_provider_reference?: string;
-  metadata?: any;
+  currency: CurrencyCode;
+  status: TransactionStatus;
+  payment_method_id?: string | null;
+  payment_provider_reference?: string | null;
+  metadata?: Record<string, unknown> | null;
   created_at: string;
-  subscription_id?: string;
-  checkout_session_id?: string;
+  subscription_id?: string | null;
+  checkout_session_id?: string | null;
 };
 
 type TransactionStats = {

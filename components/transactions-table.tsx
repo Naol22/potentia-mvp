@@ -41,12 +41,14 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
+import { TransactionStatus, PaymentType } from "@/types"
+
 type Transaction = {
   id: string
   clerk_user_id: string
-  stripe_transaction_id: string
+  payment_type: PaymentType
   amount: number
-  status: string
+  status: TransactionStatus
   created_at: string
 }
 
@@ -66,7 +68,7 @@ export function TransactionsTable() {
       },
     },
     {
-      accessorKey: "stripe_transaction_id",
+      accessorKey: "id",
       header: "Transaction ID",
     },
     {
@@ -74,17 +76,31 @@ export function TransactionsTable() {
       header: "Amount",
       cell: ({ row }) => {
         const amount = row.getValue("amount") as number
-        return `$${(amount / 100).toFixed(2)}`
+        return `$${(amount).toFixed(2)}`
+      },
+    },
+    {
+      accessorKey: "payment_provider_reference",
+      header: "Payment Provider",
+      cell: ({ row }) => {
+        const providerRef = row.getValue("payment_provider_reference") as string
+        return (
+          <Badge variant="outline">
+            {providerRef?.startsWith('N') ? 'NowPayments' : 
+             providerRef?.startsWith('S') ? 'Stripe' : 'Unknown'}
+          </Badge>
+        )
       },
     },
     {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => {
-        const status = row.getValue("status") as string
+        const status = row.getValue("status") as TransactionStatus
         return (
           <Badge
-            variant={status === "active" ? "default" : "destructive"}
+            variant={status === TransactionStatus.Completed ? "default" : 
+                    status === TransactionStatus.Pending ? "secondary" : "destructive"}
           >
             {status}
           </Badge>
@@ -121,10 +137,10 @@ export function TransactionsTable() {
           <Input
             placeholder="Filter by transaction ID..."
             value={
-              (table.getColumn("stripe_transaction_id")?.getFilterValue() as string) ?? ""
+              (table.getColumn("id")?.getFilterValue() as string) ?? ""
             }
             onChange={(event) =>
-              table.getColumn("stripe_transaction_id")?.setFilterValue(event.target.value)
+              table.getColumn("id")?.setFilterValue(event.target.value)
             }
             className="max-w-sm"
           />
@@ -143,16 +159,22 @@ export function TransactionsTable() {
                 All Status
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={(table.getColumn("status")?.getFilterValue() as string) === "active"}
-                onCheckedChange={() => table.getColumn("status")?.setFilterValue("active")}
+                checked={(table.getColumn("status")?.getFilterValue() as string) === TransactionStatus.Pending}
+                onCheckedChange={() => table.getColumn("status")?.setFilterValue(TransactionStatus.Pending)}
               >
-                Active
+                Pending
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={(table.getColumn("status")?.getFilterValue() as string) === "inactive"}
-                onCheckedChange={() => table.getColumn("status")?.setFilterValue("inactive")}
+                checked={(table.getColumn("status")?.getFilterValue() as string) === TransactionStatus.Completed}
+                onCheckedChange={() => table.getColumn("status")?.setFilterValue(TransactionStatus.Completed)}
               >
-                Inactive
+                Completed
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={(table.getColumn("status")?.getFilterValue() as string) === TransactionStatus.Failed}
+                onCheckedChange={() => table.getColumn("status")?.setFilterValue(TransactionStatus.Failed)}
+              >
+                Failed
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>

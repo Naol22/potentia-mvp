@@ -10,9 +10,10 @@ interface AdmSidebarProps {
   isOpen: boolean;
   activeSection: string;
   setActiveSection: (section: string) => void;
+  setIsSidebarOpen: (open: boolean) => void;
 }
 
-export default function AdmSidebar({ isOpen, activeSection, setActiveSection }: AdmSidebarProps) {
+export default function AdmSidebar({ isOpen, activeSection, setActiveSection, setIsSidebarOpen }: AdmSidebarProps) {
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
 
   const menuItems = [
@@ -30,15 +31,16 @@ export default function AdmSidebar({ isOpen, activeSection, setActiveSection }: 
   return (
     <div
       className={cn(
-        'h-screen p-4 bg-gradient-to-b from-black to-zinc-900 border-r border-zinc-800 shadow-lg shadow-blue-500/10 transition-all duration-300 flex flex-col',
-        isOpen ? 'w-64' : 'w-0 overflow-hidden'
+        'h-screen p-4 bg-gradient-to-b from-black to-zinc-900 border-r border-zinc-800 shadow-lg shadow-gray-500/10 transition-transform duration-300 flex flex-col fixed  left-0 z-20 md:relative',
+        isOpen ? 'transform translate-x-0 w-4/5 md:w-64' : 'transform -translate-x-full w-0 md:w-0 overflow-hidden'
       )}
     >
       <div className="flex items-center mb-8">
-        <Home className="flex h-6 w-6 text-blue-400 mr-2" />
-        <h1 className="flex text-xl font-bold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">
-          Admin Dashboard
-        </h1>
+        <Home className="h-6 w-6 text-white mr-2" />
+        <h1 className="text-xl font-bold text-white">Admin Dashboard</h1>
+        <button onClick={() => setIsSidebarOpen(false)} className="ml-auto md:hidden text-white">
+          <X size={20} />
+        </button>
       </div>
       <nav className="flex-1">
         {menuItems.map((item) => (
@@ -46,8 +48,8 @@ export default function AdmSidebar({ isOpen, activeSection, setActiveSection }: 
             key={item.id}
             onClick={() => setActiveSection(item.id)}
             className={cn(
-              'flex items-center w-full p-2 rounded-lg mb-2 bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent hover:bg-gradient-to-r hover:from-zinc-800 hover:to-zinc-700 hover:text-blue-400 transition-all duration-300',
-              activeSection === item.id && 'bg-gradient-to-r from-zinc-800 to-zinc-700 text-blue-400 shadow-md shadow-blue-500/20'
+              'flex items-center w-full p-2 rounded-lg mb-2 text-white hover:bg-gradient-to-r hover:from-zinc-800 hover:to-zinc-700 transition-all duration-300',
+              activeSection === item.id && 'bg-gradient-to-r from-zinc-700 to-zinc-800 shadow-md shadow-gray-500/20'
             )}
           >
             <item.icon className="h-5 w-5 mr-2" />
@@ -59,7 +61,7 @@ export default function AdmSidebar({ isOpen, activeSection, setActiveSection }: 
         <div className="mt-auto">
           <button
             onClick={toggleAnalytics}
-            className="flex items-center w-full p-2 rounded-lg bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent hover:bg-gradient-to-r hover:from-zinc-800 hover:to-zinc-700 hover:text-blue-400 transition-all duration-300"
+            className="flex items-center w-full p-2 rounded-lg text-white hover:bg-gradient-to-r hover:from-zinc-800 hover:to-zinc-700 transition-all duration-300"
           >
             <Info className="h-5 w-5 mr-2" />
             How Analytics Work
@@ -71,19 +73,17 @@ export default function AdmSidebar({ isOpen, activeSection, setActiveSection }: 
               transition={{ duration: 0.5 }}
               className="mt-2"
             >
-              <Card className="bg-zinc-900/80 backdrop-blur-md border-zinc-800 shadow-lg shadow-blue-500/10">
+              <Card className="bg-black/90 border-zinc-800 shadow-lg shadow-gray-500/10">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-bold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">
-                    How Analytics Work
-                  </CardTitle>
+                  <CardTitle className="text-sm font-bold text-white">How Analytics Work</CardTitle>
                   <button
                     onClick={toggleAnalytics}
-                    className="text-zinc-400 hover:text-blue-400 transition-colors"
+                    className="text-zinc-400 hover:text-white transition-colors"
                   >
                     <X className="h-4 w-4" />
                   </button>
                 </CardHeader>
-                <CardContent className="pt-0 text-xs text-zinc-200">
+                <CardContent className="pt-0 text-xs text-zinc-200 max-h-96 overflow-y-auto">
                   <p className="mb-2">
                     Analytics provide a clear, actionable view of your business performance by summarizing key data and visualizing trends. Below is how each section works and why it matters for your decision-making.
                   </p>

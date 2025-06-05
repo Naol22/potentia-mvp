@@ -220,7 +220,7 @@ export default function DashboardHome() {
 
   const getOrderAnalytics = () => {
     const totalOrders = orders.length;
-    const completedOrders = orders.filter(o => o.status === 'Completed').length;
+    const completedOrders = orders.filter(o => o.status === 'completed'|| o.status ==='Completed').length;
     const activeSubscriptions = orders.filter(o => o.is_active).length;
     const orderTrend = orders.reduce((acc, o) => {
       const date = new Date(o.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -246,11 +246,11 @@ export default function DashboardHome() {
   };
 
   const getTransactionAnalytics = () => {
-    const totalRevenue = transactions.reduce((sum, t) => sum + (t.status === 'succeeded' ? t.amount : 0), 0);
-    const successfulTx = transactions.filter(t => t.status === 'succeeded').length;
+    const totalRevenue = transactions.reduce((sum, t) => sum + (t.status === 'completed' ? t.amount : 0), 0);
+    const successfulTx = transactions.filter(t => t.status === 'completed').length;
     const txTrend = transactions.reduce((acc, t) => {
       const date = new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      acc[date] = (acc[date] || 0) + (t.status === 'succeeded' ? t.amount : 0);
+      acc[date] = (acc[date] || 0) + (t.status === 'completed' ? t.amount : 0);
       return acc;
     }, {} as Record<string, number>);
     const trendLabels = Object.keys(txTrend).slice(-10);
@@ -657,7 +657,7 @@ export default function DashboardHome() {
                   <CardTitle className="text-lg font-bold text-black">Revenue</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl text-black">${(txAnalytics.totalRevenue / 100).toFixed(2)}</p>
+                  <p className="text-2xl text-black">${(txAnalytics.totalRevenue).toFixed(2)}</p>
                 </CardContent>
               </Card>
               <Card className="bg-white/80 border-none shadow-md rounded-2xl">

@@ -129,7 +129,6 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         price_amount: plan.price,
         price_currency: plan.currency.toLowerCase(),
-        pay_currency: "btc",
         order_id: `order_${userId}_${plan.id}_${Date.now()}`,
         order_description: `Payment for plan hashrate ${plan.hashrate} TH/s`,
         ipn_callback_url: `${process.env.NEXT_PUBLIC_URL}/api/webhooks/nowpayments-webhook`,

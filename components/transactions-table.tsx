@@ -129,8 +129,8 @@ export function TransactionsTable() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Transaction History</CardTitle>
-        <CardDescription>A list of all transactions.</CardDescription>
+        <CardTitle>Payout History</CardTitle>
+        <CardDescription>A list of all pay outs.</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-4 py-4">

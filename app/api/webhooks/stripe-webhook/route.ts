@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createServerSupabaseClient } from "@/lib/supabase";
-import { TransactionStatus, CurrencyCode, OrderStatus } from "@/types";
+import {
+  TransactionStatus,
+  CurrencyCode,
+  OrderStatus,
+  SubscriptionStatus,
+} from "@/types";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-05-28.basil",
 });
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
-const VALID_CURRENCIES = ['USD', 'EUR', 'BTC'] as const;
+const VALID_CURRENCIES = ["USD", "EUR", "BTC"] as const;
 
 export async function POST(request: Request) {
   try {
@@ -68,23 +73,41 @@ export async function POST(request: Request) {
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  if (!session.metadata) {
-    throw new Error("Metadata is null");
-  }
-  const { planId, cryptoAddress, transactionId } = session.metadata;
-
-  if (!transactionId) {
-    console.error("[Webhook Stripe API] Error handling checkout completion:", {
-      message: "Missing transactionId in metadata",
-      details: "Transaction ID is required to update transaction",
-      code: "MISSING_TRANSACTION_ID",
-    });
-    throw new Error("Missing transactionId in metadata");
-  }
-
   try {
-    console.log("[Webhook Stripe API] Updating transaction to completed...");
+    console.log("[Webhook Stripe API] Processing checkout session completed...", { sessionId: session.id });
     const client = createServerSupabaseClient();
+
+    // Fetch subscription session to get subscriptionId and planId
+    const { data: sessionData, error: sessionError } = await client
+      .from("subscription_sessions")
+      .select("subscription_id, metadata")
+      .eq("session_id", session.id)
+      .single();
+    if (sessionError || !sessionData) {
+      console.error("[Webhook Stripe API] Error fetching subscription session:", {
+        message: sessionError?.message || "Session not found",
+        details: sessionError?.details,
+        code: "SESSION_FETCH_FAILED",
+      });
+      throw new Error("Failed to fetch subscription session");
+    }
+    const { subscription_id: subscriptionId, metadata } = sessionData;
+    const planId = metadata?.planId;
+
+    if (!subscriptionId || !planId) {
+      console.error("[Webhook Stripe API] Error processing checkout:", {
+        message: "Missing subscriptionId or planId",
+        details: "Required fields not found in subscription session",
+        code: "MISSING_FIELDS",
+      });
+      throw new Error("Missing subscriptionId or planId");
+    }
+
+    // Fetch the Stripe subscription if available
+    let stripeSubscription = null;
+    if (session.subscription) {
+      stripeSubscription = await stripe.subscriptions.retrieve(session.subscription.toString());
+    }
 
     const rawCurrency = session.currency || "USD";
     const currency = rawCurrency.toUpperCase() as CurrencyCode;
@@ -97,54 +120,137 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       throw new Error(`Invalid currency: ${currency}`);
     }
 
-    const { data: updatedTransaction, error: transactionError } = await client
+    // Fetch the subscription to get user_id and plan_type
+    const { data: subscription, error: subscriptionError } = await client
+      .from("subscriptions")
+      .select("user_id, plan_type")
+      .eq("id", subscriptionId)
+      .single();
+    if (subscriptionError || !subscription) {
+      console.error("[Webhook Stripe API] Error fetching subscription:", {
+        message: subscriptionError?.message || "Subscription not found",
+        details: subscriptionError?.details,
+        code: "SUBSCRIPTION_FETCH_FAILED",
+      });
+      throw new Error("Failed to fetch subscription");
+    }
+
+    console.log("[Webhook Stripe API] Creating transaction...");
+    const transaction = {
+      user_id: subscription.user_id,
+      plan_type: subscription.plan_type,
+      plan_id: planId,
+      payment_type: "subscription" as const,
+      amount: session.amount_total ? session.amount_total / 100 : 0,
+      currency,
+      status: "completed" as TransactionStatus,
+      payment_provider_reference: `Stripe session ${session.id}`,
+      subscription_id: subscriptionId,
+      checkout_session_id: session.id,
+      created_at: new Date().toISOString(),
+      // updated_at: new Date().toISOString(),
+    };
+    const { data: createdTransaction, error: transactionError } = await client
       .from("transactions")
-      .update({
-        status: "completed" as TransactionStatus,
-        payment_method_id: session.payment_intent ? session.payment_intent.toString() : null,
-        payment_provider_reference: `Stripe session ${session.id}`,
-        checkout_session_id: session.id,
-        amount: session.amount_total ? session.amount_total / 100 : undefined,
-        currency,
-      })
-      .eq("id", transactionId)
+      .insert(transaction)
       .select()
       .single();
-
-    if (transactionError) {
-      console.error("[Webhook Stripe API] Error updating transaction:", {
-        message: transactionError.message,
-        details: transactionError.details,
-        code: transactionError.code,
+    if (transactionError || !createdTransaction) {
+      console.error("[Webhook Stripe API] Error creating transaction:", {
+        message: transactionError?.message || "Failed to create transaction",
+        details: transactionError?.details,
+        code: "TRANSACTION_CREATE_FAILED",
       });
-      throw new Error("Failed to update transaction");
+      throw new Error("Failed to create transaction");
+    }
+
+    let subscriptionData = null;
+    if (stripeSubscription) {
+      console.log("[Webhook Stripe API] Updating subscription...");
+      const subscriptionUpdate = {
+        user_id: subscription.user_id,
+        plan_type: subscription.plan_type,
+        plan_id: planId,
+        status: stripeSubscription.status as SubscriptionStatus,
+        provider_subscription_id: stripeSubscription.id,
+        current_period_start: new Date(stripeSubscription.start_date * 1000).toISOString(),
+        current_period_end: new Date(stripeSubscription.items.data[0].current_period_end * 1000).toISOString(),        cancel_at_period_end: stripeSubscription.cancel_at_period_end,
+        checkout_session_id: session.id,
+        // updated_at: new Date().toISOString(),
+      };
+      const { data, error: subscriptionUpdateError } = await client
+        .from("subscriptions")
+        .upsert({ id: subscriptionId, ...subscriptionUpdate }, { onConflict: "id" })
+        .select()
+        .single();
+      if (subscriptionUpdateError) {
+        console.error("[Webhook Stripe API] Error updating subscription:", {
+          message: subscriptionUpdateError.message,
+          details: subscriptionUpdateError.details,
+          code: "SUBSCRIPTION_UPDATE_FAILED",
+        });
+        throw new Error("Failed to update subscription");
+      }
+      subscriptionData = data;
+
+      console.log("[Webhook Stripe API] Updating subscription session...");
+      const { error: sessionUpdateError } = await client
+        .from("subscription_sessions")
+        .update({ is_used: true})
+        .eq("session_id", session.id);
+      if (sessionUpdateError) {
+        console.error("[Webhook Stripe API] Error updating subscription session:", {
+          message: sessionUpdateError.message,
+          details: sessionUpdateError.details,
+          code: "SUBSCRIPTION_SESSION_UPDATE_FAILED",
+        });
+        throw new Error("Failed to update subscription session");
+      }
+    }
+
+    console.log("[Webhook Stripe API] Logging subscription event...");
+    const eventType = subscriptionData ? "created" : "payment_succeeded";
+    const subscriptionEvent = {
+      subscription_id: subscriptionId || null,
+      user_id: subscription.user_id,
+      event_type: eventType,
+      provider: "stripe",
+      data: {
+        session_id: session.id,
+        plan_id: planId,
+        transaction_id: createdTransaction.id,
+        status: subscriptionData ? subscriptionData.status : "completed",
+      },
+      status: "success",
+    };
+    const { error: eventError } = await client
+      .from("subscription_events")
+      .insert(subscriptionEvent);
+    if (eventError) {
+      console.error("[Webhook Stripe API] Error logging subscription event:", {
+        message: eventError.message,
+        details: eventError.details,
+        code: "SUBSCRIPTION_EVENT_CREATE_FAILED",
+      });
+      throw new Error("Failed to log subscription event");
     }
 
     console.log("[Webhook Stripe API] Creating order in orders table...");
     const order = {
       user_id: session.customer_details?.email
-        ? (
-            await client
-              .from("users")
-              .select("user_id")
-              .eq("email", session.customer_details.email)
-              .single()
-          ).data?.user_id || null
+        ? (await client.from("users").select("user_id").eq("email", session.customer_details.email).single()).data?.user_id || null
         : null,
-      plan_type: updatedTransaction.plan_type,
+      plan_type: subscription.plan_type,
       plan_id: planId,
-      transaction_id: transactionId,
-      amount: session.amount_total
-        ? session.amount_total / 100
-        : updatedTransaction.amount,
+      transaction_id: createdTransaction.id,
+      amount: session.amount_total ? session.amount_total / 100 : createdTransaction.amount,
       status: "completed" as OrderStatus,
       is_active: true,
+      subscription_id: subscriptionId || null,
+      crypto_address: metadata?.cryptoAddress || null,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      subscription_id: null,
-      crypto_address: cryptoAddress || null,
+      // updated_at: new Date().toISOString(),
     };
-
     const { error: orderError } = await client.from("orders").insert(order);
     if (orderError) {
       console.error("[Webhook Stripe API] Error creating order:", {
@@ -156,14 +262,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     }
 
     console.log("[Webhook Stripe API] Successfully processed checkout completion:", {
-      transactionId,
-      orderId: (
-        await client
-          .from("orders")
-          .select("id")
-          .eq("transaction_id", transactionId)
-          .single()
-      ).data?.id,
+      transactionId: createdTransaction.id,
+      orderId: (await client.from("orders").select("id").eq("transaction_id", createdTransaction.id).single()).data?.id,
+      subscriptionId: subscriptionId,
     });
   } catch (error) {
     console.error("[Webhook Stripe API] Error handling checkout completion:", {
@@ -189,7 +290,6 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     console.log("[Webhook Stripe API] Updating transaction with subscription details...");
     const client = createServerSupabaseClient();
 
-    // Normalize currency to uppercase
     const rawCurrency = subscription.currency || "USD";
     const currency = rawCurrency.toUpperCase() as CurrencyCode;
     if (!VALID_CURRENCIES.includes(currency)) {
@@ -211,7 +311,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
           ? subscription.items.data[0].plan.amount / 100
           : 0,
         currency,
-        updated_at: new Date().toISOString(),
+        // updated_at: new Date().toISOString(),
       })
       .eq("id", transactionId)
       .select()
@@ -259,7 +359,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       .update({
         status: "cancelled" as TransactionStatus,
         subscription_id: null,
-        updated_at: new Date().toISOString(),
+        // updated_at: new Date().toISOString(),
       })
       .eq("id", transactionId)
       .select()

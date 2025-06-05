@@ -246,7 +246,7 @@ const CheckoutPage: React.FC = () => {
                   className="mt-2 w-full px-4 py-3 bg-black border border-neutral-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/50 transition duration-300"
                   placeholder="Enter your BTC address"
                   required={paymentMethods.some((m) => m.requires_crypto_address && m.name === paymentMethod)}
-                  disabled={!paymentMethods.some((m) => m.requires_crypto_address && m.name === paymentMethod)}
+                  // disabled={!paymentMethods.some((m) => m.requires_crypto_address && m.name === paymentMethod)}
                 />
                 <Tooltip id="btc-tooltip" place="top" className="solid" />
                 <p
@@ -288,7 +288,7 @@ const CheckoutPage: React.FC = () => {
                     }}
                     className={`px-6 py-3 rounded-lg font-medium transition duration-300 mb-2 ${
                       paymentMethod === method.name
-                        ? "bg-white text-black border-4 border-black"
+                        ? "bg-white text-black border-4 border-red-400"
                         : "bg-white text-black"
                     }`}
                   >

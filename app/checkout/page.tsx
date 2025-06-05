@@ -12,16 +12,42 @@ import { HashratePlan } from "@/types";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
+interface PaymentMethod {
+  id: string;
+  name: string;
+  display_name: string;
+  is_active: boolean;
+  requires_crypto_address: boolean;
+}
+
 const CheckoutPage: React.FC = () => {
   const searchParams = useSearchParams();
-  const [plan, setPlan] = useState<HashratePlan | null> (null);
+  const [plan, setPlan] = useState<HashratePlan | null>(null);
   const [cryptoAddress, setCryptoAddress] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"stripe" | "nowpayments" | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
+  const [paymentMethodId, setPaymentMethodId] = useState<string | null>(null);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isAddressConfirmed, setIsAddressConfirmed] = useState(false);
 
   const planId: string | undefined = searchParams.get("planId") ?? undefined;
+
+  useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      try {
+        const response = await fetch("/api/payment-methods");
+        if (!response.ok) {
+          throw new Error("Failed to fetch payment methods");
+        }
+        const data = await response.json();
+        setPaymentMethods(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load payment methods");
+      }
+    };
+    fetchPaymentMethods();
+  }, []);
 
   useEffect(() => {
     const fetchPlan = async () => {
@@ -54,17 +80,18 @@ const CheckoutPage: React.FC = () => {
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateCryptoAddress(cryptoAddress)) {
+    const selectedMethod = paymentMethods.find((m) => m.name === paymentMethod);
+    if (selectedMethod?.requires_crypto_address && !validateCryptoAddress(cryptoAddress)) {
       setError("Invalid cryptocurrency address");
       return;
     }
 
-    if (!paymentMethod) {
+    if (!paymentMethod || !paymentMethodId) {
       setError("Please select a payment method");
       return;
     }
 
-    if (!isAddressConfirmed) {
+    if (selectedMethod?.requires_crypto_address && !isAddressConfirmed) {
       setError("Please confirm your Bitcoin address");
       return;
     }
@@ -80,8 +107,9 @@ const CheckoutPage: React.FC = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             planId,
-            cryptoAddress,
+            cryptoAddress: selectedMethod?.requires_crypto_address ? cryptoAddress : undefined,
             paymentMethod,
+            paymentMethodId,
           }),
         });
       } else if (paymentMethod === "nowpayments") {
@@ -90,8 +118,9 @@ const CheckoutPage: React.FC = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             planId,
-            cryptoAddress,
+            cryptoAddress: selectedMethod?.requires_crypto_address ? cryptoAddress : undefined,
             paymentMethod,
+            paymentMethodId,
           }),
         });
       }
@@ -204,67 +233,68 @@ const CheckoutPage: React.FC = () => {
         >
           <h1 className="text-3xl font-bold text-white mb-4">Payment Details</h1>
           <form onSubmit={handleCheckout} className="space-y-6">
-            <div>
-              <label htmlFor="cryptoAddress" className="block text-lg font-medium text-white">
-                BTC Payout Address
-              </label>
-              <input
-                id="cryptoAddress"
-                type="text"
-                value={cryptoAddress}
-                onChange={(e) => setCryptoAddress(e.target.value)}
-                className="mt-2 w-full px-4 py-3 bg-black border border-neutral-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/50 transition duration-300"
-                placeholder="Enter your BTC address"
-                required
-              />
-              <Tooltip id="btc-tooltip" place="top" className="solid" />
-              <p
-                data-tooltip-id="btc-tooltip"
-                data-tooltip-content="Ensure your BTC address is valid (e.g., starts with 1, 3, or bc1) for payouts."
-                className="text-sm text-gray-400 mt-1 hover:text-white cursor-pointer"
-              >
-                Address format help
-              </p>
-            </div>
-
-            {/* Checkbox for Address Confirmation */}
-            <div>
-              <label className="flex items-center space-x-2 text-sm text-gray-400">
+            {paymentMethods.some((m) => m.requires_crypto_address) && (
+              <div>
+                <label htmlFor="cryptoAddress" className="block text-lg font-medium text-white">
+                  BTC Payout Address
+                </label>
                 <input
-                  type="checkbox"
-                  checked={isAddressConfirmed}
-                  onChange={(e) => setIsAddressConfirmed(e.target.checked)}
-                  className="form-checkbox h-4 w-4 text-white border-gray-600 focus:ring-2 focus:ring-white"
+                  id="cryptoAddress"
+                  type="text"
+                  value={cryptoAddress}
+                  onChange={(e) => setCryptoAddress(e.target.value)}
+                  className="mt-2 w-full px-4 py-3 bg-black border border-neutral-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/50 transition duration-300"
+                  placeholder="Enter your BTC address"
+                  required={paymentMethods.some((m) => m.requires_crypto_address && m.name === paymentMethod)}
+                  disabled={!paymentMethods.some((m) => m.requires_crypto_address && m.name === paymentMethod)}
                 />
-                <span>I confirm this is my Bitcoin address</span>
-              </label>
-            </div>
+                <Tooltip id="btc-tooltip" place="top" className="solid" />
+                <p
+                  data-tooltip-id="btc-tooltip"
+                  data-tooltip-content="Ensure your BTC address is valid (e.g., starts with 1, 3, or bc1) for payouts."
+                  className="text-sm text-gray-400 mt-1 hover:text-white cursor-pointer"
+                >
+                  Address format help
+                </p>
+              </div>
+            )}
+
+            {paymentMethods.some((m) => m.requires_crypto_address && m.name === paymentMethod) && (
+              <div>
+                <label className="flex items-center space-x-2 text-sm text-gray-400">
+                  <input
+                    type="checkbox"
+                    checked={isAddressConfirmed}
+                    onChange={(e) => setIsAddressConfirmed(e.target.checked)}
+                    className="form-checkbox h-4 w-4 text-white border-gray-600 focus:ring-2 focus:ring-white"
+                  />
+                  <span>I confirm this is my Bitcoin address</span>
+                </label>
+              </div>
+            )}
 
             <div>
               <label className="block text-lg font-medium text-white mb-2">Select Payment Method</label>
-              <div className="flex space-x-4">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 1.20 }}
-                  type="button"
-                  onClick={() => setPaymentMethod("stripe")}
-                  className={`px-6 py-3 rounded-lg font-medium transition duration-300 ${
-                    paymentMethod === "stripe" ? "bg-white text-black border-4 border-black" : "bg-white text-black"
-                  }`}
-                >
-                  Stripe (Card)
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 1.20 }}
-                  type="button"
-                  onClick={() => setPaymentMethod("nowpayments")}
-                  className={`px-6 py-3 rounded-lg font-medium transition duration-300 ${
-                    paymentMethod === "nowpayments" ? "bg-white text-black border-4 border-black" : "bg-white text-black"
-                  }`}
-                >
-                  NowPayments (Crypto)
-                </motion.button>
+              <div className="flex space-x-4 flex-wrap">
+                {paymentMethods.map((method) => (
+                  <motion.button
+                    key={method.id}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 1.20 }}
+                    type="button"
+                    onClick={() => {
+                      setPaymentMethod(method.name);
+                      setPaymentMethodId(method.id);
+                    }}
+                    className={`px-6 py-3 rounded-lg font-medium transition duration-300 mb-2 ${
+                      paymentMethod === method.name
+                        ? "bg-white text-black border-4 border-black"
+                        : "bg-white text-black"
+                    }`}
+                  >
+                    {method.display_name}
+                  </motion.button>
+                ))}
               </div>
             </div>
 
@@ -274,9 +304,9 @@ const CheckoutPage: React.FC = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               type="submit"
-              disabled={!paymentMethod || !isAddressConfirmed || loading}
+              disabled={!paymentMethod || !paymentMethodId || (paymentMethods.some((m) => m.requires_crypto_address && m.name === paymentMethod) && !isAddressConfirmed) || loading}
               className={`w-full py-3 rounded-lg font-bold transition duration-300 ${
-                !paymentMethod || !isAddressConfirmed || loading
+                !paymentMethod || !paymentMethodId || (paymentMethods.some((m) => m.requires_crypto_address && m.name === paymentMethod) && !isAddressConfirmed) || loading
                   ? "bg-neutral-600 cursor-not-allowed text-gray-400"
                   : "bg-white text-black hover:bg-gray-200"
               }`}

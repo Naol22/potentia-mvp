@@ -50,7 +50,8 @@ export default clerkMiddleware(async (auth, req) => {
 
   if (debug) console.log('[Middleware] Allowing public route...');
   return NextResponse.next();
-}, { debug: process.env.NODE_ENV === 'development' });
+},);
+//{ debug: process.env.NODE_ENV === 'development' }
 
 export const config = {
   matcher: [

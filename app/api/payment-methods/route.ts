@@ -10,7 +10,7 @@ export async function GET() {
     console.log("[Payment Methods API] Fetching active payment methods...");
     const { data: paymentMethods, error } = await client
       .from("payment_methods")
-      .select("id, name, provider, is_active")
+      .select("id, name, display_name, is_active, requires_crypto_address")
       .eq("is_active", true);
 
     if (error) {

@@ -92,14 +92,8 @@ export default function SubscriptionManager({ subscriptions }: { subscriptions: 
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Price:</span>
-                <span className="font-medium">${subscription.plan_id.price}/month</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Next billing date:</span>
-                <span className="font-medium">
-                  {new Date(subscription.current_period_end).toLocaleDateString()}
-                </span>
+                <span>Payment Provider: </span>
+                <span className="font-medium">{subscription.payment_methods?.name || "N/A"}</span>
               </div>
             </div>
           </CardContent>

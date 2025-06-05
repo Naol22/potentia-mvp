@@ -1,84 +1,42 @@
 import { NextResponse } from 'next/server';
-import { currentUser } from "@clerk/nextjs/server";
-import { createClient } from '@supabase/supabase-js';
-import crypto from 'crypto';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { auth } from "@clerk/nextjs/server";
+import { createServerSupabaseClient } from "@/lib/supabase";
 
 // Stripe Customer Portal sharable link (replace with your live link in production)
 const STRIPE_PORTAL_LINK = 'https://billing.stripe.com/p/login/test_dRmfZa4PD2tPgw28rkak000';
 
 export async function POST(request: Request) {
   try {
-    const { subscriptionId } = await request.json();
-    
     // Authenticate user
-    const user = await currentUser();
-    if (!user) {
+    const { userId } = await auth();
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
-    // Get user's Supabase ID
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('user_id', user.id)
-      .single();
-      
-    if (userError || !userData) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-    
-    // Get subscription details
-    const { data: subscription, error: subscriptionError } = await supabase
-      .from('subscriptions')
-      .select('id, payment_method_id, provider_subscription_id, payment_methods(name)')
+
+    const client = createServerSupabaseClient();
+    const { subscriptionId } = await request.json();
+
+    // Fetch the specific subscription based on user_id and subscriptionId
+    console.log("[Subscriptions API] Fetching subscription from Supabase...");
+    const { data: subscription, error: subscriptionError } = await client
+      .from("subscriptions")
+      .select("id, user_id, plan_id, status, payment_method_id, provider_subscription_id, current_period_start, current_period_end, cancel_at_period_end, canceled_at, created_at, updated_at, payment_methods(name)")
+      .eq('user_id', userId)
       .eq('id', subscriptionId)
-      .eq('user_id', userData.id)
       .single();
-      
+
     if (subscriptionError || !subscription) {
       return NextResponse.json({ error: "Subscription not found" }, { status: 404 });
     }
-    
-    const paymentMethodName = subscription.payment_methods?.[0]?.name;
-    
+
+    const paymentMethodName = subscription.payment_methods?.name;
+
     if (paymentMethodName === 'stripe') {
       // For Stripe, return the sharable customer portal link
       return NextResponse.json({ url: STRIPE_PORTAL_LINK });
     } else if (paymentMethodName === 'nowpayments') {
-      // For NowPayments, generate a session token and custom management URL
-      //Everything under this block is specific to NowPayments management and it is a placeholder for the actual implementation.
-      const sessionToken = crypto.randomBytes(32).toString('hex');
-      const expiresAt = new Date();
-      expiresAt.setMinutes(expiresAt.getMinutes() + 30);
-      
-      const sessionUrl = `${process.env.NEXT_PUBLIC_URL}/dashboard/subscriptions/${subscriptionId}/manage?token=${sessionToken}`;
-      
-      const { error: sessionError } = await supabase
-        .from('subscription_sessions')
-        .insert({
-          user_id: userData.id,
-          subscription_id: subscriptionId,
-          provider: 'nowpayments',
-          session_id: sessionToken,
-          session_url: sessionUrl,
-          expires_at: expiresAt,
-          is_used: false,
-        });
-        
-      if (sessionError) {
-        return NextResponse.json({ error: "Failed to create session" }, { status: 500 });
-      }
-      
-      return NextResponse.json({ 
-        url: sessionUrl,
-        token: sessionToken,
-        expiresAt
-      });
+      // For NowPayments, this is a placeholder for the actual implementation
+      return NextResponse.json({ error: "NowPayments management not implemented" }, { status: 501 });
     } else {
       return NextResponse.json({ error: "Unsupported payment method" }, { status: 400 });
     }
@@ -88,58 +46,30 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const url = new URL(request.url);
-    const token = url.searchParams.get('token');
-    const subscriptionId = url.searchParams.get('subscriptionId');
-    
-    if (!token || !subscriptionId) {
-      return NextResponse.json({ error: "Missing token or subscription ID" }, { status: 400 });
+    // Authenticate user
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
-    // Verify the token is valid and not expired (only for NowPayments)
-    const now = new Date();
-    const { data: session, error: sessionError } = await supabase
-      .from('subscription_sessions')
-      .select('user_id, subscription_id, expires_at, provider')
-      .eq('session_id', token)
-      .eq('subscription_id', subscriptionId)
-      .gt('expires_at', now.toISOString())
-      .single();
-    
-    if (sessionError || !session) {
-      return NextResponse.json({ error: "Invalid or expired token" }, { status: 401 });
+
+    const client = createServerSupabaseClient();
+
+    // Fetch all subscriptions for the user
+    console.log("[Subscriptions API] Fetching subscriptions from Supabase...");
+    const { data: subscriptions, error: subscriptionError } = await client
+      .from("subscriptions")
+      .select("id, user_id, plan_id, status, payment_method_id, provider_subscription_id, current_period_start, current_period_end, cancel_at_period_end, canceled_at, created_at, updated_at, payment_methods(name), user_id(id, first_name, last_name, email)")
+      .eq('user_id', userId);
+
+    if (subscriptionError || !subscriptions) {
+      return NextResponse.json({ error: "No subscriptions found" }, { status: 404 });
     }
-    
-    // Get subscription details
-    const { data: subscription, error: subscriptionError } = await supabase
-      .from('subscriptions')
-      .select(`
-        id, 
-        status, 
-        current_period_start, 
-        current_period_end,
-        payment_method_id,
-        provider_subscription_id,
-        payment_methods(name),
-        user_id(id, first_name, last_name, email)
-      `)
-      .eq('id', subscriptionId)
-      .eq('user_id', session.user_id)
-      .single();
-    
-    if (subscriptionError || !subscription) {
-      return NextResponse.json({ error: "Subscription not found" }, { status: 404 });
-    }
-    
-    return NextResponse.json({
-      subscription,
-      sessionValid: true,
-      expiresAt: session.expires_at
-    });
+
+    return NextResponse.json({ subscriptions });
   } catch (error) {
-    console.error('Error validating subscription session:', error);
+    console.error('Error fetching subscriptions:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

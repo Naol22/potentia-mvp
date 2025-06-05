@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,13 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Menu, X, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip as ChartJSTooltip, Legend as ChartJSLegend, ArcElement } from 'chart.js';
 import { Chart, Pie } from 'react-chartjs-2';
+import { LineChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, Legend as RechartsLegend, Area, Bar, Line } from 'recharts';
 import AdmSidebar from '@/components/admSidebar';
 import Header from '@/components/NavBar';
 
 // Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, ChartJSTooltip, ChartJSLegend);
 
 interface Order {
   id: string;
@@ -109,7 +111,6 @@ export default function DashboardHome() {
                         section === 'users' ? 'user' : section;
       const response = await fetch(`/api/adm/${apiSection}`);
       const data = await response.json();
-      // Ensure data is an array, default to empty array if not
       const safeData = Array.isArray(data) ? data : [];
       if (section === 'orders') setOrders(safeData);
       if (section === 'subscriptions') setSubscriptions(safeData);
@@ -118,7 +119,6 @@ export default function DashboardHome() {
       if (section === 'users') setUsers(safeData);
     } catch (error) {
       console.error(`Error fetching ${section}:`, error);
-      // Set empty array on error to prevent undefined or non-array data
       if (section === 'orders') setOrders([]);
       if (section === 'subscriptions') setSubscriptions([]);
       if (section === 'survey-responses') setSurveyResponses([]);
@@ -139,7 +139,7 @@ export default function DashboardHome() {
 
   const handleSectionChange = (section: string) => {
     setActiveSection(section);
-    if (window.innerWidth < 768) { // md breakpoint
+    if (window.innerWidth < 768) {
       setIsSidebarOpen(false);
     }
   };
@@ -185,12 +185,13 @@ export default function DashboardHome() {
           satisfaction: r.satisfaction,
           nps: r.nps,
           issue: r.issue,
+          suggestion:r.suggestion,
           created_at: new Date(r.created_at).toLocaleDateString(),
         }));
         filename = 'SurveyResponses.csv';
         break;
       case 'transactions':
-        headers = ['ID', 'User ID', 'Amount', 'Currency', 'Status', 'PlanType' , 'Created At'];
+        headers = ['ID', 'User ID', 'Amount', 'Currency', 'Status', 'PlanType', 'Created At'];
         data = transactions.map(t => ({
           id: t.id,
           user_id: t.user_id,
@@ -232,7 +233,7 @@ export default function DashboardHome() {
 
   const getOrderAnalytics = () => {
     const totalOrders = orders.length;
-    const completedOrders = orders.filter(o => o.status === 'completed'|| o.status ==='Completed').length;
+    const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'Completed').length;
     const activeSubscriptions = orders.filter(o => o.is_active).length;
     const orderTrend = orders.reduce((acc, o) => {
       const date = new Date(o.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -306,85 +307,12 @@ export default function DashboardHome() {
       return acc;
     }, {} as Record<string, { count: number; npsSum: number; npsCount: number }>);
 
-    const labels = Object.keys(groupedData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-    const counts = labels.map(date => groupedData[date].count);
-    const npsAverages = labels.map(date => groupedData[date].npsSum / groupedData[date].npsCount);
-
-    return {
-      labels,
-      datasets: [
-        {
-          type: 'bar' as const,
-          label: 'Responses',
-          data: counts,
-          backgroundColor: 'rgba(54, 162, 235, 0.5)',
-          borderColor: 'rgba(54, 162, 235, 1)',
-          borderWidth: 1,
-          yAxisID: 'y',
-        },
-        {
-          type: 'line' as const,
-          label: 'NPS',
-          data: npsAverages,
-          borderColor: 'rgba(255, 99, 132, 1)',
-          backgroundColor: 'rgba(255, 99, 132, 0.2)',
-          fill: true,
-          tension: 0.4,
-          yAxisID: 'y1',
-        },
-      ],
-    };
-  };
-
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-        labels: {
-          color: '#000000',
-          font: { size: 14 },
-        },
-      },
-      title: {
-        display: true,
-        text: 'Survey Responses & NPS',
-        color: '#000000',
-        font: {
-          size: 16,
-          weight: 'bold' as const,
-        },
-      },
-      tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        titleColor: '#FFFFFF',
-        bodyColor: '#FFFFFF',
-        borderColor: '#FFFFFF',
-        borderWidth: 1,
-      },
-    },
-    scales: {
-      x: {
-        grid: { display: false },
-        ticks: { color: '#000000' },
-      },
-      y: {
-        type: 'linear' as const,
-        display: true,
-        position: 'left' as const,
-        title: { display: true, text: 'Responses', color: '#000000' },
-        grid: { color: 'rgba(0, 0, 0, 0.1)' },
-        ticks: { color: '#000000' },
-      },
-      y1: {
-        type: 'linear' as const,
-        display: true,
-        position: 'right' as const,
-        title: { display: true, text: 'NPS', color: '#000000' },
-        grid: { drawOnChartArea: false },
-        ticks: { color: '#000000' },
-      },
-    },
+    const sortedDates = Object.keys(groupedData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    return sortedDates.map(date => ({
+      date,
+      responses: groupedData[date].count,
+      nps: groupedData[date].npsCount > 0 ? Number((groupedData[date].npsSum / groupedData[date].npsCount).toFixed(1)) : 0,
+    }));
   };
 
   const renderTable = () => {
@@ -587,6 +515,7 @@ export default function DashboardHome() {
           </>
         );
       case 'survey-responses':
+        const surveyData = getSurveyChartData();
         return (
           <>
             <motion.div
@@ -610,8 +539,110 @@ export default function DashboardHome() {
                   </Select>
                 </CardHeader>
                 <CardContent>
-                  {surveyResponses.length > 0 ? (
-                    <Chart type="bar" data={getSurveyChartData()} options={chartOptions} />
+                  {surveyData.length > 0 ? (
+                    <LineChart
+                      width={700}
+                      height={340}
+                      data={surveyData}
+                      className="mx-auto"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      <defs>
+                        <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.8} />
+                          <stop offset="100%" stopColor="#22d3ee" stopOpacity={0.2} />
+                        </linearGradient>
+                        <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#ec4899" stopOpacity={1} />
+                          <stop offset="100%" stopColor="#f43f5e" stopOpacity={1} />
+                        </linearGradient>
+                        <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#ec4899" stopOpacity={0.4} />
+                          <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.1} />
+                        </linearGradient>
+                        <filter id="glow">
+                          <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
+                          <feMerge>
+                            <feMergeNode in="coloredBlur" />
+                            <feMergeNode in="SourceGraphic" />
+                          </feMerge>
+                        </filter>
+                      </defs>
+                      <CartesianGrid stroke="#3f3f46" strokeDasharray="3 3" opacity={0.2} vertical={false} />
+                      <XAxis
+                        dataKey="date"
+                        stroke="#9ca3af"
+                        tick={{ fill: '#000000', fontSize: 12, fontWeight: 500 }}
+                        label={{ value: 'Date', position: 'insideBottom', offset: -10, fill: '#000000', fontSize: 14, fontWeight: 600 }}
+                        padding={{ left: 10, right: 10 }}
+                        angle={-45}
+                        textAnchor="end"
+                      />
+                      <YAxis
+                        yAxisId="left"
+                        stroke="#9ca3af"
+                        tick={{ fill: '#000000', fontSize: 12, fontWeight: 500 }}
+                        label={{ value: 'Responses', angle: -90, position: 'insideLeft', offset: 15, fill: '#000000', fontSize: 14, fontWeight: 600 }}
+                      />
+                      <YAxis
+                        yAxisId="right"
+                        orientation="right"
+                        stroke="#9ca3af"
+                        tick={{ fill: '#000000', fontSize: 12, fontWeight: 500 }}
+                        label={{ value: 'NPS', angle: 90, position: 'insideRight', offset: 15, fill: '#000000', fontSize: 14, fontWeight: 600 }}
+                      />
+                      <RechartsTooltip
+                        contentStyle={{
+                          background: '#1f2937',
+                          borderRadius: '8px',
+                          border: 'none',
+                          padding: '12px',
+                          fontSize: '12px',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                          fontFamily: "'Inter', sans-serif",
+                        }}
+                        labelStyle={{ color: '#f3f4f6', fontWeight: '600', marginBottom: '4px' }}
+                        itemStyle={{ fontWeight: '500' }}
+                        formatter={(value: number, name: string) => [value, name === 'responses' ? 'Responses' : 'NPS']}
+                        labelFormatter={(label: string) => `Date: ${label}`}
+                      />
+                      <RechartsLegend
+                        wrapperStyle={{ color: '#000000', fontSize: 12, paddingTop: 15, fontWeight: 500 }}
+                        formatter={(value: string) => <span style={{ color: '#000000', fontFamily: "'Inter', sans-serif" }}>{value === 'responses' ? 'Responses' : 'NPS'}</span>}
+                      />
+                      <Bar
+                        yAxisId="left"
+                        dataKey="responses"
+                        fill="url(#barGradient)"
+                        barSize={20}
+                        isAnimationActive={true}
+                        animationDuration={1200}
+                        animationEasing="ease-in-out"
+                      />
+                      <Area
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="nps"
+                        stroke="none"
+                        fill="url(#areaGradient)"
+                        isAnimationActive={true}
+                        animationDuration={1200}
+                        animationEasing="ease-in-out"
+                      />
+                      <Line
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="nps"
+                        stroke="url(#lineGradient)"
+                        strokeWidth={4}
+                        filter="url(#glow)"
+                        dot={{ stroke: '#ec4899', strokeWidth: 2, fill: '#1f2937', r: 6 }}
+                        activeDot={{ r: 10, fill: '#ec4899', stroke: '#1f2937', strokeWidth: 2 }}
+                        isAnimationActive={true}
+                        animationDuration={1200}
+                        animationEasing="ease-in-out"
+                      />
+                    </LineChart>
                   ) : (
                     <div className="text-center text-gray-600">No survey data available</div>
                   )}
@@ -635,6 +666,7 @@ export default function DashboardHome() {
                     <TableHead className="font-semibold text-black">Satisfaction</TableHead>
                     <TableHead className="font-semibold text-black">NPS</TableHead>
                     <TableHead className="font-semibold text-black">Issue</TableHead>
+                    <TableHead className="font-semibold text-black">suggestion</TableHead>
                     <TableHead className="font-semibold text-black">Created</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -646,6 +678,7 @@ export default function DashboardHome() {
                       <TableCell className="text-black">{response.satisfaction}</TableCell>
                       <TableCell className="text-black">{response.nps}</TableCell>
                       <TableCell className="text-black">{response.issue}</TableCell>
+                      <TableCell className="text-black">{response.suggestion}</TableCell>
                       <TableCell className="text-black">{new Date(response.created_at).toLocaleDateString()}</TableCell>
                     </TableRow>
                   ))}

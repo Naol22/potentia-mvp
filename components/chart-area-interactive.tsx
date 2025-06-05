@@ -32,7 +32,7 @@ export function ChartAreaInteractive() {
       setTimeRange("7d")
     }
   }, [isMobile])
-
+  console.log('transactions', transactions)
   const chartData = transactions.map((transaction) => ({
     date: new Date(transaction.created_at).toISOString().split("T")[0],
     amount: transaction.amount / 100,

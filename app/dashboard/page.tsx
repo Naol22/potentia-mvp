@@ -13,23 +13,23 @@ export default function Page() {
   const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchSubscriptions() {
-      try {
-        const response = await fetch('/api/subscriptions');
-        if (response.ok) {
-          const data = await response.json();
-          setSubscriptions(data.subscriptions || []);
-        }
-      } catch (error) {
-        console.error('Error fetching subscriptions:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
+  // useEffect(() => {
+  //   async function fetchSubscriptions() {
+  //     try {
+  //       const response = await fetch('/api/subscriptions/manage');
+  //       if (response.ok) {
+  //         const data = await response.json();
+  //         setSubscriptions(data.subscriptions || []);
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching subscriptions:', error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
 
-    fetchSubscriptions();
-  }, []);
+  //   fetchSubscriptions();
+  // }, []);
 
   return (
     <SidebarProvider>
@@ -50,7 +50,7 @@ export default function Page() {
               {/* Subscription Management Section */}
               <div className="px-4 lg:px-6 mt-4">
                 <h2 className="text-2xl font-bold mb-4">Subscription Management</h2>
-                <SubscriptionManager subscriptions={subscriptions} />
+                {/* <SubscriptionManager subscriptions={subscriptions} /> */}
               </div>
             </div>
           </div>

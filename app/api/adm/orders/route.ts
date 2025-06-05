@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const { data, error } = await supabase
       .from("orders")
-      .select("id, user_id, plan_ids, status, created_at, plan_type , transaction_ids");
+      .select("id, user_id, plan_id, status, created_at, plan_type , transaction_id");
     if (error) {
       console.error("Error fetching orders:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });

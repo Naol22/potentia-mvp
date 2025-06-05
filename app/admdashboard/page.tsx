@@ -126,7 +126,13 @@ export default function DashboardHome() {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  // Export table data to CSV
+  const handleSectionChange = (section: string) => {
+    setActiveSection(section);
+    if (window.innerWidth < 768) { // md breakpoint
+      setIsSidebarOpen(false);
+    }
+  };
+
   const exportToCSV = (section: string) => {
     let data: any[] = [];
     let headers: string[] = [];
@@ -135,30 +141,30 @@ export default function DashboardHome() {
     switch (section) {
       case 'orders':
         headers = ['ID', 'User ID', 'Plan ID', 'Status', 'Start Date', 'End Date', 'Active', 'Created At'];
-        data = orders.map(o => ({
-          id: o.id,
-          user_id: o.user_id,
-          plan_id: o.plan_id,
-          status: o.status,
-          start_date: new Date(o.start_date).toLocaleDateString(),
-          end_date: new Date(o.end_date).toLocaleDateString(),
-          is_active: o.is_active ? 'Yes' : 'No',
-          created_at: new Date(o.created_at).toLocaleDateString(),
+        data = orders.map(order => ({
+          id: order.id,
+          user_id: order.user_id,
+          plan_id: order.plan_id,
+          status: order.status,
+          start_date: new Date(order.start_date).toLocaleDateString(),
+          end_date: new Date(order.end_date).toLocaleDateString(),
+          active: order.is_active ? 'Yes' : 'No',
+          created_at: new Date(order.created_at).toLocaleDateString(),
         }));
-        filename = 'orders.csv';
+        filename = 'Orders.csv';
         break;
       case 'subscriptions':
         headers = ['ID', 'User ID', 'Plan ID', 'Status', 'Period Start', 'Period End', 'Created At'];
-        data = subscriptions.map(s => ({
-          id: s.id,
-          user_id: s.user_id,
-          plan_id: s.plan_id,
-          status: s.status,
-          current_period_start: new Date(s.current_period_start).toLocaleDateString(),
-          current_period_end: new Date(s.current_period_end).toLocaleDateString(),
-          created_at: new Date(s.created_at).toLocaleDateString(),
+        data = subscriptions.map(sub => ({
+          id: sub.id,
+          user_id: sub.user_id,
+          plan_id: sub.plan_id,
+          status: sub.status,
+          period_start: new Date(sub.current_period_start).toLocaleDateString(),
+          period_end: new Date(sub.current_period_end).toLocaleDateString(),
+          created_at: new Date(sub.created_at).toLocaleDateString(),
         }));
-        filename = 'subscriptions.csv';
+        filename = 'Subscriptions.csv';
         break;
       case 'survey-responses':
         headers = ['ID', 'User ID', 'Satisfaction', 'NPS', 'Issue', 'Created At'];
@@ -170,7 +176,7 @@ export default function DashboardHome() {
           issue: r.issue,
           created_at: new Date(r.created_at).toLocaleDateString(),
         }));
-        filename = 'survey-responses.csv';
+        filename = 'SurveyResponses.csv';
         break;
       case 'transactions':
         headers = ['ID', 'User ID', 'Amount', 'Currency', 'Status', 'Description', 'Created At'];
@@ -183,25 +189,25 @@ export default function DashboardHome() {
           description: t.description,
           created_at: new Date(t.created_at).toLocaleDateString(),
         }));
-        filename = 'transactions.csv';
+        filename = 'Transactions.csv';
         break;
       case 'users':
-        headers = ['ID', 'Full Name', 'Email', 'Stripe Customer ID', 'BTC Address', 'Created At'];
-        data = users.map(u => ({
-          id: u.id,
-          full_name: u.full_name,
-          email: u.email,
-          stripe_customer_id: u.stripe_customer_id,
-          btc_address: u.btc_address,
-          created_at: new Date(u.created_at).toLocaleDateString(),
+        headers = ['ID', 'Name', 'Email', 'Stripe Customer', 'BTC', 'Created At'];
+        data = users.map(user => ({
+          id: user.id,
+          name: user.full_name,
+          email: user.email,
+          stripe: user.stripe_customer_id,
+          btc: user.btc_address,
+          created_at: new Date(user.created_at).toLocaleDateString(),
         }));
-        filename = 'users.csv';
+        filename = 'Users.csv';
         break;
     }
 
     const csvContent = [
       headers.join(','),
-      ...data.map(row => headers.map(header => `"${row[header.toLowerCase().replace(/\s/g, '_')] || ''}"`).join(',')),
+      ...data.map(row => headers.map(header => `"${row[header.toLowerCase().replace(/\s/g, '_')] || ''}"`).join(','))
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -212,27 +218,25 @@ export default function DashboardHome() {
     URL.revokeObjectURL(link.href);
   };
 
-  // Analytics: Orders
   const getOrderAnalytics = () => {
     const totalOrders = orders.length;
-    const completedOrders = orders.filter(o => o.status === 'completed').length;
+    const completedOrders = orders.filter(o => o.status === 'Completed').length;
     const activeSubscriptions = orders.filter(o => o.is_active).length;
     const orderTrend = orders.reduce((acc, o) => {
       const date = new Date(o.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       acc[date] = (acc[date] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-    const trendLabels = Object.keys(orderTrend).slice(-7);
-    const trendData = trendLabels.map(label => orderTrend[label]);
+    const trendLabels = Object.keys(orderTrend).slice(-10);
+    const trendData = trendLabels.map(o => orderTrend[o]);
 
     return { totalOrders, completedOrders, activeSubscriptions, trendLabels, trendData };
   };
 
-  // Analytics: Subscriptions
   const getSubscriptionAnalytics = () => {
     const activeSubs = subscriptions.filter(s => s.status === 'active').length;
     const canceledSubs = subscriptions.filter(s => s.canceled_at).length;
-    const churnRate = subscriptions.length ? (canceledSubs / subscriptions.length * 100).toFixed(1) : '0.0';
+    const churnRate = subscriptions.length ? (canceledSubs / subscriptions.length * 100).toFixed(2) : '0.00';
     const statusCounts = subscriptions.reduce((acc, s) => {
       acc[s.status] = (acc[s.status] || 0) + 1;
       return acc;
@@ -241,7 +245,6 @@ export default function DashboardHome() {
     return { activeSubs, canceledSubs, churnRate, statusCounts };
   };
 
-  // Analytics: Transactions
   const getTransactionAnalytics = () => {
     const totalRevenue = transactions.reduce((sum, t) => sum + (t.status === 'succeeded' ? t.amount : 0), 0);
     const successfulTx = transactions.filter(t => t.status === 'succeeded').length;
@@ -250,13 +253,12 @@ export default function DashboardHome() {
       acc[date] = (acc[date] || 0) + (t.status === 'succeeded' ? t.amount : 0);
       return acc;
     }, {} as Record<string, number>);
-    const trendLabels = Object.keys(txTrend).slice(-7);
-    const trendData = trendLabels.map(label => txTrend[label]);
+    const trendLabels = Object.keys(txTrend).slice(-10);
+    const trendData = trendLabels.map(t => txTrend[t]);
 
     return { totalRevenue, successfulTx, trendLabels, trendData };
   };
 
-  // Analytics: Users
   const getUserAnalytics = () => {
     const totalUsers = users.length;
     const newUsers = users.filter(u => new Date(u.created_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length;
@@ -265,13 +267,12 @@ export default function DashboardHome() {
       acc[date] = (acc[date] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-    const trendLabels = Object.keys(userTrend).slice(-7);
-    const trendData = trendLabels.map(label => userTrend[label]);
+    const trendLabels = Object.keys(userTrend).slice(-10);
+    const trendData = trendLabels.map(u => userTrend[u]);
 
     return { totalUsers, newUsers, trendLabels, trendData };
   };
 
-  // Survey Chart Data
   const getSurveyChartData = () => {
     const groupedData = surveyResponses.reduce((acc, response) => {
       let date: string;
@@ -302,19 +303,19 @@ export default function DashboardHome() {
       datasets: [
         {
           type: 'bar' as const,
-          label: 'Response Count',
+          label: 'Responses',
           data: counts,
-          backgroundColor: 'rgba(59, 130, 246, 0.5)',
-          borderColor: 'rgba(59, 130, 246, 1)',
+          backgroundColor: 'rgba(54, 162, 235, 0.5)',
+          borderColor: 'rgba(54, 162, 235, 1)',
           borderWidth: 1,
           yAxisID: 'y',
         },
         {
           type: 'line' as const,
-          label: 'NPS Average',
+          label: 'NPS',
           data: npsAverages,
-          borderColor: 'rgba(255, 255, 255, 0.8)',
-          backgroundColor: 'rgba(255, 255, 255, 0.2)',
+          borderColor: 'rgba(255, 99, 132, 1)',
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
           fill: true,
           tension: 0.4,
           yAxisID: 'y1',
@@ -329,47 +330,47 @@ export default function DashboardHome() {
       legend: {
         position: 'top' as const,
         labels: {
-          color: '#E4E4E7',
+          color: '#000000',
           font: { size: 14 },
         },
       },
       title: {
         display: true,
-        text: 'Survey Responses and NPS Trends',
-        color: '#E4E4E7',
+        text: 'Survey Responses & NPS',
+        color: '#000000',
         font: {
           size: 16,
           weight: 'bold' as const,
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(39, 39, 42, 0.9)',
-        titleColor: '#E4E4E7',
-        bodyColor: '#E4E4E7',
-        borderColor: '#3B82F6',
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: '#FFFFFF',
+        bodyColor: '#FFFFFF',
+        borderColor: '#FFFFFF',
         borderWidth: 1,
       },
     },
     scales: {
       x: {
         grid: { display: false },
-        ticks: { color: '#D4D4D8' },
+        ticks: { color: '#000000' },
       },
       y: {
         type: 'linear' as const,
         display: true,
         position: 'left' as const,
-        title: { display: true, text: 'Response Count', color: '#E4E4E7' },
-        grid: { color: 'rgba(63, 63, 70, 0.3)' },
-        ticks: { color: '#D4D4D8' },
+        title: { display: true, text: 'Responses', color: '#000000' },
+        grid: { color: 'rgba(0, 0, 0, 0.1)' },
+        ticks: { color: '#000000' },
       },
       y1: {
         type: 'linear' as const,
         display: true,
         position: 'right' as const,
-        title: { display: true, text: 'NPS Average', color: '#E4E4E7' },
+        title: { display: true, text: 'NPS', color: '#000000' },
         grid: { drawOnChartArea: false },
-        ticks: { color: '#D4D4D8' },
+        ticks: { color: '#000000' },
       },
     },
   };
@@ -386,25 +387,25 @@ export default function DashboardHome() {
               transition={{ duration: 0.5 }}
               className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4"
             >
-              <Card className="bg-zinc-900/80 backdrop-blur-md border-zinc-800 shadow-lg shadow-blue-500/10">
+              <Card className="bg-white/80 border-none shadow-md rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Total Orders</CardTitle>
+                  <CardTitle className="text-lg font-bold text-black">Total Orders</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl text-blue-400">{orderAnalytics.totalOrders}</p>
+                  <p className="text-2xl text-black">{orderAnalytics.totalOrders}</p>
                 </CardContent>
               </Card>
-              <Card className="bg-zinc-900/80 backdrop-blur-md border-zinc-800 shadow-lg shadow-blue-500/10">
+              <Card className="bg-white/80 border-none shadow-md rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Completed Orders</CardTitle>
+                  <CardTitle className="text-lg font-bold text-black">Completed</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl text-blue-400">{orderAnalytics.completedOrders}</p>
+                  <p className="text-2xl text-black">{orderAnalytics.completedOrders}</p>
                 </CardContent>
               </Card>
-              <Card className="bg-zinc-900/80 backdrop-blur-md border-zinc-800 shadow-lg shadow-blue-500/10">
+              <Card className="bg-white/80 border-none shadow-md rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Order Trend</CardTitle>
+                  <CardTitle className="text-lg font-bold text-black">Trend</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Chart
@@ -414,8 +415,8 @@ export default function DashboardHome() {
                       datasets: [{
                         label: 'Orders',
                         data: orderAnalytics.trendData,
-                        borderColor: 'rgba(59, 130, 246, 1)',
-                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
                         fill: true,
                         tension: 0.4,
                       }],
@@ -433,46 +434,48 @@ export default function DashboardHome() {
             <div className="flex justify-end mb-4">
               <Button
                 onClick={() => exportToCSV('orders')}
-                className="bg-gradient-to-r from-zinc-800 to-zinc-900 text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-600 transition-all duration-300 shadow-md shadow-blue-500/20"
+                className="bg-gradient-to-r from-gray-800 to-gray-900 text-white hover:from-gray-700 hover:to-gray-800 transition-all duration-300 shadow-md rounded-xl"
               >
-                <Download className="mr-2 h-4 w-4" /> Export to CSV
+                <Download className="mr-2 h-4 w-4" /> Export
               </Button>
             </div>
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gradient-to-r from-zinc-800 to-zinc-900 border-b border-zinc-700 hover:bg-zinc-700/50 transition-colors">
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">ID</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">User ID</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Plan ID</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Status</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Start Date</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">End Date</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Active</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Created At</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orders.map((order) => (
-                  <TableRow key={order.id} className="border-b border-zinc-800 hover:bg-zinc-800/50 transition-colors">
-                    <TableCell className="text-zinc-200">{order.id}</TableCell>
-                    <TableCell className="text-zinc-200">{order.user_id}</TableCell>
-                    <TableCell className="text-zinc-200">{order.plan_id}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={order.status === 'completed' ? 'default' : 'secondary'}
-                        className={order.status === 'completed' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white' : 'bg-zinc-600 text-zinc-200'}
-                      >
-                        {order.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-zinc-200">{new Date(order.start_date).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-zinc-200">{new Date(order.end_date).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-zinc-200">{order.is_active ? 'Yes' : 'No'}</TableCell>
-                    <TableCell className="text-zinc-200">{new Date(order.created_at).toLocaleDateString()}</TableCell>
+            <div className="overflow-x-auto">
+              <Table className="bg-white/80 rounded-xl">
+                <TableHeader>
+                  <TableRow className="bg-gradient-to-r from-gray-100 to-gray-200 border-b border-gray-300 hover:bg-gray-100 transition-colors duration-200">
+                    <TableHead className="font-semibold text-black">ID</TableHead>
+                    <TableHead className="font-semibold text-black">User</TableHead>
+                    <TableHead className="font-semibold text-black">Plan</TableHead>
+                    <TableHead className="font-semibold text-black">Status</TableHead>
+                    <TableHead className="font-semibold text-black">Start</TableHead>
+                    <TableHead className="font-semibold text-black">End</TableHead>
+                    <TableHead className="font-semibold text-black">Active</TableHead>
+                    <TableHead className="font-semibold text-black">Created</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {orders.map((order) => (
+                    <TableRow key={order.id} className="border-b border-gray-300 hover:bg-gray-50 transition-colors duration-200">
+                      <TableCell className="text-black">{order.id}</TableCell>
+                      <TableCell className="text-black">{order.user_id}</TableCell>
+                      <TableCell className="text-black">{order.plan_id}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={order.status === 'completed' ? 'default' : 'secondary'}
+                          className={order.status === 'completed' ? 'bg-gradient-to-r from-green-600 to-green-700 text-white' : 'bg-gray-200 text-gray-800'}
+                        >
+                          {order.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-black">{new Date(order.start_date).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-black">{new Date(order.end_date).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-black">{order.is_active ? 'Yes' : 'No'}</TableCell>
+                      <TableCell className="text-black">{new Date(order.created_at).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </>
         );
       case 'subscriptions':
@@ -485,25 +488,25 @@ export default function DashboardHome() {
               transition={{ duration: 0.5 }}
               className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4"
             >
-              <Card className="bg-zinc-900/80 backdrop-blur-md border-zinc-800 shadow-lg shadow-blue-500/10">
+              <Card className="bg-white/80 border-none shadow-md rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Active Subscriptions</CardTitle>
+                  <CardTitle className="text-lg font-bold text-black">Active</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl text-blue-400">{subAnalytics.activeSubs}</p>
+                  <p className="text-2xl text-black">{subAnalytics.activeSubs}</p>
                 </CardContent>
               </Card>
-              <Card className="bg-zinc-900/80 backdrop-blur-md border-zinc-800 shadow-lg shadow-blue-500/10">
+              <Card className="bg-white/80 border-none shadow-md rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Churn Rate</CardTitle>
+                  <CardTitle className="text-lg font-bold text-black">Churn</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl text-blue-400">{subAnalytics.churnRate}%</p>
+                  <p className="text-2xl text-black">{subAnalytics.churnRate}%</p>
                 </CardContent>
               </Card>
-              <Card className="bg-zinc-900/80 backdrop-blur-md border-zinc-800 shadow-lg shadow-blue-500/10">
+              <Card className="bg-white/80 border-none shadow-md rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Status Distribution</CardTitle>
+                  <CardTitle className="text-lg font-bold text-black">Distribution</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Pie
@@ -511,15 +514,15 @@ export default function DashboardHome() {
                       labels: Object.keys(subAnalytics.statusCounts),
                       datasets: [{
                         data: Object.values(subAnalytics.statusCounts),
-                        backgroundColor: ['rgba(59, 130, 246, 0.5)', 'rgba(255, 99, 132, 0.5)', 'rgba(255, 255, 255, 0.2)'],
-                        borderColor: ['rgba(59, 130, 246, 1)', 'rgba(255, 99, 132, 1)', 'rgba(255, 255, 255, 0.8)'],
+                        backgroundColor: ['rgba(54, 162, 235, 0.5)', 'rgba(255, 99, 132, 0.5)', 'rgba(255, 206, 86, 0.5)'],
+                        borderColor: ['rgba(54, 162, 235, 1)', 'rgba(255, 99, 132, 1)', 'rgba(255, 206, 86, 1)'],
                         borderWidth: 1,
                       }],
                     }}
                     options={{
                       responsive: true,
                       plugins: {
-                        legend: { position: 'bottom' as const, labels: { color: '#E4E4E7' } },
+                        legend: { position: 'bottom' as const, labels: { color: '#000000' } },
                       },
                     }}
                   />
@@ -529,44 +532,46 @@ export default function DashboardHome() {
             <div className="flex justify-end mb-4">
               <Button
                 onClick={() => exportToCSV('subscriptions')}
-                className="bg-gradient-to-r from-zinc-800 to-zinc-900 text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-600 transition-all duration-300 shadow-md shadow-blue-500/20"
+                className="bg-gradient-to-r from-gray-800 to-gray-900 text-white hover:from-gray-700 hover:to-gray-800 transition-all duration-300 shadow-md rounded-xl"
               >
-                <Download className="mr-2 h-4 w-4" /> Export to CSV
+                <Download className="mr-2 h-4 w-4" /> Export
               </Button>
             </div>
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gradient-to-r from-zinc-800 to-zinc-900 border-b border-zinc-700 hover:bg-zinc-700/50 transition-colors">
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">ID</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">User ID</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Plan ID</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Status</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Period Start</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Period End</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Created At</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {subscriptions.map((sub) => (
-                  <TableRow key={sub.id} className="border-b border-zinc-800 hover:bg-zinc-800/50 transition-colors">
-                    <TableCell className="text-zinc-200">{sub.id}</TableCell>
-                    <TableCell className="text-zinc-200">{sub.user_id}</TableCell>
-                    <TableCell className="text-zinc-200">{sub.plan_id}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={sub.status === 'active' ? 'default' : 'secondary'}
-                        className={sub.status === 'active' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white' : 'bg-zinc-600 text-zinc-200'}
-                      >
-                        {sub.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-zinc-200">{new Date(sub.current_period_start).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-zinc-200">{new Date(sub.current_period_end).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-zinc-200">{new Date(sub.created_at).toLocaleDateString()}</TableCell>
+            <div className="overflow-x-auto">
+              <Table className="bg-white/80 rounded-xl">
+                <TableHeader>
+                  <TableRow className="bg-gradient-to-r from-gray-100 to-gray-200 border-b border-gray-300 hover:bg-gray-100 transition-colors duration-200">
+                    <TableHead className="font-semibold text-black">ID</TableHead>
+                    <TableHead className="font-semibold text-black">User</TableHead>
+                    <TableHead className="font-semibold text-black">Plan</TableHead>
+                    <TableHead className="font-semibold text-black">Status</TableHead>
+                    <TableHead className="font-semibold text-black">Start</TableHead>
+                    <TableHead className="font-semibold text-black">End</TableHead>
+                    <TableHead className="font-semibold text-black">Created</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {subscriptions.map((sub) => (
+                    <TableRow key={sub.id} className="border-b border-gray-300 hover:bg-gray-50 transition-colors duration-200">
+                      <TableCell className="text-black">{sub.id}</TableCell>
+                      <TableCell className="text-black">{sub.user_id}</TableCell>
+                      <TableCell className="text-black">{sub.plan_id}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={sub.status === 'active' ? 'default' : 'secondary'}
+                          className={sub.status === 'active' ? 'bg-gradient-to-r from-green-600 to-green-700 text-white' : 'bg-gray-200 text-gray-800'}
+                        >
+                          {sub.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-black">{new Date(sub.current_period_start).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-black">{new Date(sub.current_period_end).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-black">{new Date(sub.created_at).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </>
         );
       case 'survey-responses':
@@ -578,16 +583,14 @@ export default function DashboardHome() {
               transition={{ duration: 0.5 }}
               className="mb-8"
             >
-              <Card className="bg-zinc-900/80 backdrop-blur-md border-zinc-800 shadow-lg shadow-blue-500/10">
+              <Card className="bg-white/80 border-none shadow-md rounded-2xl">
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">
-                    Survey Analytics
-                  </CardTitle>
+                  <CardTitle className="text-lg font-bold text-black">Survey Analytics</CardTitle>
                   <Select value={surveyGranularity} onValueChange={(value: 'daily' | 'weekly' | 'monthly') => setSurveyGranularity(value)}>
-                    <SelectTrigger className="w-[120px] bg-zinc-800 border-zinc-700 text-zinc-200">
+                    <SelectTrigger className="w-[120px] bg-gray-100 border-gray-300 text-black rounded-xl">
                       <SelectValue placeholder="Granularity" />
                     </SelectTrigger>
-                    <SelectContent className="bg-zinc-800 border-zinc-700 text-zinc-200">
+                    <SelectContent className="bg-gray-100 border-gray-300 text-black rounded-xl">
                       <SelectItem value="daily">Daily</SelectItem>
                       <SelectItem value="weekly">Weekly</SelectItem>
                       <SelectItem value="monthly">Monthly</SelectItem>
@@ -598,7 +601,7 @@ export default function DashboardHome() {
                   {surveyResponses.length > 0 ? (
                     <Chart type="bar" data={getSurveyChartData()} options={chartOptions} />
                   ) : (
-                    <div className="text-center text-zinc-400">No survey data available</div>
+                    <div className="text-center text-gray-600">No survey data available</div>
                   )}
                 </CardContent>
               </Card>
@@ -606,35 +609,37 @@ export default function DashboardHome() {
             <div className="flex justify-end mb-4">
               <Button
                 onClick={() => exportToCSV('survey-responses')}
-                className="bg-gradient-to-r from-zinc-800 to-zinc-900 text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-600 transition-all duration-300 shadow-md shadow-blue-500/20"
+                className="bg-gradient-to-r from-gray-800 to-gray-900 text-white hover:from-gray-700 hover:to-gray-800 transition-all duration-300 shadow-md rounded-xl"
               >
-                <Download className="mr-2 h-4 w-4" /> Export to CSV
+                <Download className="mr-2 h-4 w-4" /> Export
               </Button>
             </div>
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gradient-to-r from-zinc-800 to-zinc-900 border-b border-zinc-700 hover:bg-zinc-700/50 transition-colors">
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">ID</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">User ID</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Satisfaction</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">NPS</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Issue</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Created At</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {surveyResponses.map((response) => (
-                  <TableRow key={response.id} className="border-b border-zinc-800 hover:bg-zinc-800/50 transition-colors">
-                    <TableCell className="text-zinc-200">{response.id}</TableCell>
-                    <TableCell className="text-zinc-200">{response.user_id || response.anonymous_user_id}</TableCell>
-                    <TableCell className="text-zinc-200">{response.satisfaction}</TableCell>
-                    <TableCell className="text-zinc-200">{response.nps}</TableCell>
-                    <TableCell className="text-zinc-200">{response.issue}</TableCell>
-                    <TableCell className="text-zinc-200">{new Date(response.created_at).toLocaleDateString()}</TableCell>
+            <div className="overflow-x-auto">
+              <Table className="bg-white/80 rounded-xl">
+                <TableHeader>
+                  <TableRow className="bg-gradient-to-r from-gray-100 to-gray-200 border-b border-gray-300 hover:bg-gray-100 transition-colors duration-200">
+                    <TableHead className="font-semibold text-black">ID</TableHead>
+                    <TableHead className="font-semibold text-black">User</TableHead>
+                    <TableHead className="font-semibold text-black">Satisfaction</TableHead>
+                    <TableHead className="font-semibold text-black">NPS</TableHead>
+                    <TableHead className="font-semibold text-black">Issue</TableHead>
+                    <TableHead className="font-semibold text-black">Created</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {surveyResponses.map((response) => (
+                    <TableRow key={response.id} className="border-b border-gray-300 hover:bg-gray-50 transition-colors duration-200">
+                      <TableCell className="text-black">{response.id}</TableCell>
+                      <TableCell className="text-black">{response.user_id || response.anonymous_user_id}</TableCell>
+                      <TableCell className="text-black">{response.satisfaction}</TableCell>
+                      <TableCell className="text-black">{response.nps}</TableCell>
+                      <TableCell className="text-black">{response.issue}</TableCell>
+                      <TableCell className="text-black">{new Date(response.created_at).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </>
         );
       case 'transactions':
@@ -647,25 +652,25 @@ export default function DashboardHome() {
               transition={{ duration: 0.5 }}
               className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4"
             >
-              <Card className="bg-zinc-900/80 backdrop-blur-md border-zinc-800 shadow-lg shadow-blue-500/10">
+              <Card className="bg-white/80 border-none shadow-md rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Total Revenue</CardTitle>
+                  <CardTitle className="text-lg font-bold text-black">Revenue</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl text-blue-400">${(txAnalytics.totalRevenue / 100).toFixed(2)}</p>
+                  <p className="text-2xl text-black">${(txAnalytics.totalRevenue / 100).toFixed(2)}</p>
                 </CardContent>
               </Card>
-              <Card className="bg-zinc-900/80 backdrop-blur-md border-zinc-800 shadow-lg shadow-blue-500/10">
+              <Card className="bg-white/80 border-none shadow-md rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Successful Transactions</CardTitle>
+                  <CardTitle className="text-lg font-bold text-black">Successful</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl text-blue-400">{txAnalytics.successfulTx}</p>
+                  <p className="text-2xl text-black">{txAnalytics.successfulTx}</p>
                 </CardContent>
               </Card>
-              <Card className="bg-zinc-900/80 backdrop-blur-md border-zinc-800 shadow-lg shadow-blue-500/10">
+              <Card className="bg-white/80 border-none shadow-md rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Revenue Trend</CardTitle>
+                  <CardTitle className="text-lg font-bold text-black">Trend</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Chart
@@ -675,8 +680,8 @@ export default function DashboardHome() {
                       datasets: [{
                         label: 'Revenue',
                         data: txAnalytics.trendData,
-                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                        borderColor: 'rgba(59, 130, 246, 1)',
+                        backgroundColor: 'rgba(153, 102, 255, 0.5)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
                         borderWidth: 1,
                       }],
                     }}
@@ -693,44 +698,46 @@ export default function DashboardHome() {
             <div className="flex justify-end mb-4">
               <Button
                 onClick={() => exportToCSV('transactions')}
-                className="bg-gradient-to-r from-zinc-800 to-zinc-900 text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-600 transition-all duration-300 shadow-md shadow-blue-500/20"
+                className="bg-gradient-to-r from-gray-800 to-gray-900 text-white hover:from-gray-700 hover:to-gray-800 transition-all duration-300 shadow-md rounded-xl"
               >
-                <Download className="mr-2 h-4 w-4" /> Export to CSV
+                <Download className="mr-2 h-4 w-4" /> Export
               </Button>
             </div>
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gradient-to-r from-zinc-800 to-zinc-900 border-b border-zinc-700 hover:bg-zinc-700/50 transition-colors">
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">ID</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">User ID</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Amount</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Currency</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Status</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Description</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Created At</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {transactions.map((transaction) => (
-                  <TableRow key={transaction.id} className="border-b border-zinc-800 hover:bg-zinc-800/50 transition-colors">
-                    <TableCell className="text-zinc-200">{transaction.id}</TableCell>
-                    <TableCell className="text-zinc-200">{transaction.user_id}</TableCell>
-                    <TableCell className="text-zinc-200">{transaction.amount}</TableCell>
-                    <TableCell className="text-zinc-200">{transaction.currency}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={transaction.status === 'succeeded' ? 'default' : 'secondary'}
-                        className={transaction.status === 'succeeded' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white' : 'bg-zinc-600 text-zinc-200'}
-                      >
-                        {transaction.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-zinc-200">{transaction.description}</TableCell>
-                    <TableCell className="text-zinc-200">{new Date(transaction.created_at).toLocaleDateString()}</TableCell>
+            <div className="overflow-x-auto">
+              <Table className="bg-white/80 rounded-xl">
+                <TableHeader>
+                  <TableRow className="bg-gradient-to-r from-gray-100 to-gray-200 border-b border-gray-300 hover:bg-gray-100 transition-colors duration-200">
+                    <TableHead className="font-semibold text-black">ID</TableHead>
+                    <TableHead className="font-semibold text-black">User</TableHead>
+                    <TableHead className="font-semibold text-black">Amount</TableHead>
+                    <TableHead className="font-semibold text-black">Currency</TableHead>
+                    <TableHead className="font-semibold text-black">Status</TableHead>
+                    <TableHead className="font-semibold text-black">Description</TableHead>
+                    <TableHead className="font-semibold text-black">Created</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {transactions.map((transaction) => (
+                    <TableRow key={transaction.id} className="border-b border-gray-300 hover:bg-gray-50 transition-colors duration-200">
+                      <TableCell className="text-black">{transaction.id}</TableCell>
+                      <TableCell className="text-black">{transaction.user_id}</TableCell>
+                      <TableCell className="text-black">{transaction.amount}</TableCell>
+                      <TableCell className="text-black">{transaction.currency}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={transaction.status === 'succeeded' ? 'default' : 'secondary'}
+                          className={transaction.status === 'succeeded' ? 'bg-gradient-to-r from-green-600 to-green-700 text-white' : 'bg-gray-200 text-gray-800'}
+                        >
+                          {transaction.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-black">{transaction.description}</TableCell>
+                      <TableCell className="text-black">{new Date(transaction.created_at).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </>
         );
       case 'users':
@@ -743,25 +750,25 @@ export default function DashboardHome() {
               transition={{ duration: 0.5 }}
               className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4"
             >
-              <Card className="bg-zinc-900/80 backdrop-blur-md border-zinc-800 shadow-lg shadow-blue-500/10">
+              <Card className="bg-white/80 border-none shadow-md rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Total Users</CardTitle>
+                  <CardTitle className="text-lg font-bold text-black">Total Users</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl text-blue-400">{userAnalytics.totalUsers}</p>
+                  <p className="text-2xl text-black">{userAnalytics.totalUsers}</p>
                 </CardContent>
               </Card>
-              <Card className="bg-zinc-900/80 backdrop-blur-md border-zinc-800 shadow-lg shadow-blue-500/10">
+              <Card className="bg-white/80 border-none shadow-md rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">New Users (30d)</CardTitle>
+                  <CardTitle className="text-lg font-bold text-black">New Users</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl text-blue-400">{userAnalytics.newUsers}</p>
+                  <p className="text-2xl text-black">{userAnalytics.newUsers}</p>
                 </CardContent>
               </Card>
-              <Card className="bg-zinc-900/80 backdrop-blur-md border-zinc-800 shadow-lg shadow-blue-500/10">
+              <Card className="bg-white/80 border-none shadow-md rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-lg font-bold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">User Growth</CardTitle>
+                  <CardTitle className="text-lg font-bold text-black">Growth</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Chart
@@ -771,8 +778,8 @@ export default function DashboardHome() {
                       datasets: [{
                         label: 'Users',
                         data: userAnalytics.trendData,
-                        borderColor: 'rgba(59, 130, 246, 1)',
-                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.2)',
                         fill: true,
                         tension: 0.4,
                       }],
@@ -790,35 +797,37 @@ export default function DashboardHome() {
             <div className="flex justify-end mb-4">
               <Button
                 onClick={() => exportToCSV('users')}
-                className="bg-gradient-to-r from-zinc-800 to-zinc-900 text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-600 transition-all duration-300 shadow-md shadow-blue-500/20"
+                className="bg-gradient-to-r from-gray-800 to-gray-900 text-white hover:from-gray-700 hover:to-gray-800 transition-all duration-300 shadow-md rounded-xl"
               >
-                <Download className="mr-2 h-4 w-4" /> Export to CSV
+                <Download className="mr-2 h-4 w-4" /> Export
               </Button>
             </div>
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gradient-to-r from-zinc-800 to-zinc-900 border-b border-zinc-700 hover:bg-zinc-700/50 transition-colors">
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">ID</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Full Name</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Email</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Stripe Customer ID</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">BTC Address</TableHead>
-                  <TableHead className="font-semibold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">Created At</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id} className="border-b border-zinc-800 hover:bg-zinc-800/50 transition-colors">
-                    <TableCell className="text-zinc-200">{user.id}</TableCell>
-                    <TableCell className="text-zinc-200">{user.full_name}</TableCell>
-                    <TableCell className="text-zinc-200">{user.email}</TableCell>
-                    <TableCell className="text-zinc-200">{user.stripe_customer_id}</TableCell>
-                    <TableCell className="text-zinc-200">{user.btc_address}</TableCell>
-                    <TableCell className="text-zinc-200">{new Date(user.created_at).toLocaleDateString()}</TableCell>
+            <div className="overflow-x-auto">
+              <Table className="bg-white/80 rounded-xl">
+                <TableHeader>
+                  <TableRow className="bg-gradient-to-r from-gray-100 to-gray-200 border-b border-gray-300 hover:bg-gray-100 transition-colors duration-200">
+                    <TableHead className="font-semibold text-black">ID</TableHead>
+                    <TableHead className="font-semibold text-black">Name</TableHead>
+                    <TableHead className="font-semibold text-black">Email</TableHead>
+                    <TableHead className="font-semibold text-black">Stripe</TableHead>
+                    <TableHead className="font-semibold text-black">BTC</TableHead>
+                    <TableHead className="font-semibold text-black">Created</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {users.map((user) => (
+                    <TableRow key={user.id} className="border-b border-gray-300 hover:bg-gray-50 transition-colors duration-200">
+                      <TableCell className="text-black">{user.id}</TableCell>
+                      <TableCell className="text-black">{user.full_name}</TableCell>
+                      <TableCell className="text-black">{user.email}</TableCell>
+                      <TableCell className="text-black">{user.stripe_customer_id}</TableCell>
+                      <TableCell className="text-black">{user.btc_address}</TableCell>
+                      <TableCell className="text-black">{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </>
         );
       default:
@@ -827,26 +836,32 @@ export default function DashboardHome() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-black to-zinc-950">
+    <div className="flex flex-col min-h-screen bg-black">
       <Header />
-      <div className="flex flex-1 pt-16">
-        <AdmSidebar isOpen={isSidebarOpen} activeSection={activeSection} setActiveSection={setActiveSection} />
-        <div className={`flex-1 p-8 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <div className="flex flex-1 sm:pt-16 pt-16">
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-1000 md:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          ></div>
+        )}
+        <AdmSidebar isOpen={isSidebarOpen} activeSection={activeSection} setActiveSection={handleSectionChange} setIsSidebarOpen={setIsSidebarOpen} />
+        <div className="flex-1 p-4 md:p-6">
           <button
             onClick={toggleSidebar}
-            className="mb-4 p-2 rounded-lg bg-gradient-to-r from-zinc-800 to-zinc-900 text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-600 transition-all duration-300 shadow-md shadow-blue-500/20"
+            className="mb-4 p-2 rounded-lg bg-gradient-to-r from-gray-800 to-gray-900 text-white hover:from-gray-700 hover:to-gray-800 transition-all duration-300 shadow-md"
           >
             {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
-          <Card className="bg-zinc-900/80 backdrop-blur-md border-zinc-800 shadow-lg shadow-blue-500/10">
+          <Card className="bg-white/80 border-none shadow-lg rounded-2xl">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-white to-zinc-200 bg-clip-text text-transparent">
+              <CardTitle className="text-2xl font-bold text-black">
                 {activeSection.charAt(0).toUpperCase() + activeSection.replace('-', ' ').slice(1)}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="text-center text-zinc-400 animate-pulse">Loading...</div>
+                <div className="text-center text-gray-600 animate-pulse">Loading...</div>
               ) : (
                 renderTable()
               )}

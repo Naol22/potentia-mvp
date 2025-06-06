@@ -2,16 +2,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button"; // Assuming ShadCN Button component
-// import emailjs from 'emailjs-com';
-// import dynamic from "next/dynamic";
-
-// Dynamically import MapContainer, TileLayer, and Marker with SSR disabled
-// const MapContainer = dynamic(() => import("react-leaflet").then((mod) => mod.MapContainer), { ssr: false });
-// const TileLayer = dynamic(() => import("react-leaflet").then((mod) => mod.TileLayer), { ssr: false });
-// const Marker = dynamic(() => import("react-leaflet").then((mod) => mod.Marker), { ssr: false });
-
-// Import Leaflet CSS statically (this is fine)
-import "leaflet/dist/leaflet.css";
+import emailjs from 'emailjs-com';
 
 const ContactUs: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -22,7 +13,7 @@ const ContactUs: React.FC = () => {
   const [formStatus, setFormStatus] = useState({
     isSubmitting: false,
     isSuccess: false,
-    error: null,
+    error: null as string | null,
   });
 
   // Animation variants
@@ -49,8 +40,12 @@ const ContactUs: React.FC = () => {
     setFormStatus({ isSubmitting: true, isSuccess: false, error: null });
 
     // EmailJS configuration - replace with your actual credentials
-    /*
-    emailjs.sendForm('service_m8bok1s', 'YOUR_TEMPLATE_ID', e.target, 'YOUR_USER_ID')
+    emailjs.sendForm(
+      'service_zx5mouj', // Replace with your EmailJS Service ID (e.g., 'godaddy_smtp')
+      'template_7lry46r', // Replace with your EmailJS Template ID (e.g., 'template_abc123')
+      e.target as HTMLFormElement,
+      'HBAMpdkFZg0PpOzar' // Replace with your EmailJS User ID (e.g., 'user_xyz789')
+    )
       .then((result) => {
         console.log(result.text);
         setFormStatus({ isSubmitting: false, isSuccess: true, error: null });
@@ -60,23 +55,16 @@ const ContactUs: React.FC = () => {
         setFormStatus({
           isSubmitting: false,
           isSuccess: false,
-          error: error.text || "An error occurred",
+          error: error.text || "An error occurred while sending the email",
         });
       });
-    */
-
-    // Temporary simulation for testing
-    setTimeout(() => {
-      setFormStatus({ isSubmitting: false, isSuccess: true, error: null });
-      setFormData({ name: "", email: "", message: "" });
-    }, 1000);
   };
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-40 bg-zinc-900/20 backdrop-blur-xl overflow-hidden">
       {/* Gradient Overlay with Subtle Noise */}
       <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/60 via-zinc-900/40 to-zinc-800/80 pointer-events-none" />
-      <div className="absolute inset-0 opacity-10"  />
+      <div className="absolute inset-0 opacity-10" />
 
       {/* Main Content */}
       <motion.div
@@ -177,23 +165,9 @@ const ContactUs: React.FC = () => {
             <div className="bg-zinc-900 rounded-xl p-6 md:p-8 shadow-lg border border-zinc-800">
               <h2 className="text-2xl font-semibold text-white mb-4">Contact Information</h2>
               <p className="text-zinc-300 text-base leading-relaxed">
-                <strong>Email:</strong>info@potentia.digital<br />
+                <strong>Email:</strong> info@potentia.digital<br />
               </p>
             </div>
-            {/* <div className="bg-zinc-900 rounded-xl p-2 md:p-4 shadow-lg border border-zinc-800 h-64">
-              <MapContainer
-                center={[32.7767, -96.7970]} // Dallas, TX coordinates
-                zoom={13}
-                style={{ height: "100%", width: "100%", borderRadius: "0.75rem" }}
-                className="rounded-lg"
-              >
-                <TileLayer
-                  url="https://stamen-tiles.a.ssl.fastly.net/toner-background/{z}/{x}/{y}.png"
-                  className="invert"
-                />
-                <Marker position={[32.7767, -96.7970]} />
-              </MapContainer>
-            </div> */}
           </motion.div>
         </div>
       </motion.div>

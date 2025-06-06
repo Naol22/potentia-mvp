@@ -61,29 +61,23 @@ export default function FooterSection() {
             </FooterColumn>
 
             {/* Contact Section */}
-            {/* <FooterColumn>
+            <FooterColumn>
               <h3 className="text-lg font-semibold text-white mb-4">Contact</h3>
               <div className="flex flex-col gap-3">
                 <Link
-                  href="mailto:support@potentia.com"
+                  href="mailto:info@potentia.digital"
                   className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
                 >
                   Email Us
                 </Link>
                 <Link
-                  href="tel:+1234567890"
-                  className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
-                >
-                  Call Us
-                </Link>
-                <Link
                   href="/contact"
                   className="text-sm text-zinc-400 hover:text-white transition-colors duration-200"
                 >
-                  Contact Form
+                  Contact Us
                 </Link>
               </div>
-            </FooterColumn> */}
+            </FooterColumn>
 
             {/* Social Media Section */}
             {/* <FooterColumn>
@@ -166,3 +160,4 @@ export default function FooterSection() {
     </footer>
   );
 }
+

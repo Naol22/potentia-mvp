@@ -129,7 +129,7 @@ export function TransactionsTable() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Payout History</CardTitle>
+        <CardTitle>Transaction History</CardTitle>
         <CardDescription>A list of all pay outs.</CardDescription>
       </CardHeader>
       <CardContent>

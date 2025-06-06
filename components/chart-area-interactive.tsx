@@ -56,7 +56,7 @@ export function ChartAreaInteractive() {
   return (
     <Card className="@container/card">
       <CardHeader className="relative">
-        <CardTitle>Transaction History</CardTitle>
+        <CardTitle>Payout History</CardTitle>
         <div className="absolute right-4 top-4">
           <ToggleGroup
             type="single"

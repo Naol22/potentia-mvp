@@ -241,7 +241,7 @@ export default function MiningJourneyModel() {
   {/* Start Now Button */}
   <motion.a
     href="/product"
-    className="inline-block mt-10 px-6 py-3 bg-white text-black font-semibold rounded-lg shadow-md hover:bg-gray-200 transition duration-300"
+    className="inline-block mt-10 px-20 py-5 bg-white text-black font-semibold rounded-lg shadow-md hover:bg-gray-200 transition duration-300"
     whileHover={{ scale: 1.20 }}
     whileTap={{ scale: 0.95 }}
   >

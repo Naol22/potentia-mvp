@@ -168,7 +168,7 @@ const HashrateTab = () => {
                 >
                   {plans.map((plan) => (
                     <option key={plan.id} value={plan.hashrate}>
-                      {plan.hashrate} TH/s - ${plan.price}/month
+                      {plan.hashrate} TH/s
                     </option>
                   ))}
                 </motion.select>

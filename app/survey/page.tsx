@@ -1,13 +1,13 @@
 'use client';
 
 import Image from 'next/image';
-import { motion, useScroll, useTransform, useAnimation, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { CheckCircleIcon, PinIcon, CheckIcon, XIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useState, useEffect } from 'react';
 
-// Define survey questions without Amharic labels
+// Define survey questions
 const questions = [
   { id: 'satisfaction', type: 'rating', label: 'Rate your satisfaction' },
   { id: 'completed', type: 'boolean', label: 'Did you complete your task?' },
@@ -65,44 +65,11 @@ const GlowingOrb = ({ left, delay }: { left: string; delay: number }) => {
   );
 };
 
-// Ball Trail component for afterimage effect
-const BallTrail = ({ x, y }: { x: number; y: number }) => {
-  return (
-    <motion.div
-      className={`absolute w-20 h-20 rounded-full opacity-20 bg-gradient-to-b from-white to-black animate-gradient-shift`}
-      style={{ top: y, right: x }}
-      initial={{ scale: 1, opacity: 0.2 }}
-      animate={{ scale: 0, opacity: 0 }}
-      transition={{ duration: 0.5 }}
-    />
-  );
-};
-
-// Burst Particle component for click/tap effect
-const BurstParticle = ({ angle, distance }: { angle: number; distance: number }) => {
-  const x = Math.cos(angle) * distance;
-  const y = Math.sin(angle) * distance;
-  return (
-    <motion.div
-      className={`absolute w-4 h-4 rounded-full opacity-80 bg-gradient-to-b from-white to-black animate-gradient-shift`}
-      initial={{ x: 0, y: 0, scale: 1, opacity: 0.8 }}
-      animate={{ x, y, scale: 0, opacity: 0 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
-    />
-  );
-};
-
 const Hero = (): React.ReactElement => {
   const { scrollYProgress } = useScroll();
-  const ball1Y = useTransform(scrollYProgress, [0, 1], [-150, 150]);
-  const ball1X = useTransform(scrollYProgress, [0, 1], [-50, 50]);
-  const ball2Y = useTransform(scrollYProgress, [0, 1], [150, -150]);
-  const ball2X = useTransform(scrollYProgress, [0, 1], [50, -50]);
   const imageScale = useTransform(scrollYProgress, [0, 1], [1, 1.05]);
-  const lineStretch = useTransform(scrollYProgress, [0, 1], [1, 1.2]);
   const [showOrbs, setShowOrbs] = useState(false);
   const [ripple, setRipple] = useState(false);
-  const [burst, setBurst] = useState<{ ball: number; x: number; y: number }[]>([]);
   const [showSurvey, setShowSurvey] = useState(false);
   const [step, setStep] = useState(0);
   const [responses, setResponses] = useState<{ [key: string]: number | boolean | string | null }>({});
@@ -110,9 +77,6 @@ const Hero = (): React.ReactElement => {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const ball1Controls = useAnimation();
-  const ball2Controls = useAnimation();
-  const lineControls = useAnimation();
 
   // Refresh page after 30 seconds when submitted
   useEffect(() => {
@@ -170,73 +134,6 @@ const Hero = (): React.ReactElement => {
     }
   };
 
-  // Animation variants for balls
-  const ballVariants = {
-    default: {
-      x: [0, 10, -10, 0],
-      y: [0, 5, -5, 0],
-      rotate: [0, 360],
-      transition: { duration: 6, repeat: Infinity, ease: 'easeInOut' },
-    },
-    ripple: {
-      scale: [1, 1.15, 1],
-      transition: { duration: 0.5, repeat: 1 },
-    },
-    touched: {
-      scale: 1.3,
-      background: 'rgba(255, 255, 255, 0.9)',
-      transition: { type: 'spring', stiffness: 300, damping: 20, mass: 1 },
-    },
-  };
-
-  // Jitter and orbit animation for balls
-  useEffect(() => {
-    ball1Controls.start(ballVariants.default);
-    ball2Controls.start({
-      ...ballVariants.default,
-      x: [0, -10, 10, 0],
-      y: [0, -5, 5, 0],
-      rotate: [-360, 0],
-    });
-  }, [ball1Controls, ball2Controls]);
-
-  // Handle ripple effect
-  useEffect(() => {
-    if (ripple) {
-      ball1Controls.start(ballVariants.ripple);
-      ball2Controls.start(ballVariants.ripple);
-      lineControls.start({
-        strokeOpacity: [1, 0.5, 1],
-        pathLength: [1, 1.2, 1],
-        transition: { duration: 0.5, repeat: 1 },
-      });
-      setTimeout(() => setRipple(false), 1000);
-    }
-  }, [ripple, ball1Controls, ball2Controls, lineControls]);
-
-  // Handle ball touch/click
-  const handleBallTouch = (ballId: number, e: React.MouseEvent | React.TouchEvent) => {
-    const { clientX, clientY } = 'touches' in e ? e.touches[0] : e;
-    setBurst((prev) => [...prev, { ball: ballId, x: clientX, y: clientY }]);
-    if (ballId === 1) {
-      ball1Controls.start(ballVariants.touched).then(() => {
-        ball1Controls.start(ballVariants.default);
-      });
-    } else {
-      ball2Controls.start(ballVariants.touched).then(() => {
-        ball2Controls.start(ballVariants.default);
-      });
-    }
-    lineControls.start({
-      d: [
-        `M calc(100% - 10rem - 5rem) 10rem Q calc(100% - 15rem) calc(50% - 5rem) calc(100% - 20rem - 5rem) calc(100% - 10rem)`,
-        `M calc(100% - 10rem - 5rem) 10rem Q calc(100% - 18rem) calc(50% - 8rem) calc(100% - 20rem - 5rem) calc(100% - 10rem)`,
-        `M calc(100% - 10rem - 5rem) 10rem Q calc(100% - 15rem) calc(50% - 5rem) calc(100% - 20rem - 5rem) calc(100% - 10rem)`,
-      ],
-      transition: { duration: 0.4, repeat: 1 },
-    });
-  };
-
   const currentQuestion = questions[step];
   const isLastQuestion = step === questions.length - 1;
 
@@ -245,7 +142,7 @@ const Hero = (): React.ReactElement => {
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
-      className={`relative min-h-screen flex flex-col md:flex-row items-center justify-center md:justify-between px-8 py-12 mt-58 overflow-hidden transition-all duration-500 ease-out bg-gradient-to-br from-zinc-950 to-zinc-900`}
+      className={`relative min-h-screen flex flex-col items-center justify-center px-8 py-12 overflow-hidden transition-all duration-500 ease-out bg-gradient-to-br from-zinc-950 via-zinc-900 to-black`}
       style={{ fontFamily: 'Poppins, sans-serif' }}
     >
       {/* Background Particles */}
@@ -253,12 +150,12 @@ const Hero = (): React.ReactElement => {
         <Particle key={i} left={`${5 + i * 3.5}%`} delay={i * 0.15} />
       ))}
 
-      {/* Left Section - Text Content or Survey Card */}
+      {/* Main Content */}
       <AnimatePresence mode="wait">
         {!showSurvey ? (
           <motion.div
             key="text-content"
-            className={`flex flex-col space-y-6 max-w-lg w-full md:w-auto p-8 rounded-2xl border shadow-[0_10px_30px_rgba(0,0,0,0.1)] bg-zinc-900/30 border-zinc-700/50 backdrop-blur-md`}
+            className={`flex flex-col space-y-6 max-w-lg w-full p-8 rounded-2xl border shadow-[0_10px_30px_rgba(0,0,0,0.1)] bg-zinc-900/30 border-zinc-700/50 backdrop-blur-md mx-auto`}
             initial={{ opacity: 0, scale: 0.8, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: -50, filter: 'blur(10px)' }}
@@ -292,7 +189,7 @@ const Hero = (): React.ReactElement => {
               <CheckCircleIcon className={`w-12 h-12 mb-4 text-white`} />
             </div>
             <motion.h1
-              className={`text-5xl font-bold text-center md:text-left text-transparent bg-clip-text bg-gradient-to-r from-white to-black`}
+              className={`text-5xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-white to-black`}
               initial={{ y: -50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
@@ -300,7 +197,7 @@ const Hero = (): React.ReactElement => {
               How was your onboarding?
             </motion.h1>
             <motion.p
-              className={`text-lg text-center md:text-left text-zinc-300`}
+              className={`text-lg text-center text-zinc-300`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.4 }}
@@ -313,9 +210,9 @@ const Hero = (): React.ReactElement => {
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.6 }}
-              whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(255,255,255,0.5)' }}
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`font-medium py-3 px-8 rounded-xl w-48 mx-auto md:mx-0 transition shadow-[0_0_10px_rgba(255,255,255,0.5)] bg-gradient-to-r from-white to-black text-black hover:from-white hover:to-gray-800 animate-gradient-shift`}
+              className={`font-medium py-3 px-8 rounded-xl w-48 mx-auto transition bg-gradient-to-r from-white to-black text-black hover:from-gray-200 hover:to-gray-800 animate-gradient-shift`}
               onClick={() => {
                 setShowOrbs(true);
                 setRipple(true);
@@ -328,14 +225,14 @@ const Hero = (): React.ReactElement => {
         ) : (
           <motion.div
             key="survey-card"
-            className={`max-w-lg w-full md:w-auto z-10`}
+            className={`max-w-lg w-full z-10 mx-auto`}
             initial={{ opacity: 0, scale: 0.8, y: 50, filter: 'blur(10px)' }}
             animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
             exit={{ opacity: 0, scale: 0.8, y: -50 }}
             transition={{ duration: 0.7, ease: 'easeInOut' }}
           >
             <Card
-              className={`p-12 rounded-3xl backdrop-blur-md border shadow-[0_10px_30px_rgba(0,0,0,0.1)] relative overflow-hidden text-white bg-zinc-900/30 border-zinc-700/50`}
+              className={`p-10 mt-7 rounded-3xl backdrop-blur-md border shadow-[0_10px_30px_rgba(0,0,0,0.1)] relative overflow-hidden text-white bg-zinc-900/30 border-zinc-700/50 min-h-[400px]`}
               style={{ fontFamily: 'Poppins, sans-serif' }}
             >
               {/* Pin Icon Top Left */}
@@ -396,7 +293,7 @@ const Hero = (): React.ReactElement => {
 
                   {/* Header Section */}
                   <motion.div
-                    className="text-center mb-8"
+                    className="text-center mb-4" // reduced mb-8 to mb-4
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.7, delay: 0.1 }}
@@ -406,7 +303,7 @@ const Hero = (): React.ReactElement => {
                     >
                       Your Opinion Matters
                       <motion.span
-                        className="block mt-3 h-1 w-2/3 mx-auto rounded-full"
+                        className="block mt-2 h-1 w-2/3 mx-auto rounded-full" // reduced mt-3 to mt-2
                         style={{
                           background: 'linear-gradient(90deg, #ffffff, #000000)',
                           boxShadow: '0 2px 12px rgba(255,255,255,0.3)',
@@ -416,12 +313,12 @@ const Hero = (): React.ReactElement => {
                         transition={{ duration: 0.4, delay: 0.3, ease: 'easeOut' }}
                       />
                     </h1>
-                    <p className={`text-lg mt-3 text-zinc-300`}>Shape our services with your feedback.</p>
+                    <p className={`text-lg mt-2 text-zinc-300`}>Shape our services with your feedback.</p> {/* reduced mt-3 to mt-2 */}
                   </motion.div>
 
                   {/* Statistics Info Box */}
                   <motion.div
-                    className="p-4 rounded-lg mb-8"
+                    className="p-2 rounded-lg mb-4" // reduced p-4 to p-2 and mb-8 to mb-4
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
@@ -480,7 +377,7 @@ const Hero = (): React.ReactElement => {
                             return (
                               <motion.div
                                 key={i}
-                                whileHover={{ scale: 1.2, rotate: 5, boxShadow: '0 0 15px rgba(255,255,255,0.5)' }}
+                                whileHover={{ scale: 1.2 }}
                                 whileTap={{ scale: 0.9 }}
                                 transition={{ type: 'spring', stiffness: 400, damping: 10 }}
                               >
@@ -490,7 +387,7 @@ const Hero = (): React.ReactElement => {
                                     currentAnswer === value
                                       ? 'bg-gradient-to-r from-white to-black text-black animate-gradient-shift'
                                       : 'bg-zinc-800 text-white'
-                                  } hover:bg-gradient-to-r hover:from-white hover:to-gray-800`}
+                                  } hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-800 hover:text-black`}
                                 >
                                   {value}
                                 </Button>
@@ -507,7 +404,7 @@ const Hero = (): React.ReactElement => {
                           transition={{ duration: 0.6, delay: 0.3 }}
                         >
                           <motion.div
-                            whileHover={{ y: -10, scale: 1.1, boxShadow: '0 0 15px rgba(255,255,255,0.5)' }}
+                            whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             transition={{ type: 'spring', stiffness: 300 }}
                           >
@@ -517,14 +414,14 @@ const Hero = (): React.ReactElement => {
                                 currentAnswer === true
                                   ? 'bg-gradient-to-r from-white to-black text-black animate-gradient-shift'
                                   : 'bg-zinc-800 text-white'
-                              } hover:bg-gradient-to-r hover:from-white hover:to-gray-800`}
+                              } hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-800 hover:text-black`}
                               aria-label="Yes"
                             >
                               <CheckIcon className="mr-2 w-6 h-6" /> Yes
                             </Button>
                           </motion.div>
                           <motion.div
-                            whileHover={{ y: -10, scale: 1.1, boxShadow: '0 0 15px rgba(255,255,255,0.5)' }}
+                            whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             transition={{ type: 'spring', stiffness: 300 }}
                           >
@@ -534,7 +431,7 @@ const Hero = (): React.ReactElement => {
                                 currentAnswer === false
                                   ? 'bg-gradient-to-r from-white to-black text-black animate-gradient-shift'
                                   : 'bg-zinc-800 text-white'
-                              } hover:bg-gradient-to-r hover:from-white hover:to-gray-800`}
+                              } hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-800 hover:text-black`}
                               aria-label="No"
                             >
                               <XIcon className="mr-2 w-6 h-6" /> No
@@ -568,13 +465,13 @@ const Hero = (): React.ReactElement => {
                         transition={{ duration: 0.6, delay: 0.4 }}
                       >
                         <motion.div
-                          whileHover={{ scale: 1.05, boxShadow: '0 10px 20px rgba(255,255,255,0.4)' }}
+                          whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           transition={{ type: 'spring', stiffness: 500, damping: 20 }}
                         >
                           <Button
                             onClick={isLastQuestion ? handleSubmit : () => handleNext(currentAnswer)}
-                            className={`mt-8 w-full py-4 rounded-xl shadow-[0_0_15px_rgba(255,255,255,0.5)] transition-all duration-300 bg-gradient-to-r from-white to-black text-black hover:from-white hover:to-gray-800 animate-gradient-shift`}
+                            className={`mt-8 w-full py-4 rounded-xl transition-all duration-300 bg-gradient-to-r from-white to-black text-black hover:from-gray-200 hover:to-gray-800 animate-gradient-shift`}
                             disabled={
                               currentAnswer == null ||
                               (currentQuestion.type === 'text' && typeof currentAnswer === 'string' && currentAnswer.trim() === '')
@@ -599,7 +496,7 @@ const Hero = (): React.ReactElement => {
         whileInView={{ opacity: 1, scale: 1 }}
         whileHover={{ scale: 1.02 }}
         transition={{ duration: 1, delay: 0.5, type: 'spring' }}
-        className="relative w-full md:w-1/2 h-3/4 mt-8 md:mt-0"
+        className="relative w-full max-w-lg h-3/4 mt-8 mx-auto"
         style={{ transform: imageScale }}
       >
         <div className="absolute inset-0 flex items-center justify-center">
@@ -614,106 +511,6 @@ const Hero = (): React.ReactElement => {
           </div>
         </div>
       </motion.div>
-
-      {/* Decorative Circles with Enhanced Dynamics */}
-      <motion.div
-        variants={ballVariants}
-        animate={ball1Controls}
-        style={{ y: ball1Y, x: ball1X }}
-        initial={{ scale: 0 }}
-        whileInView={{ scale: 1 }}
-        whileHover={{ opacity: 0.8, boxShadow: '0 0 25px rgba(255,255,255,0.7)' }}
-        drag
-        dragConstraints={{ left: -50, right: 50, top: -50, bottom: 50 }}
-        dragElastic={0.5}
-        onClick={(e) => handleBallTouch(1, e)}
-        onTouchStart={(e) => handleBallTouch(1, e)}
-        className={`absolute top-10 right-10 w-40 h-40 rounded-full opacity-50 hidden md:block shadow-[0_0_15px_rgba(255,255,255,0.5)] cursor-pointer bg-gradient-to-br from-white to-black animate-gradient-shift`}
-      >
-        {/* Secondary Orbiting Ball */}
-        <motion.div
-          className={`absolute w-16 h-16 rounded-full opacity-70 bg-gradient-to-br from-white to-black animate-gradient-shift`}
-          animate={{
-            x: [0, 50, 0, -50, 0],
-            y: [0, 50, 0, -50, 0],
-            rotate: [0, 360],
-          }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <BallTrail x={90} y={50} />
-        {burst
-          .filter((b) => b.ball === 1)
-          .map((b, i) => (
-            <BurstParticle
-              key={`burst1-${i}`}
-              angle={(i / 8) * 2 * Math.PI}
-              distance={50}
-            />
-          ))}
-      </motion.div>
-      <motion.div
-        variants={ballVariants}
-        animate={ball2Controls}
-        style={{ y: ball2Y, x: ball2X }}
-        initial={{ scale: 0 }}
-        whileInView={{ scale: 1 }}
-        whileHover={{ opacity: 0.8, boxShadow: '0 0 25px rgba(255,255,255,0.7)' }}
-        drag
-        dragConstraints={{ left: -50, right: 50, top: -50, bottom: 50 }}
-        dragElastic={0.5}
-        onClick={(e) => handleBallTouch(2, e)}
-        onTouchStart={(e) => handleBallTouch(2, e)}
-        className={`absolute bottom-10 right-20 w-60 h-60 rounded-full opacity-50 hidden md:block shadow-[0_0_15px_rgba(255,255,255,0.5)] cursor-pointer bg-gradient-to-br from-white to-black animate-gradient-shift`}
-      >
-        <BallTrail x={100} y={100} />
-        {burst
-          .filter((b) => b.ball === 2)
-          .map((b, i) => (
-            <BurstParticle
-              key={`burst2-${i}`}
-              angle={(i / 8) * 2 * Math.PI}
-              distance={60}
-            />
-          ))}
-      </motion.div>
-
-      {/* Dynamic Wavy Line with Pulse Effect */}
-      <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
-        <motion.path
-          animate={lineControls}
-          d={`M calc(100% - 10rem - 5rem) 10rem Q calc(100% - 15rem) calc(50% - 5rem) calc(100% - 20rem - 5rem) calc(100% - 10rem)`}
-          fill="none"
-          stroke={`url(#lineGradient-dark)`}
-          strokeWidth="3"
-          style={{ scale: lineStretch }}
-          initial={{ pathLength: 0, strokeOpacity: 0.5 }}
-          whileInView={{ pathLength: 1, strokeOpacity: 1 }}
-          transition={{
-            pathLength: { duration: 1.5, delay: 1.5 },
-          }}
-        >
-          <defs>
-            <linearGradient id={`lineGradient-dark`} x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor='#ffffff'>
-                <animate
-                  attributeName="stopColor"
-                  values='#ffffff;#000000;#ffffff'
-                  dur="3s"
-                  repeatCount="indefinite"
-                />
-              </stop>
-              <stop offset="100%" stopColor='#000000'>
-                <animate
-                  attributeName="stopColor"
-                  values='#000000;#ffffff;#000000'
-                  dur="3s"
-                  repeatCount="indefinite"
-                />
-              </stop>
-            </linearGradient>
-          </defs>
-        </motion.path>
-      </svg>
 
       {/* Glowing Orbs */}
       {showOrbs && (

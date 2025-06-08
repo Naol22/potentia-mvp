@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -17,6 +16,7 @@ const SuccessPage = () => {
   } | null>(null);
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
+
 
   useEffect(() => {
     if (sessionId) {
@@ -64,7 +64,7 @@ const SuccessPage = () => {
   }, [sessionId]);
 
   if (status === "loading") return <GlobalLoadingScreen />;
-  if (status === "failed") return <div className="text-center text-red-400">Payment failed or plan details unavailable. Please try again or contact support.</div>;
+  if (status === "failed") return <div className="text-center text-red-400 mt-30 mb-30">Payment failed or plan details unavailable. Please try again or contact support.</div>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-neutral-900 to-[#1e3a8a] text-white flex items-center justify-center p-6 relative overflow-hidden">
@@ -99,7 +99,7 @@ const SuccessPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 0.6 }}
-            className="bg-neutral-700 rounded-lg p-5 mb-8 text-left shadow-inner"
+            className="bg-neutral-900 rounded-lg p-5 mb-8 text-left shadow-inner"
           >
             <h2 className="text-lg font-semibold mb-3 text-white">Plan Details</h2>
             <p className="text-base text-gray-200">Hashrate: {planDetails.hashrate} TH/s</p>
@@ -110,16 +110,16 @@ const SuccessPage = () => {
         <div className="space-x-6">
           <motion.a
             href="/dashboard"
-            className="inline-block bg-white text-black px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition duration-300"
-            whileHover={{ scale: 1.1, backgroundColor: "#e5e7eb" }}
+            className="inline-block bg-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition duration-300"
+            whileHover={{ scale: 1.1, backgroundColor: "bg-neutral-900" }}
             whileTap={{ scale: 0.95 }}
           >
             Go to Dashboard
           </motion.a>
           <motion.a
             href="/survey"
-            className="inline-block bg-white text-black px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition duration-300"
-            whileHover={{ scale: 1.1, backgroundColor: "#e5e7eb" }}
+            className="inline-block bg-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition duration-300"
+            whileHover={{ scale: 1.1, backgroundColor: "bg-neutral-900" }}
             whileTap={{ scale: 0.95 }}
           >
             Surveys

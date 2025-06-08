@@ -175,7 +175,7 @@ const CheckoutPage: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="mt-[150px] bg-neutral-800 rounded-xl shadow-lg p-8 max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-8"
+        className="mt-[150px] bg-neutral-900 rounded-xl shadow-lg p-8 max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-8"
       >
         {/* Plan Overview Section */}
         <motion.div
@@ -273,30 +273,38 @@ const CheckoutPage: React.FC = () => {
               </div>
             )}
 
-            <div>
-              <label className="block text-lg font-medium text-white mb-2">Select Payment Method</label>
-              <div className="flex space-x-4 flex-wrap">
-                {paymentMethods.map((method) => (
-                  <motion.button
-                    key={method.id}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 1.20 }}
-                    type="button"
-                    onClick={() => {
-                      setPaymentMethod(method.name);
-                      setPaymentMethodId(method.id);
-                    }}
-                    className={`px-6 py-3 rounded-lg font-medium transition duration-300 mb-2 ${
-                      paymentMethod === method.name
-                        ? "bg-white text-black border-4 border-red-400"
-                        : "bg-white text-black"
-                    }`}
-                  >
-                    {method.display_name}
-                  </motion.button>
-                ))}
-              </div>
-            </div>
+                <div>
+                  <label className="block text-lg font-medium text-white mb-2">Select Payment Method</label>
+                  <div className="flex space-x-4 flex-wrap">
+                    {paymentMethods.map((method) => (
+                      <motion.button
+                        key={method.id}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 1.10 }}
+                        type="button"
+                        onClick={() => {
+                          setPaymentMethod(method.name);
+                          setPaymentMethodId(method.id);
+                        }}
+                        className={`relative px-8 py-3 rounded-lg font-medium transition duration-300 mb-2 ${
+                          paymentMethod === method.name
+                            ? "bg-white text-black border-2 border-black"
+                            : "bg-white text-black"
+                        }`}
+                      >
+                        {/* Display "Card" for Stripe and "Crypto" for NowPayments */}
+                        {method.name === "stripe" ? "Card" : "Crypto"}
+
+                        {/* Add black tick in the corner when selected */}
+                        {paymentMethod === method.name && (
+                          <span className="absolute top-1 right-1 bg-black text-white rounded-full h-4 w-4 flex items-center justify-center text-xs">
+                            ✓
+                          </span>
+                        )}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
 
             {error && <p className="text-red-400 text-sm">{error}</p>}
 

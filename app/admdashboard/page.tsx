@@ -103,7 +103,7 @@ interface SurveyResponse {
   issue: string;
   suggestion: string;
   nps: number;
-  metadata: any;
+  metadata: unknown;
   created_at: string;
 }
 
@@ -119,7 +119,7 @@ interface Transaction {
   description: string;
   payment_method_id: string;
   payment_provider_reference: string;
-  metadata: any;
+  metadata: unknown;
   created_at: string;
 }
 
@@ -133,6 +133,10 @@ interface User {
   stripe_customer_id: string;
   crypto_address: string;
   created_at: string;
+}
+
+interface CSVRow {
+  [key: string]: string | number | boolean | undefined;
 }
 
 export default function DashboardHome() {
@@ -195,10 +199,10 @@ export default function DashboardHome() {
   };
 
   const exportToCSV = (section: string) => {
-    let data: any[] = [];
+    let data: CSVRow[] = [];
     let headers: string[] = [];
     let filename: string = "";
-
+  
     switch (section) {
       case "orders":
         headers = [
@@ -255,11 +259,11 @@ export default function DashboardHome() {
         ];
         data = surveyResponses.map((r) => ({
           id: r.id,
-          user_id: r.user_id || r.anonymous_user_id,
+          user_id: r.user_id || r.anonymous_user_id || "anonymous",
           satisfaction: r.satisfaction,
           nps: r.nps,
-          issue: r.issue,
-          suggestion: r.suggestion,
+          issue: r.issue || "",
+          suggestion: r.suggestion || "",
           created_at: new Date(r.created_at).toLocaleDateString(),
         }));
         filename = "SurveyResponses.csv";
@@ -299,26 +303,29 @@ export default function DashboardHome() {
           id: user.id,
           name: user.full_name,
           email: user.email,
-          stripe: user.stripe_customer_id,
-          crypto_address: user.crypto_address,
+          stripe: user.stripe_customer_id || "",
+          crypto_address: user.crypto_address || "",
           created_at: new Date(user.created_at).toLocaleDateString(),
         }));
         filename = "Users.csv";
         break;
+      default:
+        return;
     }
-
+  
     const csvContent = [
       headers.join(","),
       ...data.map((row) =>
         headers
-          .map(
-            (header) =>
-              `"${row[header.toLowerCase().replace(/\s/g, "_")] || ""}"`
-          )
+          .map((header) => {
+            // Convert header to the key used in the row object
+            const key = header.toLowerCase().replace(/\s/g, "_");
+            return `"${row[key] || ""}"`;
+          })
           .join(",")
       ),
     ].join("\n");
-
+  
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);

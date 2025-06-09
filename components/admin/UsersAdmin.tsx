@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { format } from "date-fns";
 import { useAuth } from "@clerk/nextjs";
 
 interface User {
@@ -23,7 +22,6 @@ export default function UsersAdmin() {
 
   const fetchUsers = async () => {
     try {
-      // Get the session token to include in the request
       const token = await getToken();
       
       const response = await fetch("/api/admin/users", {
@@ -51,7 +49,7 @@ export default function UsersAdmin() {
     if (isLoaded && userId) {
       fetchUsers();
     }
-  }, [isLoaded, userId]);
+  },);
 
   const updateUser = async () => {
     try {

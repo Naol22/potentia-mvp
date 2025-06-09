@@ -69,7 +69,7 @@ const Hero = (): React.ReactElement => {
   const { scrollYProgress } = useScroll();
   const imageScale = useTransform(scrollYProgress, [0, 1], [1, 1.05]);
   const [showOrbs, setShowOrbs] = useState(false);
-  const [ripple, setRipple] = useState(false);
+  // const [ripple,setRipple] = useState(false);
   const [showSurvey, setShowSurvey] = useState(false);
   const [step, setStep] = useState(0);
   const [responses, setResponses] = useState<{ [key: string]: number | boolean | string | null }>({});
@@ -215,7 +215,7 @@ const Hero = (): React.ReactElement => {
               className={`font-medium py-3 px-8 rounded-xl w-48 mx-auto transition bg-gradient-to-r from-white to-black text-black hover:from-gray-200 hover:to-gray-800 animate-gradient-shift`}
               onClick={() => {
                 setShowOrbs(true);
-                setRipple(true);
+                // setRipple(true);
                 setShowSurvey(true);
               }}
             >
@@ -274,7 +274,7 @@ const Hero = (): React.ReactElement => {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.5, duration: 0.4 }}
                   >
-                    <p className="mb-2">"Your input shapes our future."</p>
+                    <p className="mb-2">&quot;Your input shapes our future.&quot;</p>
                     <p className="text-sm mb-4">- A Grateful Team</p>
                   </motion.div>
                 </motion.div>

@@ -18,7 +18,7 @@ export default function FacilitiesAdmin() {
   const [editingFacility, setEditingFacility] = useState<Partial<Facility> | null>(null);
   const [newFacility, setNewFacility] = useState<Partial<Facility>>({ name: "" });
   const [isCreating, setIsCreating] = useState(false);
-  const { isLoaded, userId, getToken } = useAuth();
+  const { getToken } = useAuth();
   const fetchFacilities = async () => {
     try {
       const token = await getToken();
@@ -39,7 +39,7 @@ export default function FacilitiesAdmin() {
 
   useEffect(() => {
     fetchFacilities();
-  }, []);
+  },);
 
   const createFacility = async () => {
     try {

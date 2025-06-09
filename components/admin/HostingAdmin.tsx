@@ -44,7 +44,7 @@ export default function HostingAdmin() {
   const [currentHosting, setCurrentHosting] = useState<Hosting | null>(null);
   const [miners, setMiners] = useState<Miner[]>([]);
   const [facilities, setFacilities] = useState<Facility[]>([]);
-  const { isLoaded, userId, getToken } = useAuth();
+  const { getToken } = useAuth();
 
   const fetchHostingPlans = async () => {
     setLoading(true);
@@ -88,7 +88,7 @@ export default function HostingAdmin() {
   useEffect(() => {
     fetchHostingPlans();
     fetchRelatedData();
-  }, []);
+  }, );
 
   const handleEdit = (hosting: Hosting) => {
     setCurrentHosting(hosting);

@@ -7,7 +7,7 @@ import GlobalLoadingScreen from "@/components/GlobalLoadingScreen";
 const SuccessPage = () => {
   const [status, setStatus] = useState("loading");
   const [message, setMessage] = useState("");
-  const [plan, setPlan] = useState("");
+  // const [plan, setPlan] = useState("");
   const [planDetails, setPlanDetails] = useState<{
     hashrate: number;
     price: number;
@@ -33,12 +33,12 @@ const SuccessPage = () => {
         .then(([sessionRes, sessionDataRes]) => Promise.all([sessionRes.json(), sessionDataRes.json()]))
         .then(([sessionData, sessionDataResult]) => {
           if (sessionData.error) throw new Error(sessionData.error);
-          console.log("[SuccessPage] Session data result:", sessionDataResult); // Debug log
+          console.log("[SuccessPage] Session data result:", sessionDataResult);
           if (sessionDataResult.error) throw new Error(sessionDataResult.error);
           const email = sessionData.session?.customer_email || "your registered email";
           const planId = sessionDataResult.data[0]?.metadata?.planId || "Unknown Plan";
-          console.log("[SuccessPage] Retrieved planId:", { planId }); // Debug log
-          setPlan(planId);
+          console.log("[SuccessPage] Retrieved planId:", { planId });
+          // setPlan(planId);
           setMessage(`Congratulations! Your Potentia subscription is active. Check ${email} for confirmation.`);
 
           if (planId && planId !== "Unknown Plan") {

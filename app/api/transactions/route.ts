@@ -1,27 +1,40 @@
+"use server";
+
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase";
-import { auth } from "@clerk/nextjs/server";
+import { createClientSupabaseClient } from "@/lib/supabase";
 
-const supabase = createServerSupabaseClient();
+export async function GET() {
+  const client = createClientSupabaseClient();
 
-export async function GET(request: Request) {
-  // Get the current user (Clerk)
-  const {userId} = await auth();
-  
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    console.log("[Transactions API] Fetching active Transactions...");
+    const { data: transactions, error } = await client
+      .from("transactions")
+      .select("*");
+
+    if (error) {
+      console.error("[Transactions API] Error fetching Transactions:", {
+        message: error.message,
+        details: error.details,
+        code: error.code,
+      });
+      throw new Error("Failed to fetch Transactions");
+    }
+    console.log("[Transactions API] Successfully fetched Transactions:", {
+      count: transactions.length,
+    });
+    return NextResponse.json(transactions);
+  } catch (error: unknown) {
+    console.error("[Transactions API] Error:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    return NextResponse.json(
+      {
+        error: "Internal Server Error",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
-
-  // Fetch transactions for the current user
-  const { data, error } = await supabase
-    .from("transactions")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json({ transactions: data });
 }

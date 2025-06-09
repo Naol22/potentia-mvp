@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { TransactionsTable } from "@/components/transactions-table"
@@ -7,7 +8,7 @@ import { SectionCards } from "@/components/section-cards"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import SubscriptionManager from "@/components/dashboard/SubscriptionManager"
-import { useState, useEffect } from "react"
+import GlobalLoadingScreen from "@/components/GlobalLoadingScreen"
 
 export default function Page() {
   const [subscriptions, setSubscriptions] = useState([]);
@@ -31,6 +32,8 @@ export default function Page() {
     fetchSubscriptions();
   }, []);
 
+  if (loading) return <GlobalLoadingScreen />;
+
   return (
     <SidebarProvider>
       <AppSidebar variant="inset" />
@@ -46,7 +49,7 @@ export default function Page() {
               <div className="px-4 lg:px-6">
                 <TransactionsTable />
               </div>
-              
+
               {/* Subscription Management Section */}
               <div className="px-4 lg:px-6 mt-4">
                 <h2 className="text-2xl font-bold mb-4">Subscription Management</h2>

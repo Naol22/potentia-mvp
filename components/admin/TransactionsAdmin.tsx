@@ -51,7 +51,7 @@ export default function TransactionsAdmin() {
   const [currentTransaction, setCurrentTransaction] = useState<Transaction | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
-  const { isLoaded, userId, getToken } = useAuth();
+  const { getToken } = useAuth();
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -97,7 +97,7 @@ export default function TransactionsAdmin() {
   useEffect(() => {
     fetchTransactions();
     fetchRelatedData();
-  }, []);
+  }, );
 
   const handleEdit = (transaction: Transaction) => {
     setCurrentTransaction(transaction);

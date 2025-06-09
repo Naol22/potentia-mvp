@@ -65,7 +65,7 @@ export default function SubscriptionManager({ subscriptions }: { subscriptions: 
       <Card>
         <CardHeader>
           <CardTitle>Subscriptions</CardTitle>
-          <CardDescription>You don't have any active subscriptions</CardDescription>
+          <CardDescription>You don&apos;t have any active subscriptions</CardDescription>
         </CardHeader>
       </Card>
     );

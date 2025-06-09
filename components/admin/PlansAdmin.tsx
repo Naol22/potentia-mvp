@@ -27,7 +27,7 @@ export default function PlansAdmin() {
     duration: "Monthly Recurring"
   });
   const [isCreating, setIsCreating] = useState(false);
-  const { isLoaded, userId, getToken } = useAuth();
+  const { getToken } = useAuth();
 
   const fetchPlans = async () => {
     try {
@@ -51,7 +51,7 @@ export default function PlansAdmin() {
 
   useEffect(() => {
     fetchPlans();
-  }, []);
+  },);
 
   const createPlan = async () => {
     try {

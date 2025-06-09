@@ -1,9 +1,9 @@
-import { createServerSupabaseClient } from '@/lib/supabase';
+import { createClientSupabaseClient } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await createClientSupabaseClient()
       .from('facilities')
       .select('id, name')
       .order('name', { ascending: true });
@@ -16,5 +16,5 @@ export async function GET() {
 } catch (err) {
     console.error('Error in GET /api/facilities:', err);
     return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
-  }  
+  }
 }

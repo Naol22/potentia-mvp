@@ -11,10 +11,10 @@ import { UserMenu } from "@/components/user-menu";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  // const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { sticky } = useNavbar();
-  const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
+  // const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [profileDropdownTimeout, setProfileDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
   const [mobileProfileDropdownOpen, setMobileProfileDropdownOpen] = useState(false);
@@ -51,19 +51,19 @@ const Header = () => {
 
   const mobileLinkClassName = `block px-6 py-3 text-white transition-colors duration-300 hover:text-gray-300`;
 
-  const handleDropdownEnter = () => {
-    if (dropdownTimeout) clearTimeout(dropdownTimeout);
-    setDropdownOpen(true);
-  };
+  // const handleDropdownEnter = () => {
+  //   if (dropdownTimeout) clearTimeout(dropdownTimeout);
+  //   setDropdownOpen(true);
+  // };
 
-  const handleDropdownLeave = () => {
-    if (dropdownTimeout) clearTimeout(dropdownTimeout);
-    setDropdownTimeout(
-      setTimeout(() => {
-        setDropdownOpen(false);
-      }, 500)
-    );
-  };
+  // const handleDropdownLeave = () => {
+  //   if (dropdownTimeout) clearTimeout(dropdownTimeout);
+  //   setDropdownTimeout(
+  //     setTimeout(() => {
+  //       setDropdownOpen(false);
+  //     }, 500)
+  //   );
+  // };
 
   const handleProfileDropdownEnter = () => {
     if (profileDropdownTimeout) clearTimeout(profileDropdownTimeout);

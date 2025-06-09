@@ -11,7 +11,7 @@ const isPublicRoute = createRouteMatcher([
   '/api(.*)',
 ]);
 
-const isAdminRoute = createRouteMatcher(['/admin(.*)', '/admdasboard(.*)']); // Note: 'admdasboard' might be a typo, should be 'dashboard'?
+const isAdminRoute = createRouteMatcher(['/admin(.*)', '/admdasboard(.*)']);
 
 const isUserDashboardRoute = createRouteMatcher(['/dashboard(.*)']);
 
@@ -28,7 +28,7 @@ export default clerkMiddleware(async (auth, req) => {
   if (isAdminRoute(req)) {
     if (debug) console.log('[Middleware] Accessing admin route...');
     const role = sessionClaims?.o?.rol;
-    const hasAdminAccess = role === 'admin'; // Match JWT's o.rol value
+    const hasAdminAccess = role === 'admin'; 
     if (debug) console.log(`[Middleware] Admin role check: ${hasAdminAccess} (Role: ${role})`);
     if (!hasAdminAccess) {
       return NextResponse.redirect(new URL('/unauthorized', req.url));

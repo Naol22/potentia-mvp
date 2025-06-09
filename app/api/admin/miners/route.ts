@@ -16,7 +16,10 @@ export async function GET() {
     return NextResponse.json(data);
   } catch (error: unknown) {
     return NextResponse.json(
-      { error: "Internal Server Error", details: error instanceof Error ? error.message : "Unknown error" },
+      {
+        error: "Internal Server Error",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }
@@ -38,6 +41,15 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json(
+        {
+          error: "Invalid request data or server error",
+          details: error.message,
+        },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
       { error: "Invalid request data or server error" },
       { status: 400 }

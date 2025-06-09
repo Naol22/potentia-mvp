@@ -40,6 +40,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: "Invalid request data or server error", details: error.message },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
       { error: "Invalid request data or server error" },
       { status: 400 }

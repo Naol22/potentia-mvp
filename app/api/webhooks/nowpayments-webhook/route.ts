@@ -94,7 +94,7 @@ async function handleCheckoutCompleted(payment: {
   if (!payment.metadata) {
     throw new Error("Metadata is null");
   }
-  const { planId, cryptoAddress, paymentMethod, transactionId } = payment.metadata;
+  const { planId, cryptoAddress, transactionId } = payment.metadata;
 
   try {
     console.log("[Webhook NOWPayments API] Handling checkout completed event...");

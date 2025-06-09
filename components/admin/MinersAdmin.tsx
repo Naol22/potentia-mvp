@@ -19,11 +19,10 @@ export default function MinersAdmin() {
   const [editingMiner, setEditingMiner] = useState<Partial<Miner> | null>(null);
   const [newMiner, setNewMiner] = useState<Partial<Miner>>({ name: "" });
   const [isCreating, setIsCreating] = useState(false);
-  const { isLoaded, userId, getToken } = useAuth();
+  const {getToken } = useAuth();
   const fetchMiners = async () => {
     try {
       const token = await getToken();
-
       const response = await fetch("/api/admin/miners", {
         credentials: "include",
         headers: {
@@ -41,7 +40,7 @@ export default function MinersAdmin() {
 
   useEffect(() => {
     fetchMiners();
-  }, []);
+  },);
 
   const createMiner = async () => {
     try {

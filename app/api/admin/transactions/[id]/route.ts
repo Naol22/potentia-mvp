@@ -3,14 +3,15 @@ import { createServerSupabaseClient } from "@/lib/supabase";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = createServerSupabaseClient();
   try {
+    const { id } = await params;
     const { data, error } = await supabase
       .from("transactions")
       .select("*")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (error) {
@@ -26,18 +27,17 @@ export async function GET(
   }
 }
 
-
-
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = createServerSupabaseClient();
   try {
+    const { id } = await params;
     const { error } = await supabase
       .from("transactions")
       .delete()
-      .eq("id", params.id);
+      .eq("id", id);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

@@ -1,11 +1,6 @@
+import { createServerSupabaseClient } from "@/lib/supabase";
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 
-function createServiceRoleClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-  const supabaseServiceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY || '';
-  return createClient(supabaseUrl, supabaseServiceKey);
-}
 
 export async function GET(
   req: NextRequest,
@@ -17,7 +12,7 @@ export async function GET(
     return NextResponse.json({ error: "Missing or invalid user ID" }, { status: 400 });
   }
 
-  const supabase = createServiceRoleClient();
+  const supabase = createServerSupabaseClient();
   try {
     const { data, error } = await supabase
       .from("users")
@@ -64,7 +59,7 @@ export async function PUT(
     return NextResponse.json({ error: "Missing or invalid user ID" }, { status: 400 });
   }
 
-  const supabase = createServiceRoleClient();
+  const supabase = createServerSupabaseClient();
   try {
     const userData = await req.json();
     if (!userData.full_name && !userData.email && !userData.crypto_address) {
@@ -122,7 +117,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Missing or invalid user ID" }, { status: 400 });
   }
 
-  const supabase = createServiceRoleClient();
+  const supabase = createServerSupabaseClient();
   try {
     const { error } = await supabase
       .from("users")

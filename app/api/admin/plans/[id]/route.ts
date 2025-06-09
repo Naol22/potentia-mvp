@@ -3,14 +3,15 @@ import { createServerSupabaseClient } from "@/lib/supabase";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = createServerSupabaseClient();
   try {
+    const { id } = await params;
     const { data, error } = await supabase
       .from("hashrate_plans")
       .select("*")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (error) {
@@ -28,15 +29,16 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = createServerSupabaseClient();
   try {
     const hashrateData = await req.json();
+    const { id } = await params;
     const { data, error } = await supabase
       .from("hashrate_plans")
       .update(hashrateData)
-      .eq("id", params.id)
+      .eq("id", id)
       .select("*")
       .single();
 
@@ -61,14 +63,15 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = createServerSupabaseClient();
   try {
+    const { id } = await params;
     const { error } = await supabase
       .from("hashrate_plans")
       .delete()
-      .eq("id", params.id);
+      .eq("id", id);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

@@ -19,7 +19,6 @@ export async function POST(request: Request) {
   try {
     console.log("[Webhook NOWPayments API] Verifying and processing NOWPayments webhook event...");
 
-    // Verify webhook signature
     const sig = request.headers.get("x-nowpayments-sig")!;
     const body = await request.text();
     const hmac = crypto

@@ -17,7 +17,7 @@ interface ClerkUserData {
 const webhookSecret = process.env.CLERK_WEBHOOK_SECRET;
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const potentiaOrgId = process.env.POTENTIA_ORG_ID; // e.g., 'org_123abc' from Clerk
+const potentiaOrgId = process.env.POTENTIA_ORG_ID; 
 
 if (
   !webhookSecret ||
@@ -48,11 +48,6 @@ const handler = async (req: Request) => {
     console.error("[Webhook] Missing Svix headers");
     return new Response("Error: Missing Svix headers", { status: 400 });
   }
-
-
-
-  // Decode the token to inspect its claims
-
 
   const wh = new Webhook(webhookSecret);
   let event: ClerkWebhookEvent;

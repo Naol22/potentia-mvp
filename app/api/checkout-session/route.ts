@@ -142,7 +142,7 @@ export async function POST(request: Request) {
       mode,
       success_url: `${request.headers.get("origin")}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${request.headers.get("origin")}/checkout`,
-      customer_email: user.email || undefined,
+      customer_email: user?.emailAddresses[0]?.emailAddress || undefined,
       metadata: {
         planId: plan.id,
         cryptoAddress,

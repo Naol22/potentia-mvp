@@ -41,7 +41,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Transaction, TransactionStatus, PaymentType } from "@/types";
+import { Transaction, TransactionStatus,  } from "@/types";
 
 // Define Transaction type (imported from @/types for consistency)
 // type Transaction = {
@@ -53,19 +53,14 @@ import { Transaction, TransactionStatus, PaymentType } from "@/types";
 //   created_at: string;
 //   payment_provider_reference?: string;
 // };
-interface BadgeProps {
-  children?: React.ReactNode;
-  variant?: "default" | "secondary" | "destructive";
-  // Add the missing property
-  AscendantBadge?: boolean;
-} 
+
 export function TransactionsTable() {
   const { transactions } = useTransactions();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 
-  const columns: ColumnDef<Transaction, any>[] = [
+  const columns: ColumnDef<Transaction>[] = [
     {
       accessorKey: "created_at",
       header: "Date",

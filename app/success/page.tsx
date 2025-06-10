@@ -39,7 +39,7 @@ const SuccessPage = () => {
           const planId = sessionDataResult.data[0]?.metadata?.planId || "Unknown Plan";
           console.log("[SuccessPage] Retrieved planId:", { planId });
           // setPlan(planId);
-          setMessage(`Congratulations! Your Potentia subscription is active. Check ${email} for confirmation.`);
+          setMessage(`Congratulations! Your potentia subscription is active. Check ${email} for confirmation.`);
 
           if (planId && planId !== "Unknown Plan") {
             return fetch(`/api/hashrate-plans/${planId}`).then((res) => res.json());

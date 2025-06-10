@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Subscription not found" }, { status: 404 });
     }
 
-    const paymentMethodName = subscription.payment_methods?.name;
+    const paymentMethodName = subscription.payment_methods?.[0]?.name;
 
     if (paymentMethodName === 'stripe') {
       // For Stripe, return the sharable customer portal link

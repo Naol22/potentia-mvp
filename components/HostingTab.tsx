@@ -6,9 +6,12 @@ import Image from 'next/image';
 const FlatMap3D = dynamic(() => import("@/components/FlatMap3D"), {
   ssr: false, 
 });
+<<<<<<< Updated upstream
 
 
 
+=======
+>>>>>>> Stashed changes
 
 
 const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (

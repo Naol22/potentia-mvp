@@ -507,14 +507,14 @@ const MapboxMap: React.FC = () => {
                                     passHref
                                 >
                                     <button
-                                        className="buy-host-button cursor-pointer text-sm md:text-base"
+                                        className="buy-host-button bg-white text-black border-2 rounded-2xl border-black cursor-pointer text-sm md:text-base"
                                     >
                                         Buy Host
                                     </button>
                                 </Link>
                             ) : (
                                 <button
-                                    className="buy-host-button cursor-not-allowed opacity-60 pointer-events-none text-sm md:text-base"
+                                    className="buy-host-button border-2 border-white rounded-2xl cursor-not-allowed opacity-30 pointer-events-none text-sm md:text-base"
                                     disabled
                                 >
                                     Buy Host
@@ -633,38 +633,12 @@ const MapboxMap: React.FC = () => {
                  .custom-popup .leaflet-popup-content {
                     margin: 0;
                 }
-                .buy-host-button {
-                    background: radial-gradient(
-                        circle at 20% 30%,
-                        rgba(255,255,255,0.05),
-                        #ffffff
-                    ),
-                    linear-gradient(
-                        135deg,
-                        #ffffff,
-                        #ffffff 45%,
-                        rgba(0,0,0,0.1) 50%,
-                        #ffffff 55%,
-                        #ffffff
-                    );
-                    background-size: 200% 200%;
-                    animation: flowAnimation 20s linear infinite, goldenGlow 2s infinite;
-                    color: #000;
-                    padding: 6px 12px; /* smaller padding for mobile */
-                    border-radius: 9999px;
-                    font-weight: 600;
-                    border: none;
-                    cursor: pointer;
-                    transition: transform 0.3s;
-                }
                 @media (min-width: 768px) { /* md breakpoint */
                     .buy-host-button {
                         padding: 8px 16px;
                     }
                 }
-                .buy-host-button:hover {
-                    transform: scale(1.05);
-                }
+                
                 @keyframes flowAnimation {
                     0% { background-position: 0% 50%; }
                     50% { background-position: 100% 50%; }

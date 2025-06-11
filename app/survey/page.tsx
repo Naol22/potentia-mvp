@@ -162,34 +162,16 @@ const Hero = (): React.ReactElement => {
             transition={{ duration: 0.7, ease: 'easeInOut' }}
           >
             <div className="flex flex-col gap-1 mt-2">
-              <span className={`text-xl text-white`}>🚀</span>
-              <span className={`font-bold text-xl text-white`}>Potentia</span>
+              <span className={`font-bold text-xl text-white`}>potentia</span>
               <span className={`text-sm text-zinc-400`}>
                 Empowering your digital future with sustainable Bitcoin mining solutions that drive innovation, economic growth, and global impact.{' '}
-                <a
-                  href=""
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`underline transition text-white hover:text-gray-300`}
-                >
-                  Contact Eng
-                </a>{' '}
-                |{' '}
-                <a
-                  href=""
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`underline transition text-white hover:text-gray-300`}
-                >
-                  Contact CEO
-                </a>
               </span>
             </div>
             <div className="flex justify-center">
               <CheckCircleIcon className={`w-12 h-12 mb-4 text-white`} />
             </div>
             <motion.h1
-              className={`text-5xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-white to-black`}
+              className={`text-5xl font-bold text-center text-transparent bg-clip-text text-white`}
               initial={{ y: -50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
@@ -261,7 +243,7 @@ const Hero = (): React.ReactElement => {
                     <CheckCircleIcon className={`mb-4 w-16 h-16 text-white`} />
                   </motion.div>
                   <motion.span
-                    className={`text-4xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white to-black`}
+                    className={`text-4xl font-bold mb-4 text-transparent bg-clip-text text-white`}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3, duration: 0.4 }}
@@ -299,7 +281,7 @@ const Hero = (): React.ReactElement => {
                     transition={{ duration: 0.7, delay: 0.1 }}
                   >
                     <h1
-                      className={`text-5xl font-bold text-transparent bg-clip-text relative inline-block bg-gradient-to-r from-white to-black`}
+                      className={`text-5xl font-bold text-transparent bg-clip-text relative inline-block text-white`}
                     >
                       Your Opinion Matters
                       <motion.span

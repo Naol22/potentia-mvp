@@ -8,9 +8,6 @@ const FlatMap3D = dynamic(() => import("@/components/FlatMap3D"), {
 });
 
 
-
-
-
 const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
   <svg
     className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`}

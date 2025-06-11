@@ -563,7 +563,7 @@ const MapboxMap: React.FC = () => {
                   passHref
                 >
                   <button className="buy-host-button bg-white text-black border-2 rounded-2xl border-black font-bold cursor-pointer text-sm md:text-base">
-                    Buy Host
+                    Buy
                   </button>
                 </Link>
               ) : (
@@ -571,7 +571,7 @@ const MapboxMap: React.FC = () => {
                   className="buy-host-button border-2 border-white rounded-2xl cursor-not-allowed opacity-30 pointer-events-none text-sm md:text-base"
                   disabled
                 >
-                  Buy Host
+                  Buy
                 </button>
               )}
             </div>

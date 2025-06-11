@@ -1,0 +1,12 @@
+[build]
+  command = "next build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Optional: For client-side routing or specific redirects
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

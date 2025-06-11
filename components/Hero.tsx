@@ -20,7 +20,8 @@ const Hero = () => {
         />
       </Head>
 
-      <section className="relative h-screen w-full overflow-hidden flex items-center justify-center bg-gray-950">
+      <section className="relative h-screen w-full overflow-hidden flex items-center justify-center bg-neutral-950">
+        {/* Monochrome gradient background */}
         <div
           aria-hidden="true"
           className="absolute inset-0 z-0 overflow-hidden flex items-center justify-center"
@@ -29,7 +30,7 @@ const Hero = () => {
             className="
               absolute
               w-[70rem] h-[70rem]
-              bg-gradient-to-tr from-blue-700/20 via-purple-700/20 to-pink-700/20
+              bg-gradient-to-tr from-neutral-800/30 via-neutral-600/20 to-neutral-400/10
               rounded-full blur-3xl
               transform -translate-x-1/2 -translate-y-1/2
               left-1/2 top-1/2

@@ -50,7 +50,7 @@ export function useTransactions() {
         const res = await fetch("/api/transactions");
         const json = await res.json();
         if (res.ok) {
-          const formattedTransactions: Transaction[] = (json.transactions ?? []);
+          const formattedTransactions: Transaction[] = (json ?? []);
           setTransactions(formattedTransactions);
 
           // Calculate stats from real data

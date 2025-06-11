@@ -29,23 +29,23 @@ import Link from "next/link";
 import Image from "next/image";
 
 interface MiningLocation {
-  name: string;
-  coordinates: [number, number];
-  country: string;
-  region: string;
-  hashRate: string;
-  facilitySize: string;
-  availability: string;
-  networkPercentage: string;
+    name: string;
+    coordinates: [number, number];
+    country: string;
+    region: string;
+    hashRate: string;
+    facilitySize: string;
+    availability: string;
+    networkPercentage: string;
 }
 
 interface MiningDataByCountry {
-  [key: string]: {
-    hashRate: number;
-    facilitySize: number;
-    locations: number;
-    networkPercentage: string;
-  };
+    [key: string]: {
+        hashRate: number;
+        facilitySize: number;
+        locations: number;
+        networkPercentage: string;
+    };
 }
 
 // Component to access the map instance

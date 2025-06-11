@@ -1,8 +1,11 @@
 'use client';
+import dynamic from "next/dynamic";
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import FlatMap3D from './FlatMap3D';
+const FlatMap3D = dynamic(() => import("@/components/FlatMap3D"), {
+  ssr: false, 
+});
 
 
 
